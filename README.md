@@ -8,7 +8,7 @@
     * In the NPM SCRIPTS view, run the 'package' script
 * Install the **probe-rs-debugger** server component, using instructions from [probe-rs-debugger](https://github.com/probe-rs/probe-rs/tree/dap/debugger)
 
-* Configure your own VSCode project as per instructions below. This repo also contains a [debug-example](https://github.com/probe-rs/vscode/debug_example) folder, with a fully functional Embedded Rust environment on a STM32H745ZI-Q Nucleo board.
+* Configure your own VSCode project as per instructions below. This repo also contains a [debug-example](https://github.com/probe-rs/vscode/tree/master/debug_example) folder, with a fully functional Embedded Rust environment on a STM32H745ZI-Q Nucleo board.
 
 ![probe-rs-debugger](images/probe-rs-debugger.gif)
 
