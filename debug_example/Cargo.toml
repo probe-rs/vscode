@@ -1,0 +1,44 @@
+[package]
+authors = ["JackN <noppej@hotmail.com>"]
+name = "probe-rs-debug-example"
+description = "A collection of variable types to demonstrate VSCode debugging for probe-rs"
+edition = "2018"
+version = "0.2.0"
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
+
+[[bin]]
+name = "debugging_variables"
+path = "src/debugging_variables.rs"
+
+
+[dependencies]
+log = "*"
+cortex-m = "*"
+cortex-m-rt = "*"
+panic-halt = "*"
+typenum = "*"
+heapless = "*"
+
+[dependencies.stm32h7]
+git = "https://github.com/stm32-rs/stm32-rs-nightlies"
+features = ["stm32h747cm7", "rt"]
+# emTODO: Add stm32h747cm4 ... these are the masters for STM32H745 support
+
+[dependencies.stm32h7xx-hal]
+git = "https://github.com/stm32-rs/stm32h7xx-hal"
+features = ["stm32h747cm7", "rt", "unproven"]
+
+
+[profile.dev]
+codegen-units = 8
+debug = 2
+debug-assertions = true # <-
+incremental = false
+opt-level = 0 # <-
+overflow-checks = true # <-
+split-debuginfo = "unpacked"
+
+

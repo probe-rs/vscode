@@ -1,0 +1,45 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "preLaunchTask": "${defaultBuildTask}",
+            "type": "probe-rs-debug",
+            "request": "launch",
+            "name": "probe_rs Executable Test",
+            "cwd": "${workspaceFolder}",
+            "program_binary": "target/thumbv7em-none-eabihf/debug/debugging_variables",
+            "chip": "STM32H745ZITx",
+            "connect_under_reset": true,
+            "speed": 24000,
+            "probe_index": 0,
+            "runtimeExecutable": "probe-rs-debugger",
+            "runtimeArgs": [
+                "debug",
+                "--dap"
+            ],
+            "core_index": 0,
+            "flashing_enabled": true,
+            "reset_after_flashing": true,
+            "halt_after_reset": true,
+            "console_log_level": "Error"
+        },
+        {
+            "preLaunchTask": "${defaultBuildTask}",
+            "type": "probe-rs-debug",
+            "request": "attach",
+            "name": "probe_rs Server Test",
+            "server": "127.0.0.1:50001",
+            "cwd": "${workspaceFolder}",
+            "program_binary": "./target/thumbv7em-none-eabihf/debug/debugging_variables",
+            "chip": "STM32H745ZITx",
+            "connect_under_reset": true,
+            "speed": 24000,
+            "probe_index": 0,
+            "core_index": 0,
+            "flashing_enabled": true,
+            "reset_after_flashing": true,
+            "halt_after_reset": false,
+            "console_log_level": "Info"            
+        }
+    ]
+}
