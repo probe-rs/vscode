@@ -3,10 +3,10 @@
 ## Using probe-rs-debugger
 
 * Install the **probe-rs-debugger** extension in VS Code, using the probe-rs-debugger-0.2.0.vsix generated in this repo (we will publish to the Microsoft Extension marketplace in due course)
-  * To generate the extension ...(the file size is too big to publish into github)
+  * Install the extension by running `code --install-extension probe-rs-debugger-0.2.0.vsix` in the terminal
+  * To generate the extension ...(if you wish to update the version distributed with this repository)
     * Run `yarn` in the terminal to update all dependencies.
     * Package the extension with `yarn package`.
-    * Install the extension by running `code --install-extension probe-rs-debugger-0.2.0.vsix`
 * Install the **probe-rs-debugger** server component, using instructions from [probe-rs-debugger](https://github.com/probe-rs/probe-rs/tree/dap/debugger)
 
 * Configure your own VSCode project as per instructions below. This repo also contains a [debug-example](https://github.com/probe-rs/vscode/tree/master/debug_example) folder, with a fully functional Embedded Rust environment on a STM32H745ZI-Q Nucleo board.
@@ -73,6 +73,7 @@
   - [x] Supports `reset-after-flashing`
   - [x] Supports `halt-after-reset`. This will allow you to set breakpoints in your main() function.
 - [x] Set, clear, disable, enable **Breakpoints**
+  - [ ] TODO: There is a known issue that prevents too many changes to breakpoints in one session. If you run into it, just restart your session.
 - [x] **Step Over** executing code
   - [x] Step Over works at 'instruction' granularity, so sometimes requires multiple steps per line of code
   - [ ] Stepping at 'line' level, Step Into, Step Out, does not work yet
