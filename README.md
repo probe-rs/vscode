@@ -9,6 +9,7 @@
 * Install the **probe-rs-debugger** server component, using instructions from [probe-rs-debugger](https://github.com/probe-rs/probe-rs/tree/dap/debugger)
 
 * Configure your own VSCode project as per instructions below. This repo also contains a [debug-example](https://github.com/probe-rs/vscode/tree/master/debug_example) folder, with a fully functional Embedded Rust environment on a STM32H745ZI-Q Nucleo board.
+  * If you install using the extension `.vsix`, then the example folder can be found your home directory, usually something like `~/.vscode/extensions/noppej.probe-rs-debugger-0.2.0/debug_example`
 
 ![probe-rs-debugger](images/probe-rs-debugger.gif)
 
@@ -27,7 +28,7 @@
             "chip": "STM32H745ZITx",
             "connect_under_reset": true,
             "speed": 24000,
-            "probe_index": 0,
+            // "probe": "PID:VID:<Serial>",
             "runtimeExecutable": "probe-rs-debugger",
             "runtimeArgs": [
                 "debug",
@@ -50,7 +51,7 @@
             "chip": "STM32H745ZITx",
             "connect_under_reset": true,
             "speed": 24000,
-            "probe_index": 0,
+            // "probe": "PID:VID:<Serial>",
             "core_index": 0,
             "flashing_enabled": true,
             "reset_after_flashing": true,
@@ -85,13 +86,15 @@
       - [x] Pointers
       - [x] Variants
     - [ ] TODO: Add support for all data types, such as Arrays, Unions, Generics, etc.
-    - [ ] TODO: Filter the list of local variables to ONLY display variables that are in scope of the current register PC value. Currently ALL local variables are shown.
+    - [x] FIXED: Filter the list of local variables to ONLY display variables that are in scope of the current register PC value. Currently ALL local variables are shown.
   - [ ] TODO: Expose **Static** and **Global** variables
 - [x] **Call Stack View**
   - [x] Supports a single thread, for a single core of the chip, but will **allow selection of any frames** that are in the current thread
   - [ ] TODO: Support multiple threads
   - [ ] TODO: Support chips with multiple cores
-- [ ] **Watch View** 
+- [ ] TODO: **Watch View** Nothing yet
+- [ ] TODO: **ITM** and **RTT**
+- [ ] TODO: Enable Debug Console to accept CLI commands via REPL
 
 ## Build and Run
 

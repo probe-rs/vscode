@@ -9,9 +9,9 @@
             "cwd": "${workspaceFolder}",
             "program_binary": "target/thumbv7em-none-eabihf/debug/debugging_variables",
             "chip": "STM32H745ZITx",
+            // "probe": "PID:VID:<Serial Number>",
             "connect_under_reset": true,
             "speed": 24000,
-            "probe_index": 0,
             "runtimeExecutable": "probe-rs-debugger",
             "runtimeArgs": [
                 "debug",
@@ -21,7 +21,7 @@
             "flashing_enabled": true,
             "reset_after_flashing": true,
             "halt_after_reset": true,
-            "console_log_level": "Error"
+            "console_log_level": "Debug"
         },
         {
             "preLaunchTask": "${defaultBuildTask}",
@@ -32,9 +32,9 @@
             "cwd": "${workspaceFolder}",
             "program_binary": "./target/thumbv7em-none-eabihf/debug/debugging_variables",
             "chip": "STM32H745ZITx",
+            // "probe": "PID:VID:<Serial Number>",
             "connect_under_reset": true,
             "speed": 24000,
-            "probe_index": 0,
             "core_index": 0,
             "flashing_enabled": true,
             "reset_after_flashing": true,
