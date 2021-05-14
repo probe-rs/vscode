@@ -4,8 +4,9 @@
 
 * Install the **probe-rs-debugger** extension in VS Code, using the probe-rs-debugger-0.2.0.vsix generated in this repo (we will publish to the Microsoft Extension marketplace in due course)
   * To generate the extension ...(the file size is too big to publish into github)
-    * Run `yarn` in the terminal to update all dependencies
-    * In the NPM SCRIPTS view, run the 'package' script
+    * Run `yarn` in the terminal to update all dependencies.
+    * Package the extension with `yarn package`.
+    * Install the extension by running `code --install-extension probe-rs-debugger-0.2.0.vsix`
 * Install the **probe-rs-debugger** server component, using instructions from [probe-rs-debugger](https://github.com/probe-rs/probe-rs/tree/dap/debugger)
 
 * Configure your own VSCode project as per instructions below. This repo also contains a [debug-example](https://github.com/probe-rs/vscode/tree/master/debug_example) folder, with a fully functional Embedded Rust environment on a STM32H745ZI-Q Nucleo board.
