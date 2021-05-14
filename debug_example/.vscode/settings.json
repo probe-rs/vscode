@@ -10,4 +10,5 @@
 	"rust-analyzer.updates.channel": "nightly",
 	"files.associations": {
 		"*.x": "linkerscript"
+	}
 }

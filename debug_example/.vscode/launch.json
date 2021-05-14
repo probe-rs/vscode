@@ -39,7 +39,7 @@
             "flashing_enabled": true,
             "reset_after_flashing": true,
             "halt_after_reset": false,
-            "console_log_level": "Info"            
+            "console_log_level": "Debug"            
         }
     ]
 }
