@@ -12,5 +12,3 @@ tsconfig.json
 out
 sampleWebWorkerWorkspace
 sampleWorkspace
-
-debug_example/
