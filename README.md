@@ -2,15 +2,15 @@
 
 ## Using probe-rs-debugger
 
-* Install the **probe-rs-debugger** extension in VS Code, using the probe-rs-debugger-0.2.0.vsix generated in this repo (we will publish to the Microsoft Extension marketplace in due course)
-  * Install the extension by running `code --install-extension probe-rs-debugger-0.2.0.vsix` in the terminal
+* Install the **probe-rs-debugger** extension in VS Code, by downloading the latest `probe-rs-debugger-0.2.1.vsix` from the [Releases](https://github.com/probe-rs/vscode/releases) page in this repo (we will publish to the Microsoft Extension marketplace in due course)
+  * Install the extension by running `code --install-extension probe-rs-debugger-0.2.1.vsix` in the terminal
   * To generate the extension ...(if you wish to update the version distributed with this repository)
     * Run `yarn` in the terminal to update all dependencies.
     * Package the extension with `yarn package`.
-* Install the **probe-rs-debugger** server component, using instructions from [probe-rs-debugger](https://github.com/probe-rs/probe-rs/tree/dap/debugger)
+* Install the **probe-rs-debugger** server component, using instructions from [probe-rs-debugger](https://github.com/probe-rs/probe-rs/tree/master/debugger)
 
 * Configure your own VSCode project as per instructions below. This repo also contains a [debug-example](https://github.com/probe-rs/vscode/tree/master/debug_example) folder, with a fully functional Embedded Rust environment on a STM32H745ZI-Q Nucleo board.
-  * If you install using the extension `.vsix`, then the example folder can be found your home directory, usually something like `~/.vscode/extensions/noppej.probe-rs-debugger-0.2.0/debug_example`
+  * If you install using the extension `.vsix`, then the example folder can be found your home directory, usually something like `~/.vscode/extensions/probe-rs.probe-rs-debugger-0.2.1/debug_example`
 
 ![probe-rs-debugger](images/probe-rs-debugger.gif)
 
