@@ -2,14 +2,15 @@
 
 ## Using probe-rs-debugger
 
-* Install the **probe-rs-debugger** extension in VS Code, using the probe-rs-debugger-0.2.0.vsix generated in this repo (we will publish to the Microsoft Extension marketplace in due course)
-  * To generate the extension ...(the file size is too big to publish into github)
+* Install the **probe-rs-debugger** extension in VS Code, by downloading the latest `probe-rs-debugger-0.2.1.vsix` from the [Releases](https://github.com/probe-rs/vscode/releases) page in this repo (we will publish to the Microsoft Extension marketplace in due course)
+  * Install the extension by running `code --install-extension probe-rs-debugger-0.2.1.vsix` in the terminal
+  * To generate the extension ...(if you wish to update the version distributed with this repository)
     * Run `yarn` in the terminal to update all dependencies.
     * Package the extension with `yarn package`.
-    * Install the extension by running `code --install-extension probe-rs-debugger-0.2.0.vsix`
-* Install the **probe-rs-debugger** server component, using instructions from [probe-rs-debugger](https://github.com/probe-rs/probe-rs/tree/dap/debugger)
+* Install the **probe-rs-debugger** server component, using instructions from [probe-rs-debugger](https://github.com/probe-rs/probe-rs/tree/master/debugger)
 
 * Configure your own VSCode project as per instructions below. This repo also contains a [debug-example](https://github.com/probe-rs/vscode/tree/master/debug_example) folder, with a fully functional Embedded Rust environment on a STM32H745ZI-Q Nucleo board.
+  * If you install using the extension `.vsix`, then the example folder can be found your home directory, usually something like `~/.vscode/extensions/probe-rs.probe-rs-debugger-0.2.1/debug_example`
 
 ![probe-rs-debugger](images/probe-rs-debugger.gif)
 
@@ -28,7 +29,7 @@
             "chip": "STM32H745ZITx",
             "connect_under_reset": true,
             "speed": 24000,
-            "probe_index": 0,
+            // "probe": "PID:VID:<Serial>",
             "runtimeExecutable": "probe-rs-debugger",
             "runtimeArgs": [
                 "debug",
@@ -51,7 +52,7 @@
             "chip": "STM32H745ZITx",
             "connect_under_reset": true,
             "speed": 24000,
-            "probe_index": 0,
+            // "probe": "PID:VID:<Serial>",
             "core_index": 0,
             "flashing_enabled": true,
             "reset_after_flashing": true,
@@ -72,6 +73,7 @@
   - [x] Supports `reset-after-flashing`
   - [x] Supports `halt-after-reset`. This will allow you to set breakpoints in your main() function.
 - [x] Set, clear, disable, enable **Breakpoints**
+  - [ ] TODO: There is a known issue that prevents too many changes to breakpoints in one session. If you run into it, just restart your session.
 - [x] **Step Over** executing code
   - [x] Step Over works at 'instruction' granularity, so sometimes requires multiple steps per line of code
   - [ ] Stepping at 'line' level, Step Into, Step Out, does not work yet
@@ -86,13 +88,15 @@
       - [x] Pointers
       - [x] Variants
     - [ ] TODO: Add support for all data types, such as Arrays, Unions, Generics, etc.
-    - [ ] TODO: Filter the list of local variables to ONLY display variables that are in scope of the current register PC value. Currently ALL local variables are shown.
+    - [x] FIXED: Filter the list of local variables to ONLY display variables that are in scope of the current register PC value. Currently ALL local variables are shown.
   - [ ] TODO: Expose **Static** and **Global** variables
 - [x] **Call Stack View**
   - [x] Supports a single thread, for a single core of the chip, but will **allow selection of any frames** that are in the current thread
   - [ ] TODO: Support multiple threads
   - [ ] TODO: Support chips with multiple cores
-- [ ] **Watch View** 
+- [ ] TODO: **Watch View** Nothing yet
+- [ ] TODO: **ITM** and **RTT**
+- [ ] TODO: Enable Debug Console to accept CLI commands via REPL
 
 ## Build and Run
 
