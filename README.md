@@ -72,24 +72,25 @@
 - [x] **Flash** the chip with your own binary. 
   - [x] Supports `reset-after-flashing`
   - [x] Supports `halt-after-reset`. This will allow you to set breakpoints in your main() function.
-- [x] Set, clear, disable, enable **Breakpoints**
-  - [ ] TODO: There is a known issue that prevents too many changes to breakpoints in one session. If you run into it, just restart your session.
+- [x] Set, clear, disable, enable hardware **Breakpoints**
 - [x] **Step Over** executing code
   - [x] Step Over works at 'instruction' granularity, so sometimes requires multiple steps per line of code
   - [ ] Stepping at 'line' level, Step Into, Step Out, does not work yet
 - [x] **Variables View**
   - [x] View values of core **Registers**, and changes during code execution
     - [ ] TODO: Expand to show additional architecture registers
-  - [x] View values of **Locals** variables, and changes during code execution.
+  - [x] View values of **Locals** and **Statics** variables, and update values during code execution.
     - [x] Shows datatypes and values for the following Rust datatypes.
       - [x] Base types, including &str
       - [x] Enumerations
       - [x] Structures
       - [x] Pointers
       - [x] Variants
-    - [ ] TODO: Add support for all data types, such as Arrays, Unions, Generics, etc.
-    - [x] FIXED: Filter the list of local variables to ONLY display variables that are in scope of the current register PC value. Currently ALL local variables are shown.
-  - [ ] TODO: Expose **Static** and **Global** variables
+      - [x] Arrays
+      - [x] Unions
+      - [x] Options & Results
+      - [x] Unit types
+    - [ ] TODO: Add support for additional types, such as Generics, etc.
 - [x] **Call Stack View**
   - [x] Supports a single thread, for a single core of the chip, but will **allow selection of any frames** that are in the current thread
   - [ ] TODO: Support multiple threads

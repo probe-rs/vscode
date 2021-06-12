@@ -21,7 +21,7 @@
             "flashing_enabled": true,
             "reset_after_flashing": true,
             "halt_after_reset": true,
-            "console_log_level": "Debug"
+            "console_log_level": "Error"
         },
         {
             "preLaunchTask": "${defaultBuildTask}",
@@ -39,7 +39,7 @@
             "flashing_enabled": true,
             "reset_after_flashing": true,
             "halt_after_reset": false,
-            "console_log_level": "Debug"            
+            "console_log_level": "Error"            
         }
     ]
 }

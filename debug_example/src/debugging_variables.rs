@@ -9,7 +9,7 @@
 
 
 use core::fmt::{Debug};
-
+use core::result;
 use cortex_m_rt::entry;
 use panic_halt as _;
 use stm32h7xx_hal as hal;
@@ -41,6 +41,9 @@ static mut U64: u64 = 64;
 static mut F32: f32 = 2.5;
 static mut F64: f64 = 3.5;
 
+static GLOBAL_STATIC: &str = "A 'global' static variable";
+const GLOBAL_CONSTANT: &str = "This value will only show up in the debugger in the variables where it is referenced";
+
 use self::Regular::{Case1, Case2};
 use self::Univariant::TupleOfComplexStruct;
 
@@ -62,16 +65,18 @@ enum Univariant {
     TupleOfComplexStruct(ComplexStruct, ComplexStruct)
 }
 
+static REGULAR_STRUCT: Regular = Case1(0, ComplexStruct { x: 24, y: 25, z: 26 });
 #[entry]
 fn main() -> ! {
 
+    static LOCAL_STATIC: &str = "A 'local' to main() static variable";
     // Device specific peripherals
     let mut stm32h7_peripherals: hal::pac::Peripherals = hal::pac::Peripherals::take().unwrap();
     let mut cortex_peripherals: cortex_m::peripheral::Peripherals = cortex_m::Peripherals::take().unwrap();
 
     let my_peripheral_reference = &mut stm32h7_peripherals;
 
-    //emDOCS: Configure SLEEP mode (not DEEP SLEEP) and FLASH for fast wakup after WFI
+    //Configure SLEEP mode (not DEEP SLEEP) and FLASH for fast wakup after WFI
     //Configure SLEEP mode
     cortex_peripherals.SCB.clear_sleepdeep(); //Regular SLEEP mode for fastest exit
     cortex_peripherals.SCB.clear_sleeponexit(); // do not reenter low-power mode after ISR
@@ -147,7 +152,7 @@ fn main() -> ! {
             .tick_timer(32.khz(), ccdr.peripheral.TIM2, &ccdr.clocks);
 
     // Access to the GPIO groups we need
-    let gpiob = stm32h7_peripherals.GPIOB.split(ccdr.peripheral.GPIOB);
+    let gpiob = stm32h7_peripherals.GPIOB.split_without_reset(ccdr.peripheral.GPIOB);
 
     let mut board_red_led = gpiob.pb14.into_push_pull_output();
     // board_red_led.set_high();
@@ -162,7 +167,7 @@ fn main() -> ! {
     let mut true_bool = false ;
     true_bool = true;
     let any_old_string_slice = "How long is a piece of String.";
-    basic_types();
+    let function_result = basic_types_with_err_result();
     let global_types = unsafe { (B, I, C, I8, I16, I32, I64, U, U8, U16, U32, U64, F32, F64) };
 
     let firstCaseOfStructVariants = Case1(0, ComplexStruct { x: 24, y: 25, z: 26 });
@@ -172,14 +177,18 @@ fn main() -> ! {
     let a1 = assoc_struct(Struct { b: -1, b1: 0 });
     let a2 = assoc_local(1);
     let a3 = assoc_arg::<i32>(2);
-    assoc_return_value(3);
-    assoc_tuple((4, 5));
-    assoc_enum(Enum::Variant1(6, 7));
-    assoc_enum(Enum::Variant2(8, 9));
+    let a4 = assoc_return_value(3);
+    let a5 = assoc_tuple((4, 5));
+    let a6 = assoc_enum(Enum::Variant1(6, 7));
+    let a7 = assoc_enum(Enum::Variant2(8, 9));
 
     let my_array = [55; 10];
     let my_array_ptr = &my_array; 
-    let my_vec: Vec<i8, 10> = (0..10).collect();;
+    let my_array_of_i8:[i8; 10] = [1,2,3,4,5,6,7,8,9,0];
+    let mut heapless_vec =  Vec::<i8, 10>::new();
+    heapless_vec.push(1);
+    heapless_vec.push(2);
+    heapless_vec.push(3);
 
     loop {
         // cortex_m::asm::nop();
@@ -188,7 +197,7 @@ fn main() -> ! {
     }
 }
 
-fn basic_types() 
+fn basic_types_with_err_result() -> Result<(), &'static str>
 {
     let bool_val: bool = true;
     let bool_ref: &bool = &bool_val;
@@ -231,6 +240,8 @@ fn basic_types()
 
     let f64_val: f64 = 3.5;
     let f64_ref: &f64 = &f64_val;
+
+    Err("Forced Error")
 }
 
 trait TraitWithAssocType {
