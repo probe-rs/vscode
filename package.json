@@ -28,14 +28,15 @@
     "url": "https://github.com/probe-rs/vscode.git/issues"
   },
   "scripts": {
+    "probe-rs: getDebugProtocolLatest": "curl -LJs https://raw.githubusercontent.com/microsoft/vscode-debugadapter-node/main/debugProtocol.json -o src/debugProtocol.json",
+    "probe-rs:Update Dev Dependencies": "yarn upgrade --latest",
+    "probe-rs:package": "vsce package",
     "vscode:prepublish": "yarn run package-ext && yarn run package-web",
     "compile": "tsc -p ./",
     "lint": "eslint src --ext ts",
     "watch": "webpack --watch --devtool nosources-source-map --info-verbosity verbose --config ./build/extension.webpack.config.js",
     "watch2": "tsc -watch -p ./",
-    "getDebugProtocolLatest": "curl -LJs https://raw.githubusercontent.com/microsoft/vscode-debugadapter-node/main/debugProtocol.json -o src/debugProtocol.json",
     "pretest": "yarn run compile && yarn run lint",
-    "package": "vsce package",
     "publish": "vsce publish",
     "package-ext": "webpack --mode production --config ./build/extension.webpack.config.js",
     "compile-web": "webpack --devtool nosources-source-map --config ./build/web-extension.webpack.config.js",
