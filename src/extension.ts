@@ -17,7 +17,7 @@ export function deactivate() {
 }
 
 class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterDescriptorFactory {
-
+	
 	createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
 			console.log("Session: ", session);
 			console.log("Configuration: ", session.configuration);
@@ -59,6 +59,10 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 				console.log("and arguments: ", executable?.args); 
 				return executable;
 			}
+	}
+
+	onDidReceiveDebugSessionCustomEvent(customEvent: vscode.Event<vscode.DebugSessionCustomEvent>) {
+		console.log("Received custom event:\n", customEvent.name);
 	}
 
 	dispose() {
