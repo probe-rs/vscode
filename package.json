@@ -182,6 +182,50 @@
                 "type": "boolean",
                 "description": "Restore erased bytes that will not be rewritten from ELF",
                 "default": false
+              },
+              "rtt_enabled": {
+                "type": "boolean",
+                "description": "Open RTT windows for the specified channels.",
+                "default": false
+              },
+              "rtt_timeout": {
+                "type": "number",
+                "description": "The duration in ms for which the logger should retry to attach to RTT."
+              },
+              "rtt_show_timestamps": {
+                "type": "boolean",
+                "description": "Whether timestamps in the RTTUI are enabled."
+              },
+              "rtt_channels": {
+                "type": "array",
+                "items": {
+                  "up": {
+                    "type": "number",
+                    "description": "The 'Up' direction (from the client to the target) channel number."
+                  },
+                  "down": {
+                    "type": "number",
+                    "description": "The 'Down' (from the target to the client) channel number."
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "User selected name to assign to the viewer window."
+                  },
+                  "format": {
+                    "type": "string",
+                    "description": "One of the supported data formats for RTT channels.",
+                    "enum": [
+                      "String",
+                      "BinaryLE",
+                      "Defmt"
+                    ],
+                    "enumDescriptions": [
+                      "String (text) format",
+                      "Binary Little Endian format",
+                      "Deferred formatting (see: https://defmt.ferrous-systems.com)"
+                    ]
+                  }
+                }
               }
             }
           },
@@ -284,6 +328,49 @@
                 "type": "boolean",
                 "description": "Restore erased bytes that will not be rewritten from ELF",
                 "default": false
+              },
+              "rtt_enabled": {
+                "type": "boolean",
+                "description": "Open RTT windows for the specified channels.",
+                "default": false
+              },
+              "rtt_timeout": {
+                "type": "number",
+                "description": "The duration in ms for which the logger should retry to attach to RTT."
+              },
+              "rtt_show_timestamps": {
+                "type": "boolean",
+                "description": "Whether timestamps in the RTTUI are enabled."
+              },
+              "rtt_channels": {
+                "type": "array",
+                "items": {
+                  "up": {
+                    "type": "number",
+                    "description": "The 'Up' direction (from the client to the target) channel number."
+                  },
+                  "down": {
+                    "type": "number",
+                    "description": "The 'Down' (from the target to the client) channel number."
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "User selected name to assign to the viewer window."
+                  },
+                  "format": {
+                    "type": "string",
+                    "description": "One of the supported data formats for RTT channels.",
+                    "enum": [
+                      "string",
+                      "binary_le",
+                      "defmt"
+                    ], "enumDescriptions": [
+                      "String (text) format",
+                      "Binary Little Endian format",
+                      "Deferred formatting (see: https://defmt.ferrous-systems.com)"
+                    ]
+                  }
+                }
               }
             }
           }
