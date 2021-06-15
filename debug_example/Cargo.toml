@@ -21,6 +21,7 @@ cortex-m-rt = "*"
 panic-halt = "*"
 typenum = "*"
 heapless = "*"
+rtt-target = "0.3.1"
 
 [dependencies.stm32h7]
 git = "https://github.com/stm32-rs/stm32-rs-nightlies"

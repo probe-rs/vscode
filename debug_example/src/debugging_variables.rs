@@ -7,23 +7,20 @@
 #![allow(unused_variables)]
 #![allow(dead_code)]
 
-
-use core::fmt::{Debug};
+use core::fmt::Debug;
 use core::result;
 use cortex_m_rt::entry;
+use hal::gpio::{Edge, ExtiPin, Floating, Input};
+use hal::gpio::{Output, PushPull};
+use hal::hal::digital::v2::ToggleableOutputPin;
+use hal::prelude::*;
+use hal::stm32::TIM2;
+use hal::timer::{Event, Timer};
+use hal::{gpio::gpiob::PB14, hal::digital::v2::OutputPin}; //Pushuser_button on PC13, board_red_led33 (Red) on PB14
+use heapless::Vec;
 use panic_halt as _;
+use rtt_target;
 use stm32h7xx_hal as hal;
-    use hal::{gpio::{
-        gpiob::{PB14},
-    }, hal::digital::v2::OutputPin}; //Pushuser_button on PC13, board_red_led33 (Red) on PB14
-    use hal::gpio::{Edge, ExtiPin, Floating, Input};
-    use hal::gpio::{Output, PushPull};
-    use hal::hal::digital::v2::ToggleableOutputPin;
-    use hal::prelude::*;
-    use hal::stm32::{TIM2};
-    use hal::timer::{Event, Timer};
-use heapless::Vec; 
-
 
 // N.B. These are `mut` only so they don't constant fold away.
 static mut B: bool = false;
@@ -42,7 +39,8 @@ static mut F32: f32 = 2.5;
 static mut F64: f64 = 3.5;
 
 static GLOBAL_STATIC: &str = "A 'global' static variable";
-const GLOBAL_CONSTANT: &str = "This value will only show up in the debugger in the variables where it is referenced";
+const GLOBAL_CONSTANT: &str =
+    "This value will only show up in the debugger in the variables where it is referenced";
 
 use self::Regular::{Case1, Case2};
 use self::Univariant::TupleOfComplexStruct;
@@ -50,7 +48,7 @@ use self::Univariant::TupleOfComplexStruct;
 struct ComplexStruct {
     x: i64,
     y: i32,
-    z: i16
+    z: i16,
 }
 
 // The first element is to ensure proper alignment, irrespective of the machines word size. Since
@@ -58,21 +56,32 @@ struct ComplexStruct {
 // datatype layout should be predictable as in this case.
 enum Regular {
     Case1(u64, ComplexStruct),
-    Case2(u64, u64, i16)
+    Case2(u64, u64, i16),
 }
 
 enum Univariant {
-    TupleOfComplexStruct(ComplexStruct, ComplexStruct)
+    TupleOfComplexStruct(ComplexStruct, ComplexStruct),
 }
 
-static REGULAR_STRUCT: Regular = Case1(0, ComplexStruct { x: 24, y: 25, z: 26 });
+static REGULAR_STRUCT: Regular = Case1(
+    0,
+    ComplexStruct {
+        x: 24,
+        y: 25,
+        z: 26,
+    },
+);
 #[entry]
 fn main() -> ! {
-
     static LOCAL_STATIC: &str = "A 'local' to main() static variable";
+
+    rtt_target::rtt_init_default!();
+    rtt_target::rprintln!("hehe xd");
+
     // Device specific peripherals
     let mut stm32h7_peripherals: hal::pac::Peripherals = hal::pac::Peripherals::take().unwrap();
-    let mut cortex_peripherals: cortex_m::peripheral::Peripherals = cortex_m::Peripherals::take().unwrap();
+    let mut cortex_peripherals: cortex_m::peripheral::Peripherals =
+        cortex_m::Peripherals::take().unwrap();
 
     let my_peripheral_reference = &mut stm32h7_peripherals;
 
@@ -85,7 +94,10 @@ fn main() -> ! {
 
     // Setting up the board to run with a clock speed of 400mhz;
     let clock_speed: u32 = 400;
-    stm32h7_peripherals.PWR.cpucr.modify(|_, w| w.run_d3().set_bit()); //Ensure Domain 3 run in SLEEP
+    stm32h7_peripherals
+        .PWR
+        .cpucr
+        .modify(|_, w| w.run_d3().set_bit()); //Ensure Domain 3 run in SLEEP
     let pwr = stm32h7_peripherals.PWR.constrain();
     let pwrcfg = pwr.smps().freeze();
     if pwrcfg.vos() != hal::pwr::VoltageScale::Scale1 {
@@ -152,27 +164,47 @@ fn main() -> ! {
             .tick_timer(32.khz(), ccdr.peripheral.TIM2, &ccdr.clocks);
 
     // Access to the GPIO groups we need
-    let gpiob = stm32h7_peripherals.GPIOB.split_without_reset(ccdr.peripheral.GPIOB);
+    let gpiob = stm32h7_peripherals
+        .GPIOB
+        .split_without_reset(ccdr.peripheral.GPIOB);
 
     let mut board_red_led = gpiob.pb14.into_push_pull_output();
     // board_red_led.set_high();
 
-    let int8:i8 = 23;
-    let int128:i128 = -196710231994021419720322;
-    let u_int128:u128 = 196710231994021419720322;
-    let float64:f64 = 56.7 / 32.2; //1.760869565217391
+    let int8: i8 = 23;
+    let int128: i128 = -196710231994021419720322;
+    let u_int128: u128 = 196710231994021419720322;
+    let float64: f64 = 56.7 / 32.2; //1.760869565217391
     let float64_ptr = &float64;
     let emoji = '💩';
     let emoji_ptr = &emoji;
-    let mut true_bool = false ;
+    let mut true_bool = false;
     true_bool = true;
     let any_old_string_slice = "How long is a piece of String.";
     let function_result = basic_types_with_err_result();
     let global_types = unsafe { (B, I, C, I8, I16, I32, I64, U, U8, U16, U32, U64, F32, F64) };
 
-    let firstCaseOfStructVariants = Case1(0, ComplexStruct { x: 24, y: 25, z: 26 });
+    let firstCaseOfStructVariants = Case1(
+        0,
+        ComplexStruct {
+            x: 24,
+            y: 25,
+            z: 26,
+        },
+    );
     let secondCaseOfStructVariants = Case2(0, 1023, 1967);
-    let structWithOneVariant = TupleOfComplexStruct(ComplexStruct { x: 24, y: 25, z: 26 }, ComplexStruct { x: -3, y: -2, z: -1 });
+    let structWithOneVariant = TupleOfComplexStruct(
+        ComplexStruct {
+            x: 24,
+            y: 25,
+            z: 26,
+        },
+        ComplexStruct {
+            x: -3,
+            y: -2,
+            z: -1,
+        },
+    );
 
     let a1 = assoc_struct(Struct { b: -1, b1: 0 });
     let a2 = assoc_local(1);
@@ -183,22 +215,24 @@ fn main() -> ! {
     let a7 = assoc_enum(Enum::Variant2(8, 9));
 
     let my_array = [55; 10];
-    let my_array_ptr = &my_array; 
-    let my_array_of_i8:[i8; 10] = [1,2,3,4,5,6,7,8,9,0];
-    let mut heapless_vec =  Vec::<i8, 10>::new();
+    let my_array_ptr = &my_array;
+    let my_array_of_i8: [i8; 10] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
+    let mut heapless_vec = Vec::<i8, 10>::new();
     heapless_vec.push(1);
     heapless_vec.push(2);
     heapless_vec.push(3);
 
+    let mut i = 0;
     loop {
+        i += 1;
+        rtt_target::rprintln!("hehe xd {}", i);
         // cortex_m::asm::nop();
         cortex_m::asm::delay(400000);
         board_red_led.toggle();
     }
 }
 
-fn basic_types_with_err_result() -> Result<(), &'static str>
-{
+fn basic_types_with_err_result() -> Result<(), &'static str> {
     let bool_val: bool = true;
     let bool_ref: &bool = &bool_val;
 
@@ -252,7 +286,9 @@ trait TraitWithAssocType {
 impl TraitWithAssocType for i32 {
     type Type = i64;
 
-    fn get_value(&self) -> i64 { *self as i64 }
+    fn get_value(&self) -> i64 {
+        *self as i64
+    }
 }
 
 struct Struct<T: TraitWithAssocType> {
@@ -262,34 +298,27 @@ struct Struct<T: TraitWithAssocType> {
 
 enum Enum<T: TraitWithAssocType> {
     Variant1(T, T::Type),
-    Variant2(T::Type, T)
+    Variant2(T::Type, T),
 }
 
-fn assoc_struct<T: TraitWithAssocType>(arg: Struct<T>) {
-    }
+fn assoc_struct<T: TraitWithAssocType>(arg: Struct<T>) {}
 
 fn assoc_local<T: TraitWithAssocType>(x: T) {
     let inferred = x.get_value();
     let explicitly: T::Type = x.get_value();
+}
 
-    }
-
-fn assoc_arg<T: TraitWithAssocType>(arg: T::Type) {
-    }
+fn assoc_arg<T: TraitWithAssocType>(arg: T::Type) {}
 
 fn assoc_return_value<T: TraitWithAssocType>(arg: T) -> T::Type {
     return arg.get_value();
 }
 
-fn assoc_tuple<T: TraitWithAssocType>(arg: (T, T::Type)) {
-    }
+fn assoc_tuple<T: TraitWithAssocType>(arg: (T, T::Type)) {}
 
 fn assoc_enum<T: TraitWithAssocType>(arg: Enum<T>) {
-
     match arg {
-        Enum::Variant1(a, b) => {
-                    }
-        Enum::Variant2(a, b) => {
-                    }
+        Enum::Variant1(a, b) => {}
+        Enum::Variant2(a, b) => {}
     }
 }
