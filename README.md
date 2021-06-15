@@ -96,14 +96,25 @@
   - [ ] TODO: Support multiple threads
   - [ ] TODO: Support chips with multiple cores
 - [ ] TODO: **Watch View** Nothing yet
-- [ ] TODO: **ITM** and **RTT**
+- [x] **RTT** - Configure RTT Channels and capture their output in the `Debug Console`
+  - [ ] TODO: - RTT Channels that support Capture AND Input to configured HTML pages
+  - [ ] TODO: add support for **ITM**
 - [ ] TODO: Enable Debug Console to accept CLI commands via REPL
 
 ## Build and Run
 
-* Open the project folder in VS Code.
+* Open the project folder in VSCode.
 * Open a terminal and run the `yarn` command, to install VSCode development dependencies
-* Press `F5` to build and launch probe-rs-debugger in another VS Code window. In that window:
-  * You will see the debug-example project, which may require some changes if you have a different chip or board.
-  * Select the debug environment "probe_rs Executable Test".
+### To run against a compiled executable of `probe-rs-debugger`
+* Press `F5` to __build and launch executable__ `probe-rs-debugger`. VSCode will open another VS Code window. In that window:
+* You will see the `debug-example` project, which may require some changes if you have a different chip or board.
+* Select the debug environment `probe_rs Executable Test`.* Press `F5` to start debugging.
+### To run against an debuggable instance of `probe-rs-debugger`
+* Clone the [probe-rs](https://github.com/probe-rs/probe-rs.git) repository, and open it in VSCode. 
+  * In this `probe-rs` repo, select the debug environment `DAP-Server probe-rs-debugger`
+  * Press `F5` to start `probe-rs-debugger` as a debuggable server.
+* Switch to the VSCode instance of the probe-rs `vscode` repository. 
+  * Press `F5` to __build and attach to the debuggable server instance__ `probe-rs-debugger`. VSCode will open another VS Code window. In that window:
+  * You will see the `debug-example` project, which may require some changes if you have a different chip or board.
+  * Select the debug environment `probe_rs Server Test`.
   * Press `F5` to start debugging.

@@ -21,7 +21,18 @@
             "flashing_enabled": true,
             "reset_after_flashing": true,
             "halt_after_reset": true,
-            "console_log_level": "Error"
+            "console_log_level": "Error",
+            "rtt_enabled": true,
+            "rtt_timeout": 300,
+            "rtt_show_timestamps": false,
+            "rtt_channels": [
+                {
+                    "up": 0,
+                    "down": 0,
+                    "name": "RTT Channel 0",
+                    "format": "string"
+                }
+            ]
         },
         {
             "preLaunchTask": "${defaultBuildTask}",
@@ -39,7 +50,18 @@
             "flashing_enabled": true,
             "reset_after_flashing": true,
             "halt_after_reset": false,
-            "console_log_level": "Error"            
+            "console_log_level": "Error",
+            "rtt_enabled": true,
+            "rtt_timeout": 300,
+            "rtt_show_timestamps": false,
+            "rtt_channels": [
+                {
+                    "up": 0,
+                    "down": 0,
+                    "name": "RTT Channel 0",
+                    "format": "String"
+                }
+            ]            
         }
     ]
 }

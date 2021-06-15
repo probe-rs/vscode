@@ -75,7 +75,21 @@ static REGULAR_STRUCT: Regular = Case1(
 fn main() -> ! {
     static LOCAL_STATIC: &str = "A 'local' to main() static variable";
 
-    rtt_target::rtt_init_default!();
+    let rtt_channels = rtt_target::rtt_init! {
+        up: {
+            0: {
+                size: 1024
+                name: "RTT Channel 0"
+            }
+        }
+        down: {
+            0: {
+                size: 16
+                name: "RTT Channel 0"
+            }
+        }
+    };
+    rtt_target::set_print_channel(rtt_channels.up.0);
     rtt_target::rprintln!("hehe xd");
 
     // Device specific peripherals
@@ -226,8 +240,7 @@ fn main() -> ! {
     loop {
         i += 1;
         rtt_target::rprintln!("hehe xd {}", i);
-        // cortex_m::asm::nop();
-        cortex_m::asm::delay(400000);
+        cortex_m::asm::delay(200_000_000);
         board_red_led.toggle();
     }
 }
