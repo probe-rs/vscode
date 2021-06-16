@@ -29,9 +29,21 @@
                 {
                     "up": 0,
                     "down": 0,
-                    "name": "RTT Channel 0",
-                    "format": "string"
-                }
+                    "name": "String RTT Channel",
+                    "format": "String"
+                },
+                {
+                    "up": 1,
+                    "down": 1,
+                    "name": "BinaryLE RTT Channel",
+                    "format": "BinaryLE"
+                } //,
+                // {
+                //     "up": 2,
+                //     "down": 2,
+                //     "name": "defmt RTT Channel",
+                //     "format": "Defmt"
+                // } 
             ]
         },
         {
@@ -58,10 +70,22 @@
                 {
                     "up": 0,
                     "down": 0,
-                    "name": "RTT Channel 0",
+                    "name": "String RTT Channel",
                     "format": "String"
-                }
-            ]            
+                },
+                {
+                    "up": 1,
+                    "down": 1,
+                    "name": "BinaryLE RTT Channel",
+                    "format": "BinaryLE"
+                } //,
+                // {
+                //     "up": 2,
+                //     "down": 2,
+                //     "name": "defmt RTT Channel",
+                //     "format": "Defmt"
+                // }
+            ]
         }
     ]
 }
