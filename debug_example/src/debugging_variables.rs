@@ -259,10 +259,9 @@ fn main() -> ! {
     let mut i = 0;
     loop {
         i += 1;
-        rprint!("Loop count = {}", i); // No newline on Channel 0
 
         let bytes_written = binary_rtt_channel.write(&i32::to_le_bytes(i)); // Raw output to Channel 1
-        rprintln!(", wrote {} number of bytes to the BinaryLE channel #1", bytes_written); // Finish output line on Channel 0
+        rprintln!("Loop count # {}, wrote {}  bytes to the BinaryLE channel #1", i, bytes_written); // Text Output line on Channel 0
 
         // TODO: Need the right syntax for  defmt channels
         // rprintln!("Formatted loop count =  0x{:08x}", i);
