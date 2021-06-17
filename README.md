@@ -12,6 +12,8 @@
 * Configure your own VSCode project as per instructions below. This repo also contains a [debug-example](https://github.com/probe-rs/vscode/tree/master/debug_example) folder, with a fully functional Embedded Rust environment on a STM32H745ZI-Q Nucleo board.
   * If you install using the extension `.vsix`, then the example folder can be found your home directory, usually something like `~/.vscode/extensions/probe-rs.probe-rs-debugger-0.2.1/debug_example`
 
+* **TIP:** RTT sends data into a terminal window per channel. For multiple channels, you may want to consider using the new [VSCode Terminal tabs](https://code.visualstudio.com/updates/v1_57#_integrated-terminal) setting.
+
 ![probe-rs-debugger](images/probe-rs-debugger.gif)
 
 ## Sample `launch.json`
@@ -39,7 +41,30 @@
             "flashing_enabled": true,
             "reset_after_flashing": true,
             "halt_after_reset": true,
-            "console_log_level": "Error"
+            "console_log_level": "Error",
+            "rtt_enabled": true,
+            "rtt_timeout": 300,
+            "rtt_show_timestamps": false,
+            "rtt_channels": [
+                {
+                    "up": 0,
+                    "down": 0,
+                    "name": "String RTT Channel",
+                    "format": "String"
+                },
+                {
+                    "up": 1,
+                    "down": 1,
+                    "name": "BinaryLE RTT Channel",
+                    "format": "BinaryLE"
+                } //,
+                // {
+                //     "up": 2,
+                //     "down": 2,
+                //     "name": "defmt RTT Channel",
+                //     "format": "Defmt"
+                // } 
+            ]
         },
         {
             "preLaunchTask": "${defaultBuildTask}",
@@ -57,7 +82,30 @@
             "flashing_enabled": true,
             "reset_after_flashing": true,
             "halt_after_reset": false,
-            "console_log_level": "Info"            
+            "console_log_level": "Info",
+            "rtt_enabled": true,
+            "rtt_timeout": 300,
+            "rtt_show_timestamps": false,
+            "rtt_channels": [
+                {
+                    "up": 0,
+                    "down": 0,
+                    "name": "String RTT Channel",
+                    "format": "String"
+                },
+                {
+                    "up": 1,
+                    "down": 1,
+                    "name": "BinaryLE RTT Channel",
+                    "format": "BinaryLE"
+                } //,
+                // {
+                //     "up": 2,
+                //     "down": 2,
+                //     "name": "defmt RTT Channel",
+                //     "format": "Defmt"
+                // } 
+            ]            
         }
     ]
 }
