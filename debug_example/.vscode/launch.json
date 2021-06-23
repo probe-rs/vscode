@@ -24,7 +24,7 @@
             "console_log_level": "Error",
             "rtt_enabled": true,
             "rtt_timeout": 300,
-            "rtt_show_timestamps": false,
+            "rtt_show_timestamps": true,
             "rtt_channels": [
                 {
                     "up": 0,
@@ -61,11 +61,11 @@
             "core_index": 0,
             "flashing_enabled": true,
             "reset_after_flashing": true,
-            "halt_after_reset": false,
-            "console_log_level": "Error",
+            "halt_after_reset": true,
+            "console_log_level": "Debug",
             "rtt_enabled": true,
             "rtt_timeout": 300,
-            "rtt_show_timestamps": false,
+            "rtt_show_timestamps": true,
             "rtt_channels": [
                 {
                     "up": 0,

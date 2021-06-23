@@ -11,7 +11,8 @@ export function activate(context: vscode.ExtensionContext) {
 	const descriptorFactory = new ProbeRSDebugAdapterServerDescriptorFactory();
 	context.subscriptions.push(
 		vscode.debug.registerDebugAdapterDescriptorFactory('probe-rs-debug', descriptorFactory),
-		vscode.debug.onDidReceiveDebugSessionCustomEvent(descriptorFactory.receivedCustomEvent.bind(descriptorFactory))
+		vscode.debug.onDidReceiveDebugSessionCustomEvent(descriptorFactory.receivedCustomEvent.bind(descriptorFactory)),
+		vscode.debug.onDidTerminateDebugSession(descriptorFactory.dispose.bind(descriptorFactory))
 		);
 }
 
@@ -24,28 +25,45 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 	rttTerminals: [number, vscode.Terminal][] = []; 
 
 	receivedCustomEvent(customEvent: vscode.DebugSessionCustomEvent) {
-		if (customEvent.event === "probe-rs-rtt") {
-			let terminalFound = false;
-			for (var index in this.rttTerminals) {
-				let [channelNumber, rttTerminal] = this.rttTerminals[index];
-				let eventNumber:number = +customEvent.body?.channel;
-				// eslint-disable-next-line eqeqeq
-				if (channelNumber == eventNumber) {
-					terminalFound = true;
-					rttTerminal.sendText(customEvent.body?.data, true); // TODO: I don't think we always need a newline here.
-					break;
+		switch (customEvent.event) {
+			case 'probe-rs-rtt':
+				let terminalFound = false;
+				for (var index in this.rttTerminals) {
+					let [channelNumber, rttTerminal] = this.rttTerminals[index];
+					let eventNumber: number = +customEvent.body?.channel;
+					// eslint-disable-next-line eqeqeq
+					if (channelNumber == eventNumber) {
+						terminalFound = true;
+						rttTerminal.sendText(customEvent.body?.data, true); // TODO: I don't think we always need a newline here.
+						break;
+					}
 				}
-			}
-			if (!terminalFound) {
-				console.log("probe-rs: Failed to resolve destination Terminal for custom event:\n", customEvent);
-			}
-		} else {
-			console.log("probe-rs: Received unknown custom event:\n", customEvent);
+				if (!terminalFound) {
+					console.log("probe-rs: Failed to resolve destination Terminal for custom event:\n", customEvent);
+				}
+				break;
+			case 'probe-rs-show-message':
+				switch (customEvent.body?.severity) {
+					case 'information':
+						vscode.window.showInformationMessage(customEvent.body?.message);
+						break;
+					case 'warning':
+						vscode.window.showWarningMessage(customEvent.body?.message);
+						break;
+					case 'error':
+						vscode.window.showErrorMessage(customEvent.body?.message);
+						break;
+					default: 
+						console.log("prober-rs: Received custome event with unknown message severity: \n", customEvent.body?.severity);
+				}
+				break;
+			default:
+				console.log("probe-rs: Received unknown custom event:\n", customEvent);
+				break;
 		}
 	}
 
 	createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
-		
 		// Open Terminal windows for RTT Logging, if RTT is enabled.
 		// TODO: Consider additional windows for RTT's virtual terminals on a channel
 		if (session.configuration.hasOwnProperty('rtt_enabled') && 
@@ -120,7 +138,10 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 	dispose() {
 		for (var index in this.rttTerminals) {
 			let [, rttTerminal] = this.rttTerminals[index];
+			let terminalOptions =  rttTerminal.creationOptions as vscode.ExtensionTerminalOptions;
+			terminalOptions.pty.close();
 			rttTerminal.dispose();
 		}
+		
 	}
 }
