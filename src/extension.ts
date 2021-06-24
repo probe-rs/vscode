@@ -7,7 +7,6 @@ import * as os from 'os';
 import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
-
 	const descriptorFactory = new ProbeRSDebugAdapterServerDescriptorFactory();
 	context.subscriptions.push(
 		vscode.debug.registerDebugAdapterDescriptorFactory('probe-rs-debug', descriptorFactory),
@@ -16,25 +15,33 @@ export function activate(context: vscode.ExtensionContext) {
 		);
 }
 
-export function deactivate() {
-	return;
+export function deactivate(context: vscode.ExtensionContext) {
+	return undefined;
 }
+
+// cleanup inconsitent line breaks in String data
+const formatText = (text: string) => `\r${text.split(/(\r?\n)/g).join("\r")}\r`;
 
 class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterDescriptorFactory {
 
-	rttTerminals: [number, vscode.Terminal][] = []; 
+	rttTerminals: [channelNumber: number, dataFormat: String, rttTerminal: vscode.Terminal, channelWriteEmitter:vscode.EventEmitter<string>][] = [];
 
 	receivedCustomEvent(customEvent: vscode.DebugSessionCustomEvent) {
 		switch (customEvent.event) {
 			case 'probe-rs-rtt':
 				let terminalFound = false;
 				for (var index in this.rttTerminals) {
-					let [channelNumber, rttTerminal] = this.rttTerminals[index];
+					let [channelNumber, dataFormat, , channelWriteEmitter] = this.rttTerminals[index];
 					let eventNumber: number = +customEvent.body?.channel;
 					// eslint-disable-next-line eqeqeq
 					if (channelNumber == eventNumber) {
 						terminalFound = true;
-						rttTerminal.sendText(customEvent.body?.data, true); // TODO: I don't think we always need a newline here.
+						switch (dataFormat) {
+							case 'String':
+								channelWriteEmitter.fire(formatText(customEvent.body?.data));
+								break;
+							default:
+								channelWriteEmitter.fire(customEvent.body?.data);						}
 						break;
 					}
 				}
@@ -54,7 +61,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 						vscode.window.showErrorMessage(customEvent.body?.message);
 						break;
 					default: 
-						console.log("prober-rs: Received custome event with unknown message severity: \n", customEvent.body?.severity);
+						console.log("prober-rs: Received custom event with unknown message severity: \n", customEvent.body?.severity);
 				}
 				break;
 			default:
@@ -71,21 +78,21 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			if (session.configuration.hasOwnProperty('rtt_channels') &&
 				session.configuration.rtt_channels.length > 0) {
 				for (var channelNumber in session.configuration.rtt_channels ){
-					const channelWriteEmitter = new vscode.EventEmitter<string>();
+					let channelWriteEmitter = new vscode.EventEmitter<string>();
 					let channelPty: vscode.Pseudoterminal = {
 						onDidWrite: channelWriteEmitter.event,
 						open: () => { },
 						close: () => { },
-						handleInput: data => channelWriteEmitter.fire(data) 
+						handleInput: data => channelWriteEmitter.fire(data)
 					};
 					let channelTerminalConfig: vscode.ExtensionTerminalOptions = {
 						name: session.configuration.rtt_channels[channelNumber].name,
 						pty: channelPty
 					};
 					let channelTerminal = vscode.window.createTerminal(channelTerminalConfig);
-					this.rttTerminals.push([+channelNumber, channelTerminal]);
-					channelTerminal.show(true);
+					this.rttTerminals.push([+channelNumber, session.configuration.rtt_channels[channelNumber].format, channelTerminal, channelWriteEmitter]);
 				}
+				this.rttTerminals[0][2]?.show();
 			} else {
 				vscode.window.showErrorMessage("The launch.json configuration enabled RTT, but did not configure any channels. Please see https://github.com/probe-rs/vscode/blob/master/README.md for information on how to configure RTT");
 				return undefined;
@@ -137,11 +144,10 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 
 	dispose() {
 		for (var index in this.rttTerminals) {
-			let [, rttTerminal] = this.rttTerminals[index];
-			let terminalOptions =  rttTerminal.creationOptions as vscode.ExtensionTerminalOptions;
-			terminalOptions.pty.close();
+			let [, ,rttTerminal] = this.rttTerminals[index];
 			rttTerminal.dispose();
-		}
-		
+		}		
+		this.rttTerminals = []; // TODO: Not sure if it will be better UX to re-use past terminals, rather than closing and opening new instances. 
+		console.log("Closing probe-rs debug extension");
 	}
 }

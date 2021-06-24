@@ -266,7 +266,7 @@ fn main() -> ! {
         // TODO: Need the right syntax for  defmt channels
         // rprintln!("Formatted loop count =  0x{:08x}", i);
 
-        cortex_m::asm::delay(200_000_000); // Approximately half a second at 400Mhz clock speed
+        cortex_m::asm::delay(100_000_000); // Approximately 1/4 second intervals, at 400Mhz clock speed
         board_red_led.toggle();
     }
 }
