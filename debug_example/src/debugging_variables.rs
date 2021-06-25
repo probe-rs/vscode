@@ -256,11 +256,11 @@ fn main() -> ! {
     heapless_vec.push(2);
     heapless_vec.push(3);
 
-    let mut i = 0;
+    let mut i:u8 = 0;
     loop {
-        i += 1;
+        i = i.wrapping_add(1); //Wrap when u8 overflows
 
-        let bytes_written = binary_rtt_channel.write(&i32::to_le_bytes(i)); // Raw output to Channel 1
+        let bytes_written = binary_rtt_channel.write(&u8::to_le_bytes(i)); // Raw byte level output to Channel 1
         rprintln!("Loop count # {}, wrote {}  bytes to the BinaryLE channel #1", i, bytes_written); // Text Output line on Channel 0
 
         // TODO: Need the right syntax for  defmt channels
