@@ -28,18 +28,19 @@
     "url": "https://github.com/probe-rs/vscode.git/issues"
   },
   "scripts": {
+    "probe-rs: getDebugProtocolLatest": "curl -LJs https://raw.githubusercontent.com/microsoft/vscode-debugadapter-node/main/debugProtocol.json -o src/debugProtocol.json",
+    "probe-rs:Update Dev Dependencies": "yarn upgrade --latest",
+    "probe-rs:package": "vsce package",
     "vscode:prepublish": "yarn run package-ext && yarn run package-web",
     "compile": "tsc -p ./",
     "lint": "eslint src --ext ts",
-    "watch": "webpack --watch --devtool nosources-source-map --info-verbosity verbose --config ./build/extension.webpack.config.js",
+    "watch": "webpack --watch --devtool nosources-source-map  --config ./build/extension.webpack.config.js",
     "watch2": "tsc -watch -p ./",
-    "getDebugProtocolLatest": "curl -LJs https://raw.githubusercontent.com/microsoft/vscode-debugadapter-node/main/debugProtocol.json -o src/debugProtocol.json", 
     "pretest": "yarn run compile && yarn run lint",
-    "package": "vsce package",
     "publish": "vsce publish",
     "package-ext": "webpack --mode production --config ./build/extension.webpack.config.js",
     "compile-web": "webpack --devtool nosources-source-map --config ./build/web-extension.webpack.config.js",
-    "watch-web": "webpack --watch --devtool nosources-source-map --info-verbosity verbose --config ./build/web-extension.webpack.config.js",
+    "watch-web": "webpack --watch --devtool nosources-source-map  --config ./build/web-extension.webpack.config.js",
     "package-web": "webpack --mode production --config ./build/web-extension.webpack.config.js"
   },
   "enableProposedApi": false,
@@ -48,21 +49,21 @@
     "vscode-debugadapter": "^1.46.0"
   },
   "devDependencies": {
-    "@types/vscode": "^1.55.0",
     "@types/glob": "^7.1.3",
     "@types/mocha": "^8.2.2",
-    "@types/node": "^14.14.37",
-    "eslint": "^7.23.0",
+    "@types/node": "^15.12.2",
+    "@types/vscode": "^1.55.0",
     "@typescript-eslint/eslint-plugin": "^4.21.0",
     "@typescript-eslint/parser": "^4.21.0",
+    "eslint": "^7.23.0",
     "glob": "^7.1.6",
-    "mocha": "^8.3.2",
+    "mocha": "^9.0.0",
+    "ts-loader": "^9.2.3",
     "typescript": "^4.2.3",
-    "vscode-debugadapter-testsupport": "^1.46.0",
     "vsce": "^1.87.1",
-    "ts-loader": "^8.1.0",
-    "webpack": "^4.46.0",
-    "webpack-cli": "^3.3.12"
+    "vscode-debugadapter-testsupport": "^1.46.0",
+    "webpack": "^5.38.1",
+    "webpack-cli": "^4.7.2"
   },
   "main": "./dist/ext/extension.js",
   "browser": "./dist/web/extension.js",
@@ -181,6 +182,50 @@
                 "type": "boolean",
                 "description": "Restore erased bytes that will not be rewritten from ELF",
                 "default": false
+              },
+              "rtt_enabled": {
+                "type": "boolean",
+                "description": "Open RTT windows for the specified channels.",
+                "default": false
+              },
+              "rtt_timeout": {
+                "type": "number",
+                "description": "The duration in ms for which the logger should retry to attach to RTT."
+              },
+              "rtt_show_timestamps": {
+                "type": "boolean",
+                "description": "Whether timestamps in the RTTUI are enabled."
+              },
+              "rtt_channels": {
+                "type": "array",
+                "items": {
+                  "up": {
+                    "type": "number",
+                    "description": "The 'Up' direction (from the client to the target) channel number."
+                  },
+                  "down": {
+                    "type": "number",
+                    "description": "The 'Down' (from the target to the client) channel number."
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "User selected name to assign to the viewer window."
+                  },
+                  "format": {
+                    "type": "string",
+                    "description": "One of the supported data formats for RTT channels.",
+                    "enum": [
+                      "String",
+                      "BinaryLE",
+                      "Defmt"
+                    ],
+                    "enumDescriptions": [
+                      "String (text) format",
+                      "Binary Little Endian format",
+                      "Deferred formatting (see: https://defmt.ferrous-systems.com)"
+                    ]
+                  }
+                }
               }
             }
           },
@@ -283,6 +328,49 @@
                 "type": "boolean",
                 "description": "Restore erased bytes that will not be rewritten from ELF",
                 "default": false
+              },
+              "rtt_enabled": {
+                "type": "boolean",
+                "description": "Open RTT windows for the specified channels.",
+                "default": false
+              },
+              "rtt_timeout": {
+                "type": "number",
+                "description": "The duration in ms for which the logger should retry to attach to RTT."
+              },
+              "rtt_show_timestamps": {
+                "type": "boolean",
+                "description": "Whether timestamps in the RTTUI are enabled."
+              },
+              "rtt_channels": {
+                "type": "array",
+                "items": {
+                  "up": {
+                    "type": "number",
+                    "description": "The 'Up' direction (from the client to the target) channel number."
+                  },
+                  "down": {
+                    "type": "number",
+                    "description": "The 'Down' (from the target to the client) channel number."
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "User selected name to assign to the viewer window."
+                  },
+                  "format": {
+                    "type": "string",
+                    "description": "One of the supported data formats for RTT channels.",
+                    "enum": [
+                      "string",
+                      "binary_le",
+                      "defmt"
+                    ], "enumDescriptions": [
+                      "String (text) format",
+                      "Binary Little Endian format",
+                      "Deferred formatting (see: https://defmt.ferrous-systems.com)"
+                    ]
+                  }
+                }
               }
             }
           }
