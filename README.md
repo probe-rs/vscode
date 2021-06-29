@@ -1,6 +1,6 @@
 # VS Code probe-rs-debugger
 
-## Using probe-rs-debugger
+## Installation
 
 * Install the **probe-rs-debugger** extension in VS Code, by downloading the latest `probe-rs-debugger-0.2.1.vsix` from the [Releases](https://github.com/probe-rs/vscode/releases) page in this repo (we will publish to the Microsoft Extension marketplace in due course)
   * Install the extension by running `code --install-extension probe-rs-debugger-0.2.1.vsix` in the terminal
@@ -9,10 +9,11 @@
     * Package the extension with `yarn package`.
 * Install the **probe-rs-debugger** server component, using instructions from [probe-rs-debugger](https://github.com/probe-rs/probe-rs/tree/master/debugger)
 
-* Configure your own VSCode project as per instructions below. This repo also contains a [debug-example](https://github.com/probe-rs/vscode/tree/master/debug_example) folder, with a fully functional Embedded Rust environment on a STM32H745ZI-Q Nucleo board.
-  * If you install using the extension `.vsix`, then the example folder can be found your home directory, usually something like `~/.vscode/extensions/probe-rs.probe-rs-debugger-0.2.1/debug_example`
-
-* **TIP:** RTT sends data into a terminal window per channel. For multiple channels, you may want to consider using the new [VSCode Terminal tabs](https://code.visualstudio.com/updates/v1_57#_integrated-terminal) setting.
+## Usage
+* Configure your own VSCode project as per the [sample](#sample-launchjson) below. 
+* There are fully configured example projects available for you to [get started](). The majority of the configuration is done via the `.vscode/launch.json` file, and each example folder has a `src/main.rs` to showcase basic usage.
+  
+* **TIP:** When using RTT, the data is streamed into a terminal window on a per channel basis. For multiple channels, you may want to consider using the new [VSCode Terminal tabs](https://code.visualstudio.com/updates/v1_57#_integrated-terminal) setting.
 
 ![probe-rs-debugger](images/probe-rs-debugger.gif)
 
@@ -144,7 +145,7 @@
   - [ ] TODO: Support multiple threads
   - [ ] TODO: Support chips with multiple cores
 - [ ] TODO: **Watch View** Nothing yet
-- [x] **RTT** - Configure RTT Channels and capture their output in the `Debug Console`
+- [x] **RTT** - Configure RTT Channels and capture their output in the `VSCode Integrated Terminal`
   - [ ] TODO: - RTT Channels that support Capture AND Input to configured HTML pages
   - [ ] TODO: add support for **ITM**
 - [ ] TODO: Enable Debug Console to accept CLI commands via REPL
