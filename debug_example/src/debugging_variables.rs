@@ -203,7 +203,6 @@ fn main() -> ! {
         .split_without_reset(ccdr.peripheral.GPIOB);
 
     let mut board_red_led = gpiob.pb14.into_push_pull_output();
-    // board_red_led.set_high();
 
     let int8: i8 = 23;
     let int128: i128 = -196710231994021419720322;
@@ -258,14 +257,12 @@ fn main() -> ! {
 
     let mut i:u8 = 0;
     loop {
+        
         i = i.wrapping_add(1); //Wrap when u8 overflows
-
         let bytes_written = binary_rtt_channel.write(&u8::to_le_bytes(i)); // Raw byte level output to Channel 1
         rprintln!("Loop count # {}, wrote {}  bytes to the BinaryLE channel #1", i, bytes_written); // Text Output line on Channel 0
-
         // TODO: Need the right syntax for  defmt channels
         // rprintln!("Formatted loop count =  0x{:08x}", i);
-
         cortex_m::asm::delay(100_000_000); // Approximately 1/4 second intervals, at 400Mhz clock speed
         board_red_led.toggle();
     }
