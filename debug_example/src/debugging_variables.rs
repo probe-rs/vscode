@@ -263,7 +263,7 @@ fn main() -> ! {
         rprintln!("Loop count # {}, wrote {}  bytes to the BinaryLE channel #1", i, bytes_written); // Text Output line on Channel 0
         // TODO: Need the right syntax for  defmt channels
         // rprintln!("Formatted loop count =  0x{:08x}", i);
-        cortex_m::asm::delay(100_000_000); // Approximately 1/4 second intervals, at 400Mhz clock speed
+        // cortex_m::asm::delay(100_000_000); // Approximately 1/4 second intervals, at 400Mhz clock speed
         board_red_led.toggle();
     }
 }
