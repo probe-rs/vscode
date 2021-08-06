@@ -36,6 +36,7 @@ export function deactivate(context: vscode.ExtensionContext) {
 
 // When starting the debugger during a 'launch' request, we have to wait for it to become "Ready" before we continue
 var debuggerReady = false;
+var debuggerReadySignature: string;
 
 // If the "launch" fails, inform the user with error information
 export function launchCallback(error: child_process.ExecFileException | null, stdout: string, stderr: string) {
@@ -220,8 +221,9 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			);
 
 			// Capture stdout and stderr to ensure RUST_LOG can be redirected
+			debuggerReadySignature = "probe-rs-debugger Listening for requests on port ".concat(debugServer[1]);
 			launchedDebugAdapter.stdout?.on('data', (data: string) => {
-				if (data.includes('probe-rs-debugger Ready')) {
+				if (data.includes(debuggerReadySignature)) {
 					debuggerReady = true;
 				} else {
 					logToConsole(JSON.stringify(data, null, 2));
