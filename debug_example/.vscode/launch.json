@@ -24,26 +24,16 @@
             "console_log_level": "Error",
             "rtt_enabled": true,
             "rtt_timeout": 300,
-            "rtt_show_timestamps": true,
-            "rtt_channels": [
+            "rtt_channel_formats": [
                 {
-                    "up": 0,
-                    "down": 0,
-                    "name": "String RTT Channel",
-                    "format": "String"
+                    "channel_number": 0,
+                    "data_format": "String",
+                    "show_timestamps": true
                 },
                 {
-                    "up": 1,
-                    "down": 1,
-                    "name": "BinaryLE RTT Channel",
-                    "format": "BinaryLE"
-                } //,
-                // {
-                //     "up": 2,
-                //     "down": 2,
-                //     "name": "defmt RTT Channel",
-                //     "format": "Defmt"
-                // } 
+                    "channel_number": 1,
+                    "data_format": "BinaryLE"
+                }
             ]
         },
         {
@@ -57,34 +47,25 @@
             "chip": "STM32H745ZITx",
             // "probe": "PID:VID:<Serial Number>",
             "connect_under_reset": true,
+            "wire_protocol": "Swd",
             "speed": 24000,
             "core_index": 0,
             "flashing_enabled": true,
             "reset_after_flashing": true,
             "halt_after_reset": true,
-            "console_log_level": "Debug",
+            "console_log_level": "Error",
             "rtt_enabled": true,
             "rtt_timeout": 300,
-            "rtt_show_timestamps": true,
-            "rtt_channels": [
+            "rtt_channel_formats": [
                 {
-                    "up": 0,
-                    "down": 0,
-                    "name": "String RTT Channel",
-                    "format": "String"
+                    "channel_number": 0,
+                    "data_format": "String",
+                    "show_timestamps": true
                 },
                 {
-                    "up": 1,
-                    "down": 1,
-                    "name": "BinaryLE RTT Channel",
-                    "format": "BinaryLE"
-                } //,
-                // {
-                //     "up": 2,
-                //     "down": 2,
-                //     "name": "defmt RTT Channel",
-                //     "format": "Defmt"
-                // }
+                    "channel_number": 1,
+                    "data_format": "BinaryLE"
+                }
             ]
         }
     ]
