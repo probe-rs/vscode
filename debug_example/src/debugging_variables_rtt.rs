@@ -18,18 +18,8 @@ use hal::stm32::TIM2;
 use hal::timer::{Event, Timer};
 use hal::{gpio::gpiob::PB14, hal::digital::v2::OutputPin}; //Pushuser_button on PC13, board_red_led33 (Red) on PB14
 use heapless::Vec;
-
-use defmt_rtt as _;
-use panic_probe as _;
-// same panicking *behavior* as `panic-probe` but doesn't print a panic message
-// this prevents the panic message being printed *twice* when `defmt::panic` is invoked
-#[defmt::panic_handler]
-fn panic() -> ! {
-    cortex_m::asm::udf()
-}
-// use panic_halt as _;
-
-// use rtt_target::{UpChannel, DownChannel, rtt_init, set_print_channel,rprint ,rprintln};
+use panic_halt as _;
+use rtt_target::{UpChannel, DownChannel, rtt_init, set_print_channel,rprint ,rprintln};
 use stm32h7xx_hal as hal;
 
 // N.B. These are `mut` only so they don't constant fold away.
@@ -85,7 +75,7 @@ static REGULAR_STRUCT: Regular = Case1(
 fn main() -> ! {
     static LOCAL_STATIC: &str = "A 'local' to main() static variable";
 
-/*     let rtt_channels = rtt_init! {
+    let rtt_channels = rtt_init! {
         up: {
             0: {
                 size: 1024
@@ -116,12 +106,11 @@ fn main() -> ! {
         }
     };
     // Setup to use rprintln to channel 0
-    set_print_channel(rtt_channels.up.0); */
-    
-    defmt::info!("Debug Example Application Started Successfully");
+    set_print_channel(rtt_channels.up.0);
+    rprintln!("Debug Example Application Started Successfully");
 
     // Setup to use UpChannel::write() to channel 1
-    // let mut binary_rtt_channel:UpChannel = rtt_channels.up.1;
+    let mut binary_rtt_channel:UpChannel = rtt_channels.up.1;
 
     // Device specific peripherals
     let mut stm32h7_peripherals: hal::pac::Peripherals = hal::pac::Peripherals::take().unwrap();
@@ -268,9 +257,10 @@ fn main() -> ! {
 
     let mut i:u8 = 0;
     loop {
+        
         i = i.wrapping_add(1); //Wrap when u8 overflows
-        // let bytes_written = binary_rtt_channel.write(&u8::to_le_bytes(i)); // Raw byte level output to Channel 1
-        defmt::info!("Loop count# {}", i); // Text Output line on Channel 0
+        let bytes_written = binary_rtt_channel.write(&u8::to_le_bytes(i)); // Raw byte level output to Channel 1
+        rprintln!("Loop count # {}, wrote {}  bytes to the BinaryLE channel #1", i, bytes_written); // Text Output line on Channel 0
         // TODO: Need the right syntax for  defmt channels
         // cortex_m::asm::delay(100_000_000); // Approximately 1/4 second intervals, at 400Mhz clock speed
         board_red_led.toggle();
