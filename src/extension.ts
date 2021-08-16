@@ -113,11 +113,11 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 					// // eslint-disable-next-line eqeqeq
 					if (channelNumber === incomingChannelNumber) {
 						switch (dataFormat) {
-							case 'String':
-								channelWriteEmitter.fire(formatText(customEvent.body?.data));
-								break;
-							default:
+							case 'BinaryLE': //Don't mess with this data
 								channelWriteEmitter.fire(customEvent.body?.data);
+								break;
+							default: //Replace newline characters with platform appropriate newline/carriage-return combinations
+								channelWriteEmitter.fire(formatText(customEvent.body?.data));
 							}
 						break;
 					}
@@ -246,7 +246,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 					return undefined;
 				}
 			}
-			await new Promise<void>((resolve) => setTimeout(resolve, 250)); // Wait for a fraction of a second more, to allow TCP/IP port to initialize in probe-rs-debugger
+			await new Promise<void>((resolve) => setTimeout(resolve, 500)); // Wait for a fraction of a second more, to allow TCP/IP port to initialize in probe-rs-debugger
 		}
 		// make VS Code connect to debug server
 		return new vscode.DebugAdapterServer(+debugServer[1], debugServer[0]);

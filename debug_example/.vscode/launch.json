@@ -24,6 +24,14 @@
             "console_log_level": "Error",
             "rtt_enabled": true,
             "rtt_timeout": 300,
+            // "rtt_channel_formats": [
+            //     {
+            //         "channel_number": 0,
+            //         "data_format": "Defmt",
+            //         "show_timestamps": true
+            //     }
+            // ]
+            // ,
             "rtt_channel_formats": [
                 {
                     "channel_number": 0,
@@ -55,18 +63,20 @@
             "halt_after_reset": true,
             "console_log_level": "Error",
             "rtt_enabled": true,
-            "rtt_timeout": 300,
-            "rtt_channel_formats": [
-                {
-                    "channel_number": 0,
-                    "data_format": "String",
-                    "show_timestamps": true
-                },
-                {
-                    "channel_number": 1,
-                    "data_format": "BinaryLE"
-                }
-            ]
+            // "rtt_timeout": 300
+            // ,
+            // "rtt_channel_formats": [
+            //     {
+            //         "channel_number": 0,
+            //         "data_format": "Defmt",
+            //         "show_timestamps": true
+            //     }
+            //     // ,
+            //     // {
+            //     //     "channel_number": 1,
+            //     //     "data_format": "BinaryLE"
+            //     // }
+            // ]
         }
     ]
 }
