@@ -67,7 +67,12 @@ function logToConsole(consoleMesssage: string) {
 				vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
 			}
 			break;
-		case 'Debug': // Log EVERYTHING
+		case 'Debug': //  Log Info, Warn, Error AND Debug
+			if (consoleMesssage.includes('INFO') || consoleMesssage.includes('WARN') || consoleMesssage.includes('ERROR') || consoleMesssage.includes('DEBUG')) {
+				vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+			}
+			break;
+		case 'Trace': // Log EVERYTHING
 			vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
 			break;
 	}

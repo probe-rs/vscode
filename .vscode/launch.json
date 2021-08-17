@@ -13,19 +13,6 @@
 				"${workspaceFolder}/dist/ext/**/*.js"
 			],
 			"preLaunchTask": "npm: watch"
-		},
-		{
-			"name": "SSTP Example",
-			"type": "extensionHost",
-			"request": "launch",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"/Users/Jack/dev/sstp-rs"
-			],
-			"outFiles": [
-				"${workspaceFolder}/dist/ext/**/*.js"
-			],
-			"preLaunchTask": "npm: watch"
 		}
 	]
 }
