@@ -1,7 +1,7 @@
 {
   "name": "probe-rs-debugger",
   "displayName": "Debugger for probe-rs",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "publisher": "probe-rs",
   "description": "probe-rs Debug Adapter for VS Code.",
   "author": {
@@ -157,7 +157,8 @@
                   "Error",
                   "Warn",
                   "Info",
-                  "Debug"
+                  "Debug",
+                  "Trace"
                 ],
                 "default": "Error"
               },
@@ -220,7 +221,7 @@
                   "show_timestamps": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Enable the inclusion of timestamps in the RTT output"
+                    "description": "Enable the inclusion of timestamps in the RTT output for `data_format=String`"
                   }
                 }
               }
@@ -299,7 +300,8 @@
                   "Error",
                   "Warn",
                   "Info",
-                  "Debug"
+                  "Debug",
+                  "Trace"
                 ],
                 "default": "Error"
               },
@@ -362,7 +364,7 @@
                   "show_timestamps": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Enable the inclusion of timestamps in the RTT output"
+                    "description": "Enable the inclusion of timestamps in the RTT output for `data_format=String`"
                   }
                 }
               }
