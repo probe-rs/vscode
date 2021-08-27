@@ -165,10 +165,10 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 		} else { // Find and use the first available port
 			var portfinder = require('portfinder');
 			try {
-				var port = await portfinder.getPortPromise();
+				var port:number = await portfinder.getPortPromise();
 				debugServer = new String("127.0.0.1:" + port).split(":", 2);
 			}
-			catch (err) {
+			catch (err:any) {
 				logToConsole("ERROR: " + JSON.stringify(err.message, null, 2));
 				vscode.window.showErrorMessage("Searching for available port failed with: " + JSON.stringify(err.message, null, 2));
 				return undefined;
