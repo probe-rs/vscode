@@ -101,6 +101,8 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 				};
 				let channelTerminal = vscode.window.createTerminal(channelTerminalConfig);
 				this.rttTerminals.push([+channelNumber, dataFormat, channelTerminal, channelWriteEmitter]);
+				let infoMessage = "probe-rs-debugger: Opened an RTT Terminal window called: " + channelName;
+				vscode.debug.activeDebugConsole.appendLine(infoMessage);
 			}
 		}
 	}
@@ -162,7 +164,8 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 		var debugServer = new String("127.0.0.1:50000").split(":", 2); // ... provide default server host and port for "launch" configurations, where this is NOT a mandatory config
 		if (session.configuration.hasOwnProperty('server')) {
 			debugServer = new String(session.configuration.server).split(":", 2);
-		} else { // Find and use the first available port
+			logToConsole("INFO: Debug using existing server" + JSON.stringify(debugServer[0]) + " on port " + JSON.stringify(debugServer[1]));
+		} else { // Find and use the first available port and spawn a new probe-rs-debugger process
 			var portfinder = require('portfinder');
 			try {
 				var port:number = await portfinder.getPortPromise();
@@ -173,11 +176,6 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 				vscode.window.showErrorMessage("Searching for available port failed with: " + JSON.stringify(err.message, null, 2));
 				return undefined;
 			}
-
-		}
-		if (session.configuration.request === "attach") {
-			logToConsole("INFO: Debug using existing server" + JSON.stringify(debugServer[0]) + " on port " + JSON.stringify(debugServer[1]));
-		} else { // session.configuration.request === "launch")
 			var args: string[];
 			if (session.configuration.hasOwnProperty('runtimeArgs')) {
 				args = session.configuration.runtimeArgs;
@@ -253,6 +251,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			}
 			await new Promise<void>((resolve) => setTimeout(resolve, 500)); // Wait for a fraction of a second more, to allow TCP/IP port to initialize in probe-rs-debugger
 		}
+
 		// make VS Code connect to debug server
 		return new vscode.DebugAdapterServer(+debugServer[1], debugServer[0]);
 

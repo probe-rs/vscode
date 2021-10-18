@@ -95,6 +95,11 @@
               "chip"
             ],
             "properties": {
+              "server": {
+                "type": "string",
+                "description": "Optionally onnect to an existing `probe-rs-debugger` session on IP and Port, e.g. '127.0.0.1:50000'",
+                "default": "127.0.0.1:50000"
+              },
               "program_binary": {
                 "type": "string",
                 "description": "Path to MCU binary to debug",
@@ -226,12 +231,13 @@
           },
           "attach": {
             "required": [
-              "server"
+              "chip",
+              "program_binary"
             ],
             "properties": {
               "server": {
                 "type": "string",
-                "description": "Server IP and Port, e.g. '127.0.0.1:50000'",
+                "description": "Optionally connect to an existing `probe-rs-debugger` session on IP and Port, e.g. '127.0.0.1:50000'",
                 "default": "127.0.0.1:50000"
               },
               "program_binary": {
@@ -247,11 +253,6 @@
               "chip": {
                 "type": "string",
                 "description": "Chip to debug, e.g. STM32H745ZITx"
-              },
-              "connect_under_reset": {
-                "type": "boolean",
-                "description": "Reset target when attaching",
-                "default": false
               },
               "core_index": {
                 "type": "number",
@@ -301,31 +302,6 @@
                   "Trace"
                 ],
                 "default": "Error"
-              },
-              "flashing_enabled": {
-                "type": "boolean",
-                "description": "Flash the target before debugging",
-                "default": true
-              },
-              "reset_after_flashing": {
-                "type": "boolean",
-                "description": "Reset the target after flashing",
-                "default": true
-              },
-              "halt_after_reset": {
-                "type": "boolean",
-                "description": "Halt the target after reset",
-                "default": true
-              },
-              "full_chip_erase": {
-                "type": "boolean",
-                "description": "Do a full chip erase, versus page-by-page erase",
-                "default": false
-              },
-              "restore_unwritten_bytes": {
-                "type": "boolean",
-                "description": "Restore erased bytes that will not be rewritten from ELF",
-                "default": false
               },
               "rtt_enabled": {
                 "type": "boolean",
