@@ -97,26 +97,36 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 					close: () => { },
 					handleInput: data => channelWriteEmitter.fire(data)
 				};
-				let channelTerminalConfig: vscode.ExtensionTerminalOptions = {
-					name: channelName,
-					pty: channelPty
-				};
+				let channelTerminalConfig: vscode.ExtensionTerminalOptions | undefined;
 				let channelTerminal: vscode.Terminal | undefined;
-				this.rttTerminals = [];
 				for (let reuseTerminal of vscode.window.terminals)
 				{
-					if (reuseTerminal.name === channelName ) 
+					if (reuseTerminal.name === channelName )
 					{
 						channelTerminal = reuseTerminal;
+						channelTerminalConfig = channelTerminal.creationOptions as vscode.ExtensionTerminalOptions;
+						vscode.debug.activeDebugConsole.appendLine("probe-rs-debugger: Will reuse  existing RTT Terminal window called: " + channelName);
+						break;
 					}
 				}
 				if (channelTerminal === undefined)
 				{
+					channelTerminalConfig = {
+						name: channelName,
+						pty: channelPty
+					};
+					for (let index in this.rttTerminals) {
+						var [formerChannelNumber, , ,] = this.rttTerminals[index];
+						if (formerChannelNumber === channelNumber) {
+							this.rttTerminals.splice(+index, 1);
+							break;
+						}
+					}
 					channelTerminal = vscode.window.createTerminal(channelTerminalConfig);
+					vscode.debug.activeDebugConsole.appendLine("probe-rs-debugger: Opened a new RTT Terminal window called: " + channelName);
+					this.rttTerminals.push([+channelNumber, dataFormat, channelTerminal, channelWriteEmitter]);
 				}
-				this.rttTerminals.push([+channelNumber, dataFormat, channelTerminal, channelWriteEmitter]);
-				let infoMessage = "probe-rs-debugger: Opened an RTT Terminal window called: " + channelName;
-				vscode.debug.activeDebugConsole.appendLine(infoMessage);
+				channelTerminal.show(false);
 			}
 		}
 	}
@@ -129,9 +139,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 				break;
 			case 'probe-rs-rtt-data':
 				let incomingChannelNumber: number = +customEvent.body?.channel_number;
-				for (var index in this.rttTerminals) {
-					let [channelNumber, dataFormat, , channelWriteEmitter] = this.rttTerminals[index];
-					// // eslint-disable-next-line eqeqeq
+				for (var [channelNumber, dataFormat, , channelWriteEmitter] of this.rttTerminals) {
 					if (channelNumber === incomingChannelNumber) {
 						switch (dataFormat) {
 							case 'BinaryLE': //Don't mess with this data
