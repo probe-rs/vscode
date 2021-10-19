@@ -83,11 +83,13 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 	rttTerminals: [channelNumber: number, dataFormat: String, rttTerminal: vscode.Terminal, channelWriteEmitter:vscode.EventEmitter<string>][] = [];
 
 	createRttTerminal(channelNumber: number, dataFormat: string, channelName: string) {
-		// Open a new terminal window for RTT Logging, if RTT is enabled.
-		if (vscode.debug.activeDebugSession) {
+		// Make sure we have a terminal window per channel, for RTT Logging
+		if (vscode.debug.activeDebugSession) 
+		{
 			let session = vscode.debug.activeDebugSession;
 			if (session.configuration.hasOwnProperty('rtt_enabled') &&
-				session.configuration.rtt_enabled) {
+				session.configuration.rtt_enabled) 
+			{
 				let channelWriteEmitter = new vscode.EventEmitter<string>();
 				let channelPty: vscode.Pseudoterminal = {
 					onDidWrite: channelWriteEmitter.event,
@@ -99,7 +101,19 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 					name: channelName,
 					pty: channelPty
 				};
-				let channelTerminal = vscode.window.createTerminal(channelTerminalConfig);
+				let channelTerminal: vscode.Terminal | undefined;
+				this.rttTerminals = [];
+				for (let reuseTerminal of vscode.window.terminals)
+				{
+					if (reuseTerminal.name === channelName ) 
+					{
+						channelTerminal = reuseTerminal;
+					}
+				}
+				if (channelTerminal === undefined)
+				{
+					channelTerminal = vscode.window.createTerminal(channelTerminalConfig);
+				}
 				this.rttTerminals.push([+channelNumber, dataFormat, channelTerminal, channelWriteEmitter]);
 				let infoMessage = "probe-rs-debugger: Opened an RTT Terminal window called: " + channelName;
 				vscode.debug.activeDebugConsole.appendLine(infoMessage);
@@ -258,11 +272,6 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 	}
 
 	dispose() {
-		for (var index in this.rttTerminals) {
-			let [, ,rttTerminal] = this.rttTerminals[index];
-			rttTerminal.dispose();
-		}		
-		this.rttTerminals = []; // TODO: Not sure if it will be better UX to re-use past terminals, rather than closing and opening new instances.
 		logToConsole("INFO: Closing probe-rs debug extension");
 	}
 }
