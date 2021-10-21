@@ -105,7 +105,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 					{
 						channelTerminal = reuseTerminal;
 						channelTerminalConfig = channelTerminal.creationOptions as vscode.ExtensionTerminalOptions;
-						vscode.debug.activeDebugConsole.appendLine("probe-rs-debugger: Will reuse  existing RTT Terminal window called: " + channelName);
+						vscode.debug.activeDebugConsole.appendLine("probe-rs-debugger: Will reuse  existing RTT Terminal window named: " + channelName);
 						break;
 					}
 				}
@@ -123,7 +123,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 						}
 					}
 					channelTerminal = vscode.window.createTerminal(channelTerminalConfig);
-					vscode.debug.activeDebugConsole.appendLine("probe-rs-debugger: Opened a new RTT Terminal window called: " + channelName);
+					vscode.debug.activeDebugConsole.appendLine("probe-rs-debugger: Opened a new RTT Terminal window named: " + channelName);
 					this.rttTerminals.push([+channelNumber, dataFormat, channelTerminal, channelWriteEmitter]);
 				}
 				channelTerminal.show(false);
