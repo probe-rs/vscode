@@ -26,7 +26,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.debug.registerDebugAdapterDescriptorFactory('probe-rs-debug', descriptorFactory),
 		vscode.debug.onDidReceiveDebugSessionCustomEvent(descriptorFactory.receivedCustomEvent.bind(descriptorFactory)),
-		vscode.debug.onDidTerminateDebugSession(descriptorFactory.dispose.bind(descriptorFactory))
+		vscode.debug.onDidTerminateDebugSession(descriptorFactory.dispose.bind(descriptorFactory)),
 		);
 }
 
@@ -180,7 +180,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 		probeRsLogLevel = session.configuration.console_log_level;
 
 		// Initiate either the 'attach' or 'launch' request.
-		// We do NOT use DebugAdapterExecutable, because of issues with lost DAP messages. For 'launch' requests, start a server on the default (or specified) port.
+		// We do NOT use DebugAdapterExecutable
 		logToConsole("INFO: Session: " + JSON.stringify(session,null, 2));
 		
 		var debugServer = new String("127.0.0.1:50000").split(":", 2); // ... provide default server host and port for "launch" configurations, where this is NOT a mandatory config
@@ -236,6 +236,9 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 				command = executable.command;
 			}
 			
+			// The debug adapter process was launched by VSCode, and should terminate itself at the end of every debug session (when receiving `Disconnect` or `Terminate` Request from VSCode). The "false"(default) state of this option implies that the process was launched (and will be managed) by the user.
+			args.push("--vscode");
+
 			// Launch the debugger ... launch errors will be reported in `launchCallback`
 			logToConsole("INFO: Launching new server" + JSON.stringify(command) + " " + JSON.stringify(args) + " " + JSON.stringify(options));
 			var launchedDebugAdapter = child_process.execFile(
@@ -246,7 +249,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			);
 
 			// Capture stdout and stderr to ensure RUST_LOG can be redirected
-			debuggerReadySignature = "probe-rs-debugger Listening for requests on port ".concat(debugServer[1]);
+			debuggerReadySignature = command.concat(": Listening for requests on port ", debugServer[1]);
 			launchedDebugAdapter.stdout?.on('data', (data: string) => {
 				if (data.includes(debuggerReadySignature)) {
 					debuggerReady = true;
@@ -295,7 +298,7 @@ class ProbeRsDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory {
 }
 
 class ProbeRsDebugAdapterTracker implements DebugAdapterTracker {
-	
+ 
 	onWillReceiveMessage(message: any) {
 		logToConsole("DEBUG: Sending message to debug adapter:\n" + JSON.stringify(message, null, 2));
 	}
