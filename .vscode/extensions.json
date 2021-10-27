@@ -3,7 +3,6 @@
 	// for the documentation about the extensions.json format
 	"recommendations": [
 		"dbaeumer.vscode-eslint",
-		"eamodio.tsl-problem-matcher",
 		"github.vscode-pull-request-github",
 		"matklad.rust-analyzer",
 		"tamasfe.even-better-toml",

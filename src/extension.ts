@@ -26,7 +26,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.debug.registerDebugAdapterDescriptorFactory('probe-rs-debug', descriptorFactory),
 		vscode.debug.onDidReceiveDebugSessionCustomEvent(descriptorFactory.receivedCustomEvent.bind(descriptorFactory)),
-		vscode.debug.onDidTerminateDebugSession(descriptorFactory.dispose.bind(descriptorFactory))
+		vscode.debug.onDidTerminateDebugSession(descriptorFactory.dispose.bind(descriptorFactory)),
 		);
 }
 
@@ -48,33 +48,37 @@ export function launchCallback(error: child_process.ExecFileException | null, st
 // Cleanup inconsitent line breaks in String data
 const formatText = (text: string) => `\r${text.split(/(\r?\n)/g).join("\r")}\r`;
 
-// Messages to be sent to the debug session's console. Anything sent before or after an active debug session is silently ignored by VSCode. Ditto for any messages that doesn't start with 'ERROR:', or 'INFO' , or 'WARN', ... unless the log level is DEBUG. Then everything is logged.
+// Messages to be sent to the debug session's console. Anything sent before or after an active debug session is silently ignored by VSCode. Ditto for any messages that doesn't start with 'ERROR', or 'INFO' , or 'WARN', ... unless the log level is DEBUG. Then everything is logged.
 function logToConsole(consoleMesssage: string) {
-	console.log(consoleMesssage); // During VSCode extensiond development, this will also log to the local debug console
-	switch (probeRsLogLevel) {
-		case 'Error': // ONLY log Error messages
-			if (consoleMesssage.includes('ERROR'))  {
+	console.log(consoleMesssage); // During VSCode extension development, this will also log to the local debug console
+	if (consoleMesssage.includes('CONSOLE')) {
+		vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+	} else {
+		switch (probeRsLogLevel) {
+			case 'Error': // ONLY log Error messages
+				if (consoleMesssage.includes('ERROR'))  {
+					vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+				}
+				break;
+			case 'Warn': // Log Warn AND Error
+				if (consoleMesssage.includes('INFO') || consoleMesssage.includes('WARN')){
+					vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+				}
+				break;
+			case 'Info': // Log Info, Warn AND Error
+				if (consoleMesssage.includes('INFO') || consoleMesssage.includes('WARN') || consoleMesssage.includes('ERROR')) {
+					vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+				}
+				break;
+			case 'Debug': //  Log Info, Warn, Error AND Debug
+				if (consoleMesssage.includes('INFO') || consoleMesssage.includes('WARN') || consoleMesssage.includes('ERROR') || consoleMesssage.includes('DEBUG')) {
+					vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+				}
+				break;
+			case 'Trace': // Log EVERYTHING
 				vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
-			}
-			break;
-		case 'Warn': // Log Warn AND Error
-			if (consoleMesssage.includes('INFO') || consoleMesssage.includes('WARN')){
-				vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
-			}
-			break;
-		case 'Info': // Log Info, Warn AND Error
-			if (consoleMesssage.includes('INFO') || consoleMesssage.includes('WARN') || consoleMesssage.includes('ERROR')) {
-				vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
-			}
-			break;
-		case 'Debug': //  Log Info, Warn, Error AND Debug
-			if (consoleMesssage.includes('INFO') || consoleMesssage.includes('WARN') || consoleMesssage.includes('ERROR') || consoleMesssage.includes('DEBUG')) {
-				vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
-			}
-			break;
-		case 'Trace': // Log EVERYTHING
-			vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
-			break;
+				break;
+		}
 	}
 }
 
@@ -83,11 +87,12 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 	rttTerminals: [channelNumber: number, dataFormat: String, rttTerminal: vscode.Terminal, channelWriteEmitter:vscode.EventEmitter<string>][] = [];
 
 	createRttTerminal(channelNumber: number, dataFormat: string, channelName: string) {
-		// Open a new terminal window for RTT Logging, if RTT is enabled.
+		// Make sure we have a terminal window per channel, for RTT Logging
 		if (vscode.debug.activeDebugSession) {
 			let session = vscode.debug.activeDebugSession;
 			if (session.configuration.hasOwnProperty('rtt_enabled') &&
-				session.configuration.rtt_enabled) {
+				session.configuration.rtt_enabled) 
+			{
 				let channelWriteEmitter = new vscode.EventEmitter<string>();
 				let channelPty: vscode.Pseudoterminal = {
 					onDidWrite: channelWriteEmitter.event,
@@ -95,12 +100,36 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 					close: () => { },
 					handleInput: data => channelWriteEmitter.fire(data)
 				};
-				let channelTerminalConfig: vscode.ExtensionTerminalOptions = {
-					name: channelName,
-					pty: channelPty
-				};
-				let channelTerminal = vscode.window.createTerminal(channelTerminalConfig);
-				this.rttTerminals.push([+channelNumber, dataFormat, channelTerminal, channelWriteEmitter]);
+				let channelTerminalConfig: vscode.ExtensionTerminalOptions | undefined;
+				let channelTerminal: vscode.Terminal | undefined;
+				for (let reuseTerminal of vscode.window.terminals)
+				{
+					if (reuseTerminal.name === channelName )
+					{
+						channelTerminal = reuseTerminal;
+						channelTerminalConfig = channelTerminal.creationOptions as vscode.ExtensionTerminalOptions;
+						vscode.debug.activeDebugConsole.appendLine("probe-rs-debugger: Will reuse  existing RTT Terminal window named: " + channelName);
+						break;
+					}
+				}
+				if (channelTerminal === undefined)
+				{
+					channelTerminalConfig = {
+						name: channelName,
+						pty: channelPty
+					};
+					for (let index in this.rttTerminals) {
+						var [formerChannelNumber, , ,] = this.rttTerminals[index];
+						if (formerChannelNumber === channelNumber) {
+							this.rttTerminals.splice(+index, 1);
+							break;
+						}
+					}
+					channelTerminal = vscode.window.createTerminal(channelTerminalConfig);
+					vscode.debug.activeDebugConsole.appendLine("probe-rs-debugger: Opened a new RTT Terminal window named: " + channelName);
+					this.rttTerminals.push([+channelNumber, dataFormat, channelTerminal, channelWriteEmitter]);
+				}
+				channelTerminal.show(false);
 			}
 		}
 	}
@@ -113,9 +142,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 				break;
 			case 'probe-rs-rtt-data':
 				let incomingChannelNumber: number = +customEvent.body?.channel_number;
-				for (var index in this.rttTerminals) {
-					let [channelNumber, dataFormat, , channelWriteEmitter] = this.rttTerminals[index];
-					// // eslint-disable-next-line eqeqeq
+				for (var [channelNumber, dataFormat, , channelWriteEmitter] of this.rttTerminals) {
 					if (channelNumber === incomingChannelNumber) {
 						switch (dataFormat) {
 							case 'BinaryLE': //Don't mess with this data
@@ -156,13 +183,14 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 		probeRsLogLevel = session.configuration.console_log_level;
 
 		// Initiate either the 'attach' or 'launch' request.
-		// We do NOT use DebugAdapterExecutable, because of issues with lost DAP messages. For 'launch' requests, start a server on the default (or specified) port.
+		// We do NOT use DebugAdapterExecutable
 		logToConsole("INFO: Session: " + JSON.stringify(session,null, 2));
 		
 		var debugServer = new String("127.0.0.1:50000").split(":", 2); // ... provide default server host and port for "launch" configurations, where this is NOT a mandatory config
 		if (session.configuration.hasOwnProperty('server')) {
 			debugServer = new String(session.configuration.server).split(":", 2);
-		} else { // Find and use the first available port
+			logToConsole("INFO: Debug using existing server" + JSON.stringify(debugServer[0]) + " on port " + JSON.stringify(debugServer[1]));
+		} else { // Find and use the first available port and spawn a new probe-rs-debugger process
 			var portfinder = require('portfinder');
 			try {
 				var port:number = await portfinder.getPortPromise();
@@ -173,11 +201,6 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 				vscode.window.showErrorMessage("Searching for available port failed with: " + JSON.stringify(err.message, null, 2));
 				return undefined;
 			}
-
-		}
-		if (session.configuration.request === "attach") {
-			logToConsole("INFO: Debug using existing server" + JSON.stringify(debugServer[0]) + " on port " + JSON.stringify(debugServer[1]));
-		} else { // session.configuration.request === "launch")
 			var args: string[];
 			if (session.configuration.hasOwnProperty('runtimeArgs')) {
 				args = session.configuration.runtimeArgs;
@@ -216,6 +239,9 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 				command = executable.command;
 			}
 			
+			// The debug adapter process was launched by VSCode, and should terminate itself at the end of every debug session (when receiving `Disconnect` or `Terminate` Request from VSCode). The "false"(default) state of this option implies that the process was launched (and will be managed) by the user.
+			args.push("--vscode");
+
 			// Launch the debugger ... launch errors will be reported in `launchCallback`
 			logToConsole("INFO: Launching new server" + JSON.stringify(command) + " " + JSON.stringify(args) + " " + JSON.stringify(options));
 			var launchedDebugAdapter = child_process.execFile(
@@ -226,16 +252,15 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			);
 
 			// Capture stdout and stderr to ensure RUST_LOG can be redirected
-			debuggerReadySignature = "probe-rs-debugger Listening for requests on port ".concat(debugServer[1]);
+			debuggerReadySignature = command.concat(" CONSOLE: Listening for requests on port ", debugServer[1]);
 			launchedDebugAdapter.stdout?.on('data', (data: string) => {
 				if (data.includes(debuggerReadySignature)) {
 					debuggerReady = true;
-				} else {
-					logToConsole(JSON.stringify(data, null, 2));
 				}
-			});		
+				logToConsole(data);
+			});
 			launchedDebugAdapter.stderr?.on('data', (data: string) => {
-				logToConsole(JSON.stringify(data, null, 2));
+				logToConsole(data);
 			});
 
 			// Wait to make sure probe-rs-debugger startup completed, and is ready to accept connections.
@@ -246,6 +271,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 				if (numRetries > 0) {
 					numRetries --;
 				} else {
+					launchedDebugAdapter.kill(); 
 					logToConsole("ERROR: Timeout waiting for probe-rs-debugger to launch");
 					vscode.window.showErrorMessage("Timeout waiting for probe-rs-debugger to launch");
 					return undefined;
@@ -253,17 +279,13 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			}
 			await new Promise<void>((resolve) => setTimeout(resolve, 500)); // Wait for a fraction of a second more, to allow TCP/IP port to initialize in probe-rs-debugger
 		}
+
 		// make VS Code connect to debug server
 		return new vscode.DebugAdapterServer(+debugServer[1], debugServer[0]);
 
 	}
 
 	dispose() {
-		for (var index in this.rttTerminals) {
-			let [, ,rttTerminal] = this.rttTerminals[index];
-			rttTerminal.dispose();
-		}		
-		this.rttTerminals = []; // TODO: Not sure if it will be better UX to re-use past terminals, rather than closing and opening new instances.
 		logToConsole("INFO: Closing probe-rs debug extension");
 	}
 }
@@ -279,7 +301,7 @@ class ProbeRsDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory {
 }
 
 class ProbeRsDebugAdapterTracker implements DebugAdapterTracker {
-	
+ 
 	onWillReceiveMessage(message: any) {
 		logToConsole("DEBUG: Sending message to debug adapter:\n" + JSON.stringify(message, null, 2));
 	}
