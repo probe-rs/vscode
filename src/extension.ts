@@ -252,7 +252,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			);
 
 			// Capture stdout and stderr to ensure RUST_LOG can be redirected
-			debuggerReadySignature = command.concat(" CONSOLE: Listening for requests on port ", debugServer[1]);
+			debuggerReadySignature = "CONSOLE: Listening for requests on port " + debugServer[1];
 			launchedDebugAdapter.stdout?.on('data', (data: string) => {
 				if (data.includes(debuggerReadySignature)) {
 					debuggerReady = true;
