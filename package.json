@@ -25,7 +25,7 @@
     "url": "https://github.com/probe-rs/vscode.git"
   },
   "bugs": {
-    "url": "https://github.com/probe-rs/vscode.git/issues"
+    "url": "https://github.com/probe-rs/vscode/issues"
   },
   "scripts": {
     "probe-rs: getDebugProtocolLatest": "curl -LJs https://microsoft.github.io/debug-adapter-protocol/debugAdapterProtocol.json -o src/debugProtocol.json",
@@ -243,12 +243,12 @@
               "program_binary": {
                 "type": "string",
                 "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware",
-                "default": "./target/debug/thumbv7em-none-eabihf/${workspaceFolderBasename}"
+                "default": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}"
               },
               "cwd": {
                 "type": "string",
                 "description": "The working directory of the debugger, typically the RUST crate root",
-                "default": "${workspaceFolder}}"
+                "default": "${workspaceFolder}"
               },
               "chip": {
                 "type": "string",

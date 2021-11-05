@@ -3,13 +3,6 @@
 	// for the documentation about the extensions.json format
 	"recommendations": [
 		"dbaeumer.vscode-eslint",
-		"github.vscode-pull-request-github",
-		"matklad.rust-analyzer",
-		"tamasfe.even-better-toml",
-		"zixuanwang.linkerscript",
-		"gruntfuggly.todo-tree",
-		"yzhang.markdown-all-in-one",
-		"vadimcn.vscode-lldb",
-		"mutantdino.resourcemonitor"
+		"amodio.tsl-problem-matcher"
 	]
 }
