@@ -6,8 +6,12 @@
 
 import * as child_process from 'child_process';
 import * as os from 'os';
+import * as path from 'path';
+
 import * as vscode from 'vscode';
-import { DebugAdapterTracker, DebugAdapterTrackerFactory, } from 'vscode';
+import { DebugAdapterTracker, DebugAdapterTrackerFactory } from 'vscode';
+
+import { replaceHome } from './utils';
 
 // This is just the default. It will be updated after the configuration has been resolved. 
 var probeRsLogLevel = 'Info';
@@ -220,20 +224,23 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 				env: { ...process.env, 'RUST_LOG': logEnv, },
 			};
 
-			var command = "";
-			if (!executable) {
-				if (session.configuration.hasOwnProperty('runtimeExecutable')) {
-					command = session.configuration.runtimeExecutable;
-				} else {
-					switch (os.platform()) {
-						case 'win32': command = "probe-rs-debugger.exe"; break;
-						default: command = "probe-rs-debugger";
-					}
-				}
-			}
-			else {
+			let command;
+            if (executable) {
 				command = executable.command;
+            } else if (session.configuration.hasOwnProperty('runtimeExecutable')) {
+                command = replaceHome(session.configuration.runtimeExecutable);
+            } else {
+                switch (os.platform()) {
+                    case 'win32':
+                        command = "probe-rs-debugger.exe";
+                        break;
+                    default:
+                        command = "probe-rs-debugger";
+                }
 			}
+
+            // Because it's easier to debug, resolve the potentially relative path to an absolute path
+            command = path.resolve(options.cwd, command)
 
 			// The debug adapter process was launched by VSCode, and should terminate itself at the end of every debug session (when receiving `Disconnect` or `Terminate` Request from VSCode). The "false"(default) state of this option implies that the process was launched (and will be managed) by the user.
 			args.push("--vscode");
