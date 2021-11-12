@@ -1,7 +1,7 @@
 {
   "name": "probe-rs-debugger",
   "displayName": "Debugger for probe-rs",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "publisher": "probe-rs",
   "description": "probe-rs Debug Adapter for VS Code.",
   "author": {
@@ -91,7 +91,7 @@
         "configurationAttributes": {
           "launch": {
             "required": [
-              "program_binary",
+              "programBinary",
               "chip"
             ],
             "properties": {
@@ -100,7 +100,7 @@
                 "description": "Optionally onnect to an existing `probe-rs-debugger` session on IP and Port, e.g. '127.0.0.1:50000'",
                 "default": "127.0.0.1:50000"
               },
-              "program_binary": {
+              "programBinary": {
                 "type": "string",
                 "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware",
                 "default": "./target/debug/thumbv7em-none-eabihf/${workspaceFolderBasename}"
@@ -114,7 +114,7 @@
                 "type": "string",
                 "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs-debugger list-chips`."
               },
-              "core_index": {
+              "coreIndex": {
                 "type": "number",
                 "description": "The zero based index of the MCU core for this session",
                 "default": 0
@@ -143,7 +143,7 @@
                 "type": "number",
                 "description": "Specify the protocol speed in kHz."
               },
-              "wire_protocol": {
+              "wireProtocol": {
                 "type": "string",
                 "description": "The correct wire Protocol to use.",
                 "enum": [
@@ -151,7 +151,7 @@
                   "Jtag"
                 ]
               },
-              "console_log_level": {
+              "consoleLogLevel": {
                 "type": "string",
                 "description": "The level of log info printed to the console. This also sets the RUST_LOG environment variable wherever possible.",
                 "enum": [
@@ -163,49 +163,49 @@
                 ],
                 "default": "Error"
               },
-              "connect_under_reset": {
+              "connectUnderReset": {
                 "type": "boolean",
                 "description": "This option will result in the target reset pin being held high during the attach operation.",
                 "default": false
               },
-              "flashing_enabled": {
+              "flashingEnabled": {
                 "type": "boolean",
                 "description": "Flash the target before debugging.",
                 "default": true
               },
-              "reset_after_flashing": {
+              "resetAfterFlashing": {
                 "type": "boolean",
                 "description": "Reset the target after flashing.",
                 "default": true
               },
-              "halt_after_reset": {
+              "haltAfterReset": {
                 "type": "boolean",
                 "description": "Halt the target after reset.",
                 "default": true
               },
-              "full_chip_erase": {
+              "fullChipErase": {
                 "type": "boolean",
                 "description": "Do a full chip erase, versus page-by-page erase.",
                 "default": false
               },
-              "restore_unwritten_bytes": {
+              "restoreUnwrittenBytes": {
                 "type": "boolean",
                 "description": "Restore erased bytes that will not be rewritten from ELF.",
                 "default": false
               },
-              "rtt_enabled": {
+              "rttEnabled": {
                 "type": "boolean",
                 "description": "If true, the debugger will open an RTT Terminal tab for each of the active channels on the target.",
                 "default": false
               },
-              "rtt_channel_formats": {
+              "rttChannelFormats": {
                 "type": "array",
                 "items": {
-                  "channel_number": {
+                  "channelNumber": {
                     "type": "number",
-                    "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `format=String', and 'show_timestamps=false'."
+                    "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `dataFormat=String', and 'showTimestamps=false'."
                   },
-                  "data_format": {
+                  "dataFormat": {
                     "type": "string",
                     "description": "One of the supported data formats for RTT channels.",
                     "enum": [
@@ -220,10 +220,10 @@
                     ],
                     "default": "String"
                   },
-                  "show_timestamps": {
+                  "showTimestamps": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Enable the inclusion of timestamps in the RTT output for `data_format=String`."
+                    "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
                   }
                 }
               }
@@ -232,7 +232,7 @@
           "attach": {
             "required": [
               "chip",
-              "program_binary"
+              "programBinary"
             ],
             "properties": {
               "server": {
@@ -240,7 +240,7 @@
                 "description": "Optionally onnect to an existing `probe-rs-debugger` session on IP and Port, e.g. '127.0.0.1:50000'",
                 "default": "127.0.0.1:50000"
               },
-              "program_binary": {
+              "programBinary": {
                 "type": "string",
                 "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware",
                 "default": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}"
@@ -254,7 +254,7 @@
                 "type": "string",
                 "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs-debugger list-chips`."
               },
-              "core_index": {
+              "coreIndex": {
                 "type": "number",
                 "description": "The zero based index of the MCU core for this session",
                 "default": 0
@@ -283,7 +283,7 @@
                 "type": "number",
                 "description": "Specify the protocol speed in kHz."
               },
-              "wire_protocol": {
+              "wireProtocol": {
                 "type": "string",
                 "description": "The correct wire Protocol to use.",
                 "enum": [
@@ -291,7 +291,7 @@
                   "Jtag"
                 ]
               },
-              "console_log_level": {
+              "consoleLogLevel": {
                 "type": "string",
                 "description": "The level of log info printed to the console. This also sets the RUST_LOG environment variable wherever possible.",
                 "enum": [
@@ -303,19 +303,19 @@
                 ],
                 "default": "Error"
               },
-              "rtt_enabled": {
+              "rttEnabled": {
                 "type": "boolean",
                 "description": "If true, the debugger will open an RTT Terminal tab for each of the active channels on the target.",
                 "default": false
               },
-              "rtt_channel_formats": {
+              "rttChannelFormats": {
                 "type": "array",
                 "items": {
-                  "channel_number": {
+                  "channelNumber": {
                     "type": "number",
-                    "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `format=String', and 'show_timestamps=false'."
+                    "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `dataFormat=String', and 'showTimestamps=false'."
                   },
-                  "data_format": {
+                  "dataFormat": {
                     "type": "string",
                     "description": "One of the supported data formats for RTT channels.",
                     "enum": [
@@ -330,10 +330,10 @@
                     ],
                     "default": "String"
                   },
-                  "show_timestamps": {
+                  "showTimestamps": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Enable the inclusion of timestamps in the RTT output for `data_format=String`."
+                    "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
                   }
                 }
               }
@@ -345,12 +345,12 @@
             "type": "probe-rs-debug",
             "request": "launch",
             "name": "probe-rs Test",
-            "program_binary": "./target/debug/thumbv7em-none-eabihf/${workspaceFolderBasename}",
+            "programBinary": "./target/debug/thumbv7em-none-eabihf/${workspaceFolderBasename}",
             "chip": "STM32H745ZITx",
-            "connect_under_reset": true,
-            "flashing_enabled": true,
-            "reset_after_flashing": true,
-            "halt_after_reset": true
+            "connectUnderReset": true,
+            "flashingEnabled": true,
+            "resetAfterFlashing": true,
+            "haltAfterReset": true
           }
         ],
         "configurationSnippets": [
@@ -361,9 +361,9 @@
               "type": "probe-rs-debug",
               "request": "launch",
               "name": "probe-rs Test",
-              "program_binary": "./target/debug/thumbv7em-none-eabihf/${workspaceFolderBasename}",
+              "programBinary": "./target/debug/thumbv7em-none-eabihf/${workspaceFolderBasename}",
               "chip": "STM32H745ZITx",
-              "connect_under_reset": true
+              "connectUnderReset": true
             }
           }
         ]
