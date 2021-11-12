@@ -20,7 +20,10 @@ To work on this extensions, you first need to install VS Code and nodejs. Afterw
   ```bash
   yarn
   ```
-- Install the extensions VS Code recommends
+- Install the extensions VS Code recommends. If you prefer to do this manually, you can find the list of recommended extensions in the repository's `.vscode/settings.json' file. These can then be installed from the command line, for example: 
+  ```bash
+  code --install-extension amodio.tsl-problem-matcher
+  ```
 - Open VS Code
 - Press F5 to start a new VS Code instance where the extension can be debugged. You can also open the "Run and Debug" panel in the left sidebar, and then start the "Extension" debug configuration.
 
@@ -51,13 +54,13 @@ Because the extension is still regarded as being in 'Alpha' state, it is NOT bei
 Building the extension refers to the process that generates the installable `.vsix` package.
 * Follow the instructions to [setup your development environment](#development-setup).
 * In a terminal window, execute the following command:
-```
-yarn probe-rs:package
-```
+  ```
+  yarn probe-rs:package
+  ```
 * This will generate a .vsix file in the root of the repository
 
 ### Updating the GitHub release page
-After any PR has been merged, you need to consider if it is necessary to update the `.vsix` in the repository's [release page](https://github.com/probe-rs/vscode/releases). 
-* For minor fixes and changes, just update the asset for the latest release.
-* For significant fixes and changes, please update the version number [see the Semantic Versioning guidelines](https://semver.org/), and create a new release tag.
+* Whenever any PR has been merged, you need to create a new release and upload the `.vsix` in the repository's [release page](https://github.com/probe-rs/vscode/releases). 
+* This means that every PR needs to update the version number appropriately in the `package.json` file. Please [see the Semantic Versioning guidelines](https://semver.org/).
+
 
