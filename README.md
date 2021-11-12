@@ -20,10 +20,7 @@ To work on this extensions, you first need to install VS Code and nodejs. Afterw
   ```bash
   yarn
   ```
-- Install a VS Code extension necessary for development:
-  ```bash
-  code --install-extension amodio.tsl-problem-matcher
-  ```
+- Install the extensions VS Code recommends
 - Open VS Code
 - Press F5 to start a new VS Code instance where the extension can be debugged. You can also open the "Run and Debug" panel in the left sidebar, and then start the "Extension" debug configuration.
 
@@ -47,5 +44,20 @@ To work on this extensions, you first need to install VS Code and nodejs. Afterw
   * Select the debug environment `probe_rs Server Test`.
   * Press `F5` to start debugging.
 
+## Generating and releasing the extension
+Because the extension is still regarded as being in 'Alpha' state, it is NOT being released on the Microsoft Visual Studio Code Extension Marketplace. The only way to get access to updated versions of the extension is to build it yourself, or to download it from the [GitHub release page](#development-setup) for this extension.
 
+### Build the extension
+Building the extension refers to the process that generates the installable `.vsix` package.
+* Follow the instructions to [setup your development environment](#development-setup).
+* In a terminal window, execute the following command:
+```
+yarn probe-rs:package
+```
+* This will generate a .vsix file in the root of the repository
+
+### Updating the GitHub release page
+After any PR has been merged, you need to consider if it is necessary to update the `.vsix` in the repository's [release page](https://github.com/probe-rs/vscode/releases). 
+* For minor fixes and changes, just update the asset for the latest release.
+* For significant fixes and changes, please update the version number [see the Semantic Versioning guidelines](https://semver.org/), and create a new release tag.
 

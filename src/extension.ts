@@ -90,8 +90,8 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 		// Make sure we have a terminal window per channel, for RTT Logging
 		if (vscode.debug.activeDebugSession) {
 			let session = vscode.debug.activeDebugSession;
-			if (session.configuration.hasOwnProperty('rtt_enabled') &&
-				session.configuration.rtt_enabled) {
+			if (session.configuration.hasOwnProperty('rttEnabled') &&
+				session.configuration.rttEnabled) {
 				let channelWriteEmitter = new vscode.EventEmitter<string>();
 				let channelPty: vscode.Pseudoterminal = {
 					onDidWrite: channelWriteEmitter.event,
@@ -134,10 +134,10 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 
 		switch (customEvent.event) {
 			case 'probe-rs-rtt-channel-config':
-				this.createRttTerminal(+customEvent.body?.channel_number, customEvent.body?.data_format, customEvent.body?.channel_name);
+				this.createRttTerminal(+customEvent.body?.channelNumber, customEvent.body?.dataFormat, customEvent.body?.channelName);
 				break;
 			case 'probe-rs-rtt-data':
-				let incomingChannelNumber: number = +customEvent.body?.channel_number;
+				let incomingChannelNumber: number = +customEvent.body?.channelNumber;
 				for (var [channelNumber, dataFormat, , channelWriteEmitter] of this.rttTerminals) {
 					if (channelNumber === incomingChannelNumber) {
 						switch (dataFormat) {
@@ -176,7 +176,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 	}
 
 	async createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): Promise<vscode.DebugAdapterDescriptor | null | undefined> {
-		probeRsLogLevel = session.configuration.console_log_level;
+		probeRsLogLevel = session.configuration.consoleLogLevel;
 
 		// Initiate either the 'attach' or 'launch' request.
 		// We do NOT use DebugAdapterExecutable
@@ -210,8 +210,8 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			args.push(debugServer[1]);
 
 			var logEnv = 'error'; //This is the default
-			if (session.configuration.hasOwnProperty('console_log_level')) {
-				logEnv = session.configuration.console_log_level.toLowerCase();
+			if (session.configuration.hasOwnProperty('consoleLogLevel')) {
+				logEnv = session.configuration.consoleLogLevel.toLowerCase();
 			};
 
 			var options = {
