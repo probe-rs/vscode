@@ -17,14 +17,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const descriptorFactory = new ProbeRSDebugAdapterServerDescriptorFactory();
 
-	if (probeRsLogLevel === 'Debug') { // The only way this will be true, is if a developer changes the default value where this var is declared above
-		context.subscriptions.push(
-			vscode.debug.registerDebugAdapterTrackerFactory('probe-rs-debug', trackerFactory),
-		);
-	}
-
 	context.subscriptions.push(
 		vscode.debug.registerDebugAdapterDescriptorFactory('probe-rs-debug', descriptorFactory),
+		vscode.debug.registerDebugAdapterTrackerFactory('probe-rs-debug', trackerFactory),
 		vscode.debug.onDidReceiveDebugSessionCustomEvent(descriptorFactory.receivedCustomEvent.bind(descriptorFactory)),
 		vscode.debug.onDidTerminateDebugSession(descriptorFactory.dispose.bind(descriptorFactory)),
 	);
@@ -40,7 +35,7 @@ var debuggerReadySignature: string;
 
 // If the "launch" fails, inform the user with error information
 export function launchCallback(error: child_process.ExecFileException | null, stdout: string, stderr: string) {
-	if (!debuggerReady) { //Only show this if we receive errors before the debugger started up
+	if (error !== null) {
 		vscode.window.showErrorMessage("ERROR: ".concat(`${error}`).concat('\t').concat(stderr).concat('\n').concat(stdout));
 	}
 }
@@ -299,20 +294,27 @@ class ProbeRsDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory {
 class ProbeRsDebugAdapterTracker implements DebugAdapterTracker {
 
 	onWillReceiveMessage(message: any) {
-		logToConsole("DEBUG: Sending message to debug adapter:\n" + JSON.stringify(message, null, 2));
+		if (probeRsLogLevel === 'Debug') {
+			logToConsole("DEBUG: Sending message to debug adapter:\n" + JSON.stringify(message, null, 2));
+		}
 	}
 
 	onDidSendMessage(message: any) {
-		logToConsole("DEBUG: Received message from debug adapter:\n" + JSON.stringify(message, null, 2));
+		if (probeRsLogLevel === 'Debug') {
+			logToConsole("DEBUG: Received message from debug adapter:\n" + JSON.stringify(message, null, 2));
+		}
 	}
 
 	onError(error: Error) {
-		logToConsole("ERROR: Error in communication with debug adapter:\n" + JSON.stringify(error, null, 2));
+		if (probeRsLogLevel === 'Debug')
+		{
+			logToConsole("ERROR: Error in communication with debug adapter:\n" + JSON.stringify(error, null, 2));
+		}
 	}
 
-	onExit(code: number, signal: string) {
+	onExit(code: number, _signal: string) {
 		if (code) {
-			logToConsole("ERROR: Debug Adapter exited with exit code" + JSON.stringify(code, null, 2));
+			vscode.window.showErrorMessage("ERROR: `probe-rs-debugger` exited with an unexpected code: ".concat(`${code}`).concat('\tPlease log this as an issue at https://github.com/probe-rs/probe-rs/issues/new'));
 		}
 	}
 
