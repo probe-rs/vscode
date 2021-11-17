@@ -332,19 +332,19 @@ class ProbeRsDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory {
 class ProbeRsDebugAdapterTracker implements DebugAdapterTracker {
 
 	onWillReceiveMessage(message: any) {
-		if (probeRsLogLevel === 'Debug') {
+		if (probeRsLogLevel === 'Debug' || probeRsLogLevel === 'Trace') {
 			logToConsole("DEBUG: Sending message to debug adapter:\n" + JSON.stringify(message, null, 2));
 		}
 	}
 
 	onDidSendMessage(message: any) {
-		if (probeRsLogLevel === 'Debug') {
+		if (probeRsLogLevel === 'Debug' || probeRsLogLevel === 'Trace') {
 			logToConsole("DEBUG: Received message from debug adapter:\n" + JSON.stringify(message, null, 2));
 		}
 	}
 
 	onError(error: Error) {
-		if (probeRsLogLevel === 'Debug') {
+		if (probeRsLogLevel === 'Debug' || probeRsLogLevel === 'Trace') {
 			logToConsole("ERROR: Error in communication with debug adapter:\n" + JSON.stringify(error, null, 2));
 		}
 	}
