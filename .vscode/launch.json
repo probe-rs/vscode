@@ -7,7 +7,7 @@
 			"request": "launch",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}",
-				"/Users/jacknoppe/dev/microrust-start"
+				"${workspaceFolder}/debug_example"
 			],
 			"outFiles": [
 				"${workspaceFolder}/dist/ext/**/*.js"
