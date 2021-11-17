@@ -13,35 +13,39 @@ import { DebugAdapterTracker, DebugAdapterTrackerFactory, } from 'vscode';
 var probeRsLogLevel = 'Info';
 
 export async function activate(context: vscode.ExtensionContext) {
-	const trackerFactory = new ProbeRsDebugAdapterTrackerFactory();
 
 	const descriptorFactory = new ProbeRSDebugAdapterServerDescriptorFactory();
 
 	context.subscriptions.push(
 		vscode.debug.registerDebugAdapterDescriptorFactory('probe-rs-debug', descriptorFactory),
-		vscode.debug.registerDebugAdapterTrackerFactory('probe-rs-debug', trackerFactory),
 		vscode.debug.onDidReceiveDebugSessionCustomEvent(descriptorFactory.receivedCustomEvent.bind(descriptorFactory)),
 		vscode.debug.onDidTerminateDebugSession(descriptorFactory.dispose.bind(descriptorFactory)),
 	);
+
+	// I cannot find a way to programmatically test for when VSCode is debugging the extension, versus when a user is using the extension to debug their own code, but the following code is usefull in the former situation, so I will leave it here to be commented out by extension developers when needed.
+	// const trackerFactory = new ProbeRsDebugAdapterTrackerFactory();
+	// context.subscriptions.push(
+	// 	vscode.debug.registerDebugAdapterTrackerFactory('probe-rs-debug', trackerFactory),
+	// );
+
 }
 
 export function deactivate(context: vscode.ExtensionContext) {
 	return undefined;
 }
 
-// When starting the debugger during a 'launch' request, we have to wait for it to become "Ready" before we continue
-var debuggerReady = false;
-var debuggerReadySignature: string;
-
-// If the "launch" fails, inform the user with error information
-export function launchCallback(error: child_process.ExecFileException | null, stdout: string, stderr: string) {
-	if (error !== null) {
-		vscode.window.showErrorMessage("ERROR: ".concat(`${error}`).concat('\t').concat(stderr).concat('\n').concat(stdout));
-	}
-}
-
 // Cleanup inconsitent line breaks in String data
 const formatText = (text: string) => `\r${text.split(/(\r?\n)/g).join("\r")}\r`;
+
+// Common handler for error/exit codes
+function handleExit(code: number | null, signal: string | null) {
+	var actionHint: string = '\tPlease report this issue at https://github.com/probe-rs/probe-rs/issues/new';
+	if (code) {
+		vscode.window.showErrorMessage("ERROR: `probe-rs-debugger` exited with an unexpected code: ".concat(`${code}`).concat(actionHint));
+	} else if (signal) {
+		vscode.window.showErrorMessage("ERROR: `probe-rs-debugger` exited with signal: ".concat(`${signal}`).concat(actionHint));
+	}
+}
 
 // Messages to be sent to the debug session's console. Anything sent before or after an active debug session is silently ignored by VSCode. Ditto for any messages that doesn't start with 'ERROR', or 'INFO' , or 'WARN', ... unless the log level is DEBUG. Then everything is logged.
 function logToConsole(consoleMesssage: string) {
@@ -170,17 +174,28 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 		}
 	}
 
+	// Note. We do NOT use `DebugAdapterExecutable`, but instead use `DebugAdapterServer` in all cases. 
+	// - The decision was made during investigation of an [issue](https://github.com/probe-rs/probe-rs/issues/703) ... basically, after the probe-rs API was fixed, the code would work well for TCP connections (`DebugAdapterServer`), but would not work for STDIO connections (`DebugAdapterServer`). After some searches I found other extension developers that also found the TCP based connections to be more stable.
+	//  - Since then, we have taken advantage of the access to stderr that `DebugAdapterServer` offers to route `RUST_LOG` output from the debugger to the user's VSCode Debug Console. This is a very useful capability, and cannot easily be implemented in `DebugAdapterExecutable`, because it does not allow access to `stderr` [See ongoing issue in VScode repo](https://github.com/microsoft/vscode/issues/108145).
 	async createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): Promise<vscode.DebugAdapterDescriptor | null | undefined> {
 		probeRsLogLevel = session.configuration.consoleLogLevel;
 
 		// Initiate either the 'attach' or 'launch' request.
-		// We do NOT use DebugAdapterExecutable
 		logToConsole("INFO: Session: " + JSON.stringify(session, null, 2));
+
+		// When starting the debugger process, we have to wait for debuggerStatus to be set to `DebuggerStatus.running` before we continue
+		enum DebuggerStatus {
+			starting,
+			running,
+			failed,
+		}
+		var debuggerStatus: DebuggerStatus = DebuggerStatus.starting;
 
 		var debugServer = new String("127.0.0.1:50000").split(":", 2); // ... provide default server host and port for "launch" configurations, where this is NOT a mandatory config
 		if (session.configuration.hasOwnProperty('server')) {
 			debugServer = new String(session.configuration.server).split(":", 2);
 			logToConsole("INFO: Debug using existing server" + JSON.stringify(debugServer[0]) + " on port " + JSON.stringify(debugServer[1]));
+			debuggerStatus = DebuggerStatus.running; // If this is not true as expected, then the user will be notified later.
 		} else { // Find and use the first available port and spawn a new probe-rs-debugger process
 			var portfinder = require('portfinder');
 			try {
@@ -213,6 +228,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 				cwd: session.configuration.cwd,
 				// eslint-disable-next-line @typescript-eslint/naming-convention
 				env: { ...process.env, 'RUST_LOG': logEnv, },
+				windowsHide: true,
 			};
 
 			var command = "";
@@ -233,46 +249,67 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			// The debug adapter process was launched by VSCode, and should terminate itself at the end of every debug session (when receiving `Disconnect` or `Terminate` Request from VSCode). The "false"(default) state of this option implies that the process was launched (and will be managed) by the user.
 			args.push("--vscode");
 
-			// Launch the debugger ... launch errors will be reported in `launchCallback`
+			// Launch the debugger ... launch errors will be reported in `onClose event`
 			logToConsole("INFO: Launching new server" + JSON.stringify(command) + " " + JSON.stringify(args) + " " + JSON.stringify(options));
-			var launchedDebugAdapter = child_process.execFile(
+			var launchedDebugAdapter = child_process.spawn(
 				command,
 				args,
 				options,
-				launchCallback,
 			);
 
 			// Capture stdout and stderr to ensure RUST_LOG can be redirected
-			debuggerReadySignature = "CONSOLE: Listening for requests on port " + debugServer[1];
+			var debuggerReadySignature = "CONSOLE: Listening for requests on port " + debugServer[1];
 			launchedDebugAdapter.stdout?.on('data', (data: string) => {
 				if (data.includes(debuggerReadySignature)) {
-					debuggerReady = true;
+					debuggerStatus = DebuggerStatus.running;
 				}
 				logToConsole(data);
 			});
 			launchedDebugAdapter.stderr?.on('data', (data: string) => {
-				logToConsole(data);
+				if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
+					logToConsole("ERROR: " + data);
+				} else {
+					vscode.window.showErrorMessage("`probe-rs-debugger` error: " + data);
+				}
 			});
-
+			launchedDebugAdapter.on('close', (code: number | null, signal: string | null) => {
+				if (debuggerStatus !== (DebuggerStatus.failed as DebuggerStatus)) {
+					handleExit(code, signal);
+				}
+			});
+			launchedDebugAdapter.on('error', (err: Error) => {
+				if (debuggerStatus !== (DebuggerStatus.failed as DebuggerStatus)) {
+					debuggerStatus = DebuggerStatus.failed;
+					vscode.window.showErrorMessage("`probe-rs-debugger` process encountered an error: " + JSON.stringify(err));
+					launchedDebugAdapter.kill();
+				}
+			});
 			// Wait to make sure probe-rs-debugger startup completed, and is ready to accept connections.
 			var msRetrySleep = 250;
 			var numRetries = 5000 / msRetrySleep;
-			while (!debuggerReady) {
+			while (debuggerStatus === DebuggerStatus.starting) {
 				await new Promise<void>((resolve) => setTimeout(resolve, msRetrySleep));
 				if (numRetries > 0) {
 					numRetries--;
 				} else {
-					launchedDebugAdapter.kill();
+					debuggerStatus = DebuggerStatus.failed;
 					logToConsole("ERROR: Timeout waiting for probe-rs-debugger to launch");
 					vscode.window.showErrorMessage("Timeout waiting for probe-rs-debugger to launch");
-					return undefined;
+					break;
 				}
 			}
-			await new Promise<void>((resolve) => setTimeout(resolve, 500)); // Wait for a fraction of a second more, to allow TCP/IP port to initialize in probe-rs-debugger
+
+			if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
+				await new Promise<void>((resolve) => setTimeout(resolve, 500)); // Wait for a fraction of a second more, to allow TCP/IP port to initialize in probe-rs-debugger
+			}
 		}
 
 		// make VS Code connect to debug server
-		return new vscode.DebugAdapterServer(+debugServer[1], debugServer[0]);
+		if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
+			return new vscode.DebugAdapterServer(+debugServer[1], debugServer[0]);
+		} else {
+			return undefined;
+		}
 
 	}
 
@@ -281,6 +318,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 	}
 }
 
+// @ts-ignore
 class ProbeRsDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory {
 	createDebugAdapterTracker(session: vscode.DebugSession): vscode.ProviderResult<vscode.DebugAdapterTracker> {
 		logToConsole(
@@ -294,28 +332,25 @@ class ProbeRsDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory {
 class ProbeRsDebugAdapterTracker implements DebugAdapterTracker {
 
 	onWillReceiveMessage(message: any) {
-		if (probeRsLogLevel === 'Debug') {
+		if (probeRsLogLevel === 'Debug' || probeRsLogLevel === 'Trace') {
 			logToConsole("DEBUG: Sending message to debug adapter:\n" + JSON.stringify(message, null, 2));
 		}
 	}
 
 	onDidSendMessage(message: any) {
-		if (probeRsLogLevel === 'Debug') {
+		if (probeRsLogLevel === 'Debug' || probeRsLogLevel === 'Trace') {
 			logToConsole("DEBUG: Received message from debug adapter:\n" + JSON.stringify(message, null, 2));
 		}
 	}
 
 	onError(error: Error) {
-		if (probeRsLogLevel === 'Debug')
-		{
+		if (probeRsLogLevel === 'Debug' || probeRsLogLevel === 'Trace') {
 			logToConsole("ERROR: Error in communication with debug adapter:\n" + JSON.stringify(error, null, 2));
 		}
 	}
 
-	onExit(code: number, _signal: string) {
-		if (code) {
-			vscode.window.showErrorMessage("ERROR: `probe-rs-debugger` exited with an unexpected code: ".concat(`${code}`).concat('\tPlease log this as an issue at https://github.com/probe-rs/probe-rs/issues/new'));
-		}
+	onExit(code: number, signal: string) {
+		handleExit(code, signal);
 	}
 
 }
