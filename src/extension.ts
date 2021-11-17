@@ -19,13 +19,13 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.debug.registerDebugAdapterDescriptorFactory('probe-rs-debug', descriptorFactory),
 		vscode.debug.onDidReceiveDebugSessionCustomEvent(descriptorFactory.receivedCustomEvent.bind(descriptorFactory)),
+		vscode.debug.onDidTerminateDebugSession(descriptorFactory.dispose.bind(descriptorFactory)),
 	);
 
 	// I cannot find a way to programmatically test for when VSCode is debugging the extension, versus when a user is using the extension to debug their own code, but the following code is usefull in the former situation, so I will leave it here to be commented out by extension developers when needed.
 	// const trackerFactory = new ProbeRsDebugAdapterTrackerFactory();
 	// context.subscriptions.push(
 	// 	vscode.debug.registerDebugAdapterTrackerFactory('probe-rs-debug', trackerFactory),
-	// 	vscode.debug.onDidTerminateDebugSession(descriptorFactory.dispose.bind(descriptorFactory)),
 	// );
 
 }
@@ -300,15 +300,15 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
 				await new Promise<void>((resolve) => setTimeout(resolve, 500)); // Wait for a fraction of a second more, to allow TCP/IP port to initialize in probe-rs-debugger
 			}
-
-
-			// make VS Code connect to debug server
-			if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
-				return new vscode.DebugAdapterServer(+debugServer[1], debugServer[0]);
-			} else {
-				return undefined;
-			}
 		}
+
+		// make VS Code connect to debug server
+		if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
+			return new vscode.DebugAdapterServer(+debugServer[1], debugServer[0]);
+		} else {
+			return undefined;
+		}
+
 	}
 
 	dispose() {
