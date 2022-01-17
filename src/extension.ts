@@ -47,10 +47,14 @@ function handleExit(code: number | null, signal: string | null) {
 	}
 }
 
-// Messages to be sent to the debug session's console. Anything sent before or after an active debug session is silently ignored by VSCode. Ditto for any messages that doesn't start with 'ERROR', or 'INFO' , or 'WARN', ... unless the log level is DEBUG. Then everything is logged.
-function logToConsole(consoleMesssage: string) {
+// Messages to be sent to the debug session's console. 
+// Anything sent before or after an active debug session is silently ignored by VSCode. 
+// Any local (generated directly by this extension) messages MUST start with 'ERROR', or 'INFO' , 'WARN', `DEBUG`, or `TRACE` to match the RUST log behaviour. 
+// Any local messages that start with `CONSOLE` will ALWAYS be logged.
+// Any messages that come from the `probe-rs-debugger` STDERR will always be logged, and will already conform with the RUST LOG setting.
+function logToConsole(consoleMesssage: string, fromDebugger: boolean = false) {
 	console.log(consoleMesssage); // During VSCode extension development, this will also log to the local debug console
-	if (consoleMesssage.includes('CONSOLE')) {
+	if (fromDebugger || consoleMesssage.includes('CONSOLE')) {
 		vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
 	} else {
 		switch (probeRsLogLevel) {
@@ -267,9 +271,9 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			});
 			launchedDebugAdapter.stderr?.on('data', (data: string) => {
 				if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
-					logToConsole("ERROR: " + data);
+					logToConsole(data, true);
 				} else {
-					vscode.window.showErrorMessage("`probe-rs-debugger` error: " + data);
+					vscode.window.showErrorMessage("`probe-rs-debugger`: " + data);
 				}
 			});
 			launchedDebugAdapter.on('close', (code: number | null, signal: string | null) => {
