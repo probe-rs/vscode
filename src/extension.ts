@@ -23,10 +23,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	// I cannot find a way to programmatically test for when VSCode is debugging the extension, versus when a user is using the extension to debug their own code, but the following code is usefull in the former situation, so I will leave it here to be commented out by extension developers when needed.
-	const trackerFactory = new ProbeRsDebugAdapterTrackerFactory();
-	context.subscriptions.push(
-		vscode.debug.registerDebugAdapterTrackerFactory('probe-rs-debug', trackerFactory),
-	);
+	// const trackerFactory = new ProbeRsDebugAdapterTrackerFactory();
+	// context.subscriptions.push(
+	// 	vscode.debug.registerDebugAdapterTrackerFactory('probe-rs-debug', trackerFactory),
+	// );
 
 }
 
