@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 import { DebugAdapterTracker, DebugAdapterTrackerFactory, } from 'vscode';
 
 // This is just the default. It will be updated after the configuration has been resolved. 
-var probeRsLogLevel = 'Info';
+var probeRsLogLevel = 'Error';
 
 export async function activate(context: vscode.ExtensionContext) {
 
@@ -23,10 +23,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	// I cannot find a way to programmatically test for when VSCode is debugging the extension, versus when a user is using the extension to debug their own code, but the following code is usefull in the former situation, so I will leave it here to be commented out by extension developers when needed.
-	// const trackerFactory = new ProbeRsDebugAdapterTrackerFactory();
-	// context.subscriptions.push(
-	// 	vscode.debug.registerDebugAdapterTrackerFactory('probe-rs-debug', trackerFactory),
-	// );
+	const trackerFactory = new ProbeRsDebugAdapterTrackerFactory();
+	context.subscriptions.push(
+		vscode.debug.registerDebugAdapterTrackerFactory('probe-rs-debug', trackerFactory),
+	);
 
 }
 
@@ -182,7 +182,10 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 	// - The decision was made during investigation of an [issue](https://github.com/probe-rs/probe-rs/issues/703) ... basically, after the probe-rs API was fixed, the code would work well for TCP connections (`DebugAdapterServer`), but would not work for STDIO connections (`DebugAdapterServer`). After some searches I found other extension developers that also found the TCP based connections to be more stable.
 	//  - Since then, we have taken advantage of the access to stderr that `DebugAdapterServer` offers to route `RUST_LOG` output from the debugger to the user's VSCode Debug Console. This is a very useful capability, and cannot easily be implemented in `DebugAdapterExecutable`, because it does not allow access to `stderr` [See ongoing issue in VScode repo](https://github.com/microsoft/vscode/issues/108145).
 	async createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): Promise<vscode.DebugAdapterDescriptor | null | undefined> {
-		probeRsLogLevel = session.configuration.consoleLogLevel;
+		if (session.configuration.hasOwnProperty('consoleLogLevel')) {
+			probeRsLogLevel = session.configuration.consoleLogLevel.toLowerCase();
+		};
+
 
 		// Initiate either the 'attach' or 'launch' request.
 		logToConsole("INFO: Session: " + JSON.stringify(session, null, 2));
@@ -223,15 +226,10 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			args.push("--port");
 			args.push(debugServer[1]);
 
-			var logEnv = 'error'; //This is the default
-			if (session.configuration.hasOwnProperty('consoleLogLevel')) {
-				logEnv = session.configuration.consoleLogLevel.toLowerCase();
-			};
-
 			var options = {
 				cwd: session.configuration.cwd,
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				env: { ...process.env, 'RUST_LOG': logEnv, },
+				env: { ...process.env, 'RUST_LOG': probeRsLogLevel, 'DEFMT_LOG': probeRsLogLevel },
 				windowsHide: true,
 			};
 
