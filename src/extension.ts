@@ -54,7 +54,15 @@ function handleExit(code: number | null, signal: string | null) {
 // Any messages that come from the `probe-rs-debugger` STDERR will always be logged, and will already conform with the RUST LOG setting.
 function logToConsole(consoleMesssage: string, fromDebugger: boolean = false) {
 	console.log(consoleMesssage); // During VSCode extension development, this will also log to the local debug console
-	if (fromDebugger || consoleMesssage.includes('CONSOLE')) {
+	if (fromDebugger) {
+		// Any messages that come directly from the debugger, are assumed to be RUST_LOG messages and should be logged to the console.
+		vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+		// The one exception is RUST_LOG messages of the `error` variant. These deserve to be shown as an error message in the UI also.
+		// This filter might capture more than expected, but since RUST_LOG messages can take many formats, it seems that this is the safest/most inclusive.
+		if (consoleMesssage.includes("ERROR")) {
+			vscode.window.showErrorMessage("`probe-rs-debugger`: " + consoleMesssage);
+		}
+	} else if (consoleMesssage.includes('CONSOLE')) {
 		vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
 	} else {
 		switch (probeRsLogLevel) {
