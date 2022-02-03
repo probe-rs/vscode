@@ -1,7 +1,7 @@
 {
   "name": "probe-rs-debugger",
   "displayName": "Debugger for probe-rs",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "publisher": "probe-rs",
   "description": "probe-rs Debug Adapter for VS Code.",
   "author": {
@@ -13,7 +13,7 @@
     "probe-rs embedded debug"
   ],
   "engines": {
-    "vscode": "^1.62.2"
+    "vscode": "^1.64.0"
   },
   "icon": "images/probe-rs-debugger.png",
   "categories": [
@@ -43,7 +43,7 @@
     "watch-web": "webpack --watch --devtool nosources-source-map  --config ./build/web-extension.webpack.config.js",
     "package-web": "webpack --mode production --config ./build/web-extension.webpack.config.js"
   },
-  "enableApiProposal": false,
+  "enabledApiProposals": [],
   "dependencies": {
     "@vscode/debugadapter": "^1.51.0",
     "await-notify": "1.0.1",
@@ -53,10 +53,10 @@
     "@types/glob": "^7.2.0",
     "@types/mocha": "^9.1.0",
     "@types/node": "^17.0.13",
-    "@types/vscode": "^1.61.0",
-    "@typescript-eslint/eslint-plugin": "^5.10.1",
+    "@types/vscode": "^1.64.0",
+    "@typescript-eslint/eslint-plugin": "^5.10.0",
     "@typescript-eslint/parser": "^5.10.1",
-    "@vscode/debugadapter-testsupport": "^1.51.0",
+    "@vscode/debugprotocol": "^1.53.0",
     "eslint": "^8.8.0",
     "glob": "^7.2.0",
     "mocha": "^9.2.0",

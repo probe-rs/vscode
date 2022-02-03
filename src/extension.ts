@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 import { DebugAdapterTracker, DebugAdapterTrackerFactory, } from 'vscode';
 
 // This is just the default. It will be updated after the configuration has been resolved. 
-var probeRsLogLevel = 'Info';
+var probeRsLogLevel = 'Error';
 
 export async function activate(context: vscode.ExtensionContext) {
 
@@ -47,10 +47,22 @@ function handleExit(code: number | null, signal: string | null) {
 	}
 }
 
-// Messages to be sent to the debug session's console. Anything sent before or after an active debug session is silently ignored by VSCode. Ditto for any messages that doesn't start with 'ERROR', or 'INFO' , or 'WARN', ... unless the log level is DEBUG. Then everything is logged.
-function logToConsole(consoleMesssage: string) {
+// Messages to be sent to the debug session's console. 
+// Anything sent before or after an active debug session is silently ignored by VSCode. 
+// Any local (generated directly by this extension) messages MUST start with 'ERROR', or 'INFO' , 'WARN', `DEBUG`, or `TRACE` to match the RUST log behaviour. 
+// Any local messages that start with `CONSOLE` will ALWAYS be logged.
+// Any messages that come from the `probe-rs-debugger` STDERR will always be logged, and will already conform with the RUST LOG setting.
+function logToConsole(consoleMesssage: string, fromDebugger: boolean = false) {
 	console.log(consoleMesssage); // During VSCode extension development, this will also log to the local debug console
-	if (consoleMesssage.includes('CONSOLE')) {
+	if (fromDebugger) {
+		// Any messages that come directly from the debugger, are assumed to be RUST_LOG messages and should be logged to the console.
+		vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+		// The one exception is RUST_LOG messages of the `error` variant. These deserve to be shown as an error message in the UI also.
+		// This filter might capture more than expected, but since RUST_LOG messages can take many formats, it seems that this is the safest/most inclusive.
+		if (consoleMesssage.includes("ERROR")) {
+			vscode.window.showErrorMessage("`probe-rs-debugger`: " + consoleMesssage);
+		}
+	} else if (consoleMesssage.includes('CONSOLE')) {
 		vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
 	} else {
 		switch (probeRsLogLevel) {
@@ -178,7 +190,10 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 	// - The decision was made during investigation of an [issue](https://github.com/probe-rs/probe-rs/issues/703) ... basically, after the probe-rs API was fixed, the code would work well for TCP connections (`DebugAdapterServer`), but would not work for STDIO connections (`DebugAdapterServer`). After some searches I found other extension developers that also found the TCP based connections to be more stable.
 	//  - Since then, we have taken advantage of the access to stderr that `DebugAdapterServer` offers to route `RUST_LOG` output from the debugger to the user's VSCode Debug Console. This is a very useful capability, and cannot easily be implemented in `DebugAdapterExecutable`, because it does not allow access to `stderr` [See ongoing issue in VScode repo](https://github.com/microsoft/vscode/issues/108145).
 	async createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): Promise<vscode.DebugAdapterDescriptor | null | undefined> {
-		probeRsLogLevel = session.configuration.consoleLogLevel;
+		if (session.configuration.hasOwnProperty('consoleLogLevel')) {
+			probeRsLogLevel = session.configuration.consoleLogLevel.toLowerCase();
+		};
+
 
 		// Initiate either the 'attach' or 'launch' request.
 		logToConsole("INFO: Session: " + JSON.stringify(session, null, 2));
@@ -219,15 +234,10 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			args.push("--port");
 			args.push(debugServer[1]);
 
-			var logEnv = 'error'; //This is the default
-			if (session.configuration.hasOwnProperty('consoleLogLevel')) {
-				logEnv = session.configuration.consoleLogLevel.toLowerCase();
-			};
-
 			var options = {
 				cwd: session.configuration.cwd,
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				env: { ...process.env, 'RUST_LOG': logEnv, },
+				env: { ...process.env, 'RUST_LOG': probeRsLogLevel, 'DEFMT_LOG': probeRsLogLevel },
 				windowsHide: true,
 			};
 
@@ -267,9 +277,9 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			});
 			launchedDebugAdapter.stderr?.on('data', (data: string) => {
 				if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
-					logToConsole("ERROR: " + data);
+					logToConsole(data, true);
 				} else {
-					vscode.window.showErrorMessage("`probe-rs-debugger` error: " + data);
+					vscode.window.showErrorMessage("`probe-rs-debugger`: " + data);
 				}
 			});
 			launchedDebugAdapter.on('close', (code: number | null, signal: string | null) => {
