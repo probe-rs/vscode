@@ -44,28 +44,30 @@
     "package-web": "webpack --mode production --config ./build/web-extension.webpack.config.js"
   },
   "enabledApiProposals": [],
+
   "dependencies": {
+    "@vscode/debugadapter": "^1.51.0",
     "await-notify": "1.0.1",
     "portfinder": "^1.0.28",
-    "vscode-debugadapter": "^1.51.0"
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",
-    "@types/mocha": "^9.0.0",
-    "@types/node": "^17.0.9",
+    "@types/mocha": "^9.1.0",
+    "@types/node": "^17.0.13",
     "@types/vscode": "^1.63.1",
     "@typescript-eslint/eslint-plugin": "^5.10.0",
-    "@typescript-eslint/parser": "^5.10.0",
-    "eslint": "^8.7.0",
+    "@typescript-eslint/parser": "^5.10.1",
+    "eslint": "^8.8.0",
     "glob": "^7.2.0",
-    "mocha": "^9.1.4",
+    "mocha": "^9.2.0",
     "portfinder": "^1.0.28",
     "ts-loader": "^9.2.6",
-    "typescript": "^4.5.4",
-    "vsce": "^2.6.3",
+    "typescript": "^4.5.5",
+    "vsce": "^2.6.5",
     "vscode-debugadapter-testsupport": "^1.51.0",
-    "webpack": "^5.66.0",
-    "webpack-cli": "^4.9.1"
+    "webpack": "^5.67.0",
+    "webpack-cli": "^4.9.2"
+
   },
   "main": "./dist/ext/extension.js",
   "browser": "./dist/web/extension.js",
@@ -103,12 +105,12 @@
               "programBinary": {
                 "type": "string",
                 "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware",
-                "default": "./target/debug/thumbv7em-none-eabihf/${workspaceFolderBasename}"
+                "default": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}"
               },
               "cwd": {
                 "type": "string",
                 "description": "The working directory of the debugger, typically the RUST crate root",
-                "default": "${workspaceFolder}}"
+                "default": "${workspaceFolder}"
               },
               "chip": {
                 "type": "string",
@@ -345,7 +347,8 @@
             "type": "probe-rs-debug",
             "request": "launch",
             "name": "probe-rs Test",
-            "programBinary": "./target/debug/thumbv7em-none-eabihf/${workspaceFolderBasename}",
+            "programBinary": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}",
+            "cwd": "${workspaceFolder}",
             "chip": "STM32H745ZITx",
             "connectUnderReset": true,
             "flashingEnabled": true,
@@ -361,7 +364,8 @@
               "type": "probe-rs-debug",
               "request": "launch",
               "name": "probe-rs Test",
-              "programBinary": "./target/debug/thumbv7em-none-eabihf/${workspaceFolderBasename}",
+              "programBinary": "./target/thumbv7em-none-eabihf/$debug/{workspaceFolderBasename}",
+              "cwd": "${workspaceFolder}",
               "chip": "STM32H745ZITx",
               "connectUnderReset": true
             }
