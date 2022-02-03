@@ -44,11 +44,10 @@
     "package-web": "webpack --mode production --config ./build/web-extension.webpack.config.js"
   },
   "enabledApiProposals": [],
-
   "dependencies": {
     "@vscode/debugadapter": "^1.51.0",
     "await-notify": "1.0.1",
-    "portfinder": "^1.0.28",
+    "portfinder": "^1.0.28"
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",
@@ -57,6 +56,7 @@
     "@types/vscode": "^1.63.1",
     "@typescript-eslint/eslint-plugin": "^5.10.0",
     "@typescript-eslint/parser": "^5.10.1",
+    "@vscode/debugprotocol": "^1.51.0",
     "eslint": "^8.8.0",
     "glob": "^7.2.0",
     "mocha": "^9.2.0",
@@ -64,10 +64,8 @@
     "ts-loader": "^9.2.6",
     "typescript": "^4.5.5",
     "vsce": "^2.6.5",
-    "vscode-debugadapter-testsupport": "^1.51.0",
     "webpack": "^5.67.0",
     "webpack-cli": "^4.9.2"
-
   },
   "main": "./dist/ext/extension.js",
   "browser": "./dist/web/extension.js",
