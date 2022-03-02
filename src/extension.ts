@@ -127,9 +127,8 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 						channelTerminalConfig = channelTerminal.creationOptions as vscode.ExtensionTerminalOptions;
 						let windowIsOpen = true;
 						session.customRequest("rtt_window_opened", { channelNumber, windowIsOpen }).then((response) => {
-							logToConsole("DEBUG: probe-rs: RTT Window opened, and ready to receive RTT data on channel" + JSON.stringify(channelNumber, null, 2));
+							logToConsole("DEBUG: probe-rs: RTT Window reused, and ready to receive RTT data on channel" + JSON.stringify(channelNumber, null, 2));
 						});
-						vscode.debug.activeDebugConsole.appendLine("probe-rs-debugger: Will reuse  existing RTT Terminal window named: " + channelName);
 						break;
 					}
 				}
@@ -149,7 +148,9 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 					vscode.debug.activeDebugConsole.appendLine("probe-rs-debugger: Opened a new RTT Terminal window named: " + channelName);
 					this.rttTerminals.push([+channelNumber, dataFormat, channelTerminal, channelWriteEmitter]);
 				}
-				channelTerminal.show(false);
+				if (channelNumber === 0) {
+					channelTerminal.show(false);
+				}
 			}
 		}
 	}
@@ -157,7 +158,6 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 	receivedCustomEvent(customEvent: vscode.DebugSessionCustomEvent) {
 		switch (customEvent.event) {
 			case 'probe-rs-rtt-channel-config':
-				console.log("will open RTT");
 				this.createRttTerminal(+customEvent.body?.channelNumber, customEvent.body?.dataFormat, customEvent.body?.channelName);
 				break;
 			case 'probe-rs-rtt-data':
@@ -357,13 +357,13 @@ class ProbeRsDebugAdapterTracker implements DebugAdapterTracker {
 
 	onWillReceiveMessage(message: any) {
 		if (probeRsLogLevel === 'Debug' || probeRsLogLevel === 'Trace') {
-			logToConsole("DEBUG: Sending message to debug adapter:\n" + JSON.stringify(message, null, 2));
+			logToConsole("DEBUG: Received message from debug adapter:\n" + JSON.stringify(message, null, 2));
 		}
 	}
 
 	onDidSendMessage(message: any) {
 		if (probeRsLogLevel === 'Debug' || probeRsLogLevel === 'Trace') {
-			logToConsole("DEBUG: Received message from debug adapter:\n" + JSON.stringify(message, null, 2));
+			logToConsole("DEBUG: Sending message to debug adapter:\n" + JSON.stringify(message, null, 2));
 		}
 	}
 
