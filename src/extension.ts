@@ -108,13 +108,13 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 					onDidWrite: channelWriteEmitter.event,
 					open: () => {
 						let windowIsOpen = true;
-						session.customRequest("rtt_window_opened", { channelNumber, windowIsOpen }).then((response) => {
+						session.customRequest("rttWindowOpened", { channelNumber, windowIsOpen }).then((response) => {
 							logToConsole("DEBUG: probe-rs: RTT Window opened, and ready to receive RTT data on channel" + JSON.stringify(channelNumber, null, 2));
 						});
 					},
 					close: () => {
 						let windowIsOpen = false;
-						session.customRequest("rtt_window_opened", { channelNumber, windowIsOpen }).then((response) => {
+						session.customRequest("rttWindowOpened", { channelNumber, windowIsOpen }).then((response) => {
 							logToConsole("DEBUG: probe-rs: RTT Window closed, and can no longer receive RTT data on channel" + JSON.stringify(channelNumber, null, 2));
 						});
 					},
@@ -126,7 +126,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 						channelTerminal = reuseTerminal;
 						channelTerminalConfig = channelTerminal.creationOptions as vscode.ExtensionTerminalOptions;
 						let windowIsOpen = true;
-						session.customRequest("rtt_window_opened", { channelNumber, windowIsOpen }).then((response) => {
+						session.customRequest("rttWindowOpened", { channelNumber, windowIsOpen }).then((response) => {
 							logToConsole("DEBUG: probe-rs: RTT Window reused, and ready to receive RTT data on channel" + JSON.stringify(channelNumber, null, 2));
 						});
 						break;
@@ -165,7 +165,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 				for (var [channelNumber, dataFormat, , channelWriteEmitter] of this.rttTerminals) {
 					if (channelNumber === incomingChannelNumber) {
 						switch (dataFormat) {
-							case 'BinaryLE': //Don't mess with this data
+							case 'BinaryLE': //Don't mess with or filter this data
 								channelWriteEmitter.fire(customEvent.body?.data);
 								break;
 							default: //Replace newline characters with platform appropriate newline/carriage-return combinations
@@ -242,7 +242,6 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			} else {
 				args = [
 					'debug',
-					'--dap'
 				];
 			}
 			args.push("--port");
