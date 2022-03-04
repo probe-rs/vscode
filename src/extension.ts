@@ -106,9 +106,18 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 				let channelWriteEmitter = new vscode.EventEmitter<string>();
 				let channelPty: vscode.Pseudoterminal = {
 					onDidWrite: channelWriteEmitter.event,
-					open: () => { },
-					close: () => { },
-					handleInput: data => channelWriteEmitter.fire(data)
+					open: () => {
+						let windowIsOpen = true;
+						session.customRequest("rtt_window_opened", { channelNumber, windowIsOpen }).then((response) => {
+							logToConsole("DEBUG: probe-rs: RTT Window opened, and ready to receive RTT data on channel" + JSON.stringify(channelNumber, null, 2));
+						});
+					},
+					close: () => {
+						let windowIsOpen = false;
+						session.customRequest("rtt_window_opened", { channelNumber, windowIsOpen }).then((response) => {
+							logToConsole("DEBUG: probe-rs: RTT Window closed, and can no longer receive RTT data on channel" + JSON.stringify(channelNumber, null, 2));
+						});
+					},
 				};
 				let channelTerminalConfig: vscode.ExtensionTerminalOptions | undefined;
 				let channelTerminal: vscode.Terminal | undefined;
@@ -116,7 +125,10 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 					if (reuseTerminal.name === channelName) {
 						channelTerminal = reuseTerminal;
 						channelTerminalConfig = channelTerminal.creationOptions as vscode.ExtensionTerminalOptions;
-						vscode.debug.activeDebugConsole.appendLine("probe-rs-debugger: Will reuse  existing RTT Terminal window named: " + channelName);
+						let windowIsOpen = true;
+						session.customRequest("rtt_window_opened", { channelNumber, windowIsOpen }).then((response) => {
+							logToConsole("DEBUG: probe-rs: RTT Window reused, and ready to receive RTT data on channel" + JSON.stringify(channelNumber, null, 2));
+						});
 						break;
 					}
 				}
@@ -136,13 +148,14 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 					vscode.debug.activeDebugConsole.appendLine("probe-rs-debugger: Opened a new RTT Terminal window named: " + channelName);
 					this.rttTerminals.push([+channelNumber, dataFormat, channelTerminal, channelWriteEmitter]);
 				}
-				channelTerminal.show(false);
+				if (channelNumber === 0) {
+					channelTerminal.show(false);
+				}
 			}
 		}
 	}
 
 	receivedCustomEvent(customEvent: vscode.DebugSessionCustomEvent) {
-
 		switch (customEvent.event) {
 			case 'probe-rs-rtt-channel-config':
 				this.createRttTerminal(+customEvent.body?.channelNumber, customEvent.body?.dataFormat, customEvent.body?.channelName);
@@ -157,6 +170,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 								break;
 							default: //Replace newline characters with platform appropriate newline/carriage-return combinations
 								channelWriteEmitter.fire(formatText(customEvent.body?.data));
+								console.log(customEvent.body?.data);
 						}
 						break;
 					}
@@ -343,13 +357,13 @@ class ProbeRsDebugAdapterTracker implements DebugAdapterTracker {
 
 	onWillReceiveMessage(message: any) {
 		if (probeRsLogLevel === 'Debug' || probeRsLogLevel === 'Trace') {
-			logToConsole("DEBUG: Sending message to debug adapter:\n" + JSON.stringify(message, null, 2));
+			logToConsole("DEBUG: Received message from debug adapter:\n" + JSON.stringify(message, null, 2));
 		}
 	}
 
 	onDidSendMessage(message: any) {
 		if (probeRsLogLevel === 'Debug' || probeRsLogLevel === 'Trace') {
-			logToConsole("DEBUG: Received message from debug adapter:\n" + JSON.stringify(message, null, 2));
+			logToConsole("DEBUG: Sending message to debug adapter:\n" + JSON.stringify(message, null, 2));
 		}
 	}
 

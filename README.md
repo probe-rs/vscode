@@ -2,10 +2,9 @@
 
 
 ## Documentation
-Full documentation on Installation, Configuration and supported functionality can be found at [the probe-rs webpage](https://probe.rs/docs/tools/vscode/)
+Full documentation on Installation, Configuration and supported functionality can be found at [the probe-rs webpage](https://probe.rs/docs/tools/vscode/) and under the [visual tour heading](https://probe.rs/docs/tools/vscode/#a-visual-guide-of-implemented-features)
 
-![probe-rs-debugger](images/probe-rs-debugger.gif)  
-Images above taken while using the [Micro Rust sample application](https://github.com/titanclass/microrust-start)
+![<img src="images/probe-rs-debugger.gif" style="margin-top: 1em; margin-bottom: 1em; max-width:100%; max-height:100%; width: auto; height: auto;"  />](images/probe-rs-debugger.gif)  
 
 ## Development Setup
 
