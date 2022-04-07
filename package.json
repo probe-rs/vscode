@@ -1,7 +1,7 @@
 {
   "name": "probe-rs-debugger",
   "displayName": "Debugger for probe-rs",
-  "version": "0.3.6",
+  "version": "0.4.0",
   "publisher": "probe-rs",
   "description": "probe-rs Debug Adapter for VS Code.",
   "author": {
@@ -13,7 +13,7 @@
     "probe-rs embedded debug"
   ],
   "engines": {
-    "vscode": "^1.65.0"
+    "vscode": "^1.66.0"
   },
   "icon": "images/probe-rs-debugger.png",
   "categories": [
@@ -45,26 +45,26 @@
   },
   "enabledApiProposals": [],
   "dependencies": {
-    "@vscode/debugadapter": "^1.54.0",
+    "@vscode/debugadapter": "^1.55.1",
     "await-notify": "1.0.1",
     "portfinder": "^1.0.28"
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",
     "@types/mocha": "^9.1.0",
-    "@types/node": "^17.0.21",
-    "@types/vscode": "^1.65.0",
-    "@typescript-eslint/eslint-plugin": "^5.13.0",
-    "@typescript-eslint/parser": "^5.13.0",
-    "@vscode/debugprotocol": "^1.54.0",
-    "eslint": "^8.10.0",
+    "@types/node": "^17.0.23",
+    "@types/vscode": "^1.66.0",
+    "@typescript-eslint/eslint-plugin": "^5.18.0",
+    "@typescript-eslint/parser": "^5.18.0",
+    "@vscode/debugprotocol": "^1.55.1",
+    "eslint": "^8.12.0",
     "glob": "^7.2.0",
-    "mocha": "^9.2.1",
+    "mocha": "^9.2.2",
     "portfinder": "^1.0.28",
-    "ts-loader": "^9.2.7",
-    "typescript": "^4.6.2",
-    "vsce": "^2.6.5",
-    "webpack": "^5.70.0",
+    "ts-loader": "^9.2.8",
+    "typescript": "^4.6.3",
+    "vsce": "^2.7.0",
+    "webpack": "^5.72.0",
     "webpack-cli": "^4.9.2"
   },
   "main": "./dist/ext/extension.js",
@@ -91,8 +91,8 @@
         "configurationAttributes": {
           "launch": {
             "required": [
-              "programBinary",
-              "chip"
+              "chip",
+              "coreConfigs"
             ],
             "properties": {
               "server": {
@@ -100,28 +100,17 @@
                 "description": "Optionally onnect to an existing `probe-rs-debugger` session on IP and Port, e.g. '127.0.0.1:50000'",
                 "default": "127.0.0.1:50000"
               },
-              "programBinary": {
+              "consoleLogLevel": {
                 "type": "string",
-                "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware",
-                "default": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}"
-              },
-              "cwd": {
-                "type": "string",
-                "description": "The working directory of the debugger, typically the RUST crate root",
-                "default": "${workspaceFolder}"
-              },
-              "chip": {
-                "type": "string",
-                "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs-debugger list-chips`."
-              },
-              "coreIndex": {
-                "type": "number",
-                "description": "The zero based index of the MCU core for this session",
-                "default": 0
-              },
-              "probe": {
-                "type": "string",
-                "description": "Use this flag to select a specific probe in the list. Use '--probe VID:PID' or '--probe VID:PID:Serial' if you have more than one probe with the same VID:PID."
+                "description": "The level of log info printed to the console. This also sets the RUST_LOG environment variable wherever possible.",
+                "enum": [
+                  "Error",
+                  "Warn",
+                  "Info",
+                  "Debug",
+                  "Trace"
+                ],
+                "default": "Error"
               },
               "runtimeExecutable": {
                 "type": "string",
@@ -139,6 +128,24 @@
                   "--dap"
                 ]
               },
+              "cwd": {
+                "type": "string",
+                "description": "The working directory of the debugger, typically the RUST crate root",
+                "default": "${workspaceFolder}"
+              },
+              "probe": {
+                "type": "string",
+                "description": "Use this flag to select a specific probe in the list. Use '--probe VID:PID' or '--probe VID:PID:Serial' if you have more than one probe with the same VID:PID."
+              },
+              "chip": {
+                "type": "string",
+                "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs-debugger list-chips`."
+              },
+              "connectUnderReset": {
+                "type": "boolean",
+                "description": "This option will result in the target reset pin being held high during the attach operation.",
+                "default": false
+              },
               "speed": {
                 "type": "number",
                 "description": "Specify the protocol speed in kHz."
@@ -151,79 +158,95 @@
                   "Jtag"
                 ]
               },
-              "consoleLogLevel": {
-                "type": "string",
-                "description": "The level of log info printed to the console. This also sets the RUST_LOG environment variable wherever possible.",
-                "enum": [
-                  "Error",
-                  "Warn",
-                  "Info",
-                  "Debug",
-                  "Trace"
-                ],
-                "default": "Error"
-              },
-              "connectUnderReset": {
+              "allowEraseAll": {
                 "type": "boolean",
-                "description": "This option will result in the target reset pin being held high during the attach operation.",
-                "default": false
-              },
-              "flashingEnabled": {
-                "type": "boolean",
-                "description": "Flash the target before debugging.",
+                "description": "Allow the session to erase all memory of the chip or reset it to factory default.",
                 "default": true
               },
-              "resetAfterFlashing": {
-                "type": "boolean",
-                "description": "Reset the target after flashing.",
-                "default": true
+              "flashingConfig": {
+                "type": "object",
+                "description": "These flashing options are applied when flashing one or more core `program_binary` files to the target memory.",
+                "flashingEnabled": {
+                  "type": "boolean",
+                  "description": "Flash the target before debugging.",
+                  "default": true
+                },
+                "resetAfterFlashing": {
+                  "type": "boolean",
+                  "description": "Reset all cores on the target after flashing.",
+                  "default": true
+                },
+                "haltAfterReset": {
+                  "type": "boolean",
+                  "description": "Halt all cores on the target after reset.",
+                  "default": true
+                },
+                "fullChipErase": {
+                  "type": "boolean",
+                  "description": "Do a full chip erase, versus page-by-page erase.",
+                  "default": false
+                },
+                "restoreUnwrittenBytes": {
+                  "type": "boolean",
+                  "description": "Restore erased bytes that will not be rewritten from ELF.",
+                  "default": false
+                }
               },
-              "haltAfterReset": {
-                "type": "boolean",
-                "description": "Halt the target after reset.",
-                "default": true
-              },
-              "fullChipErase": {
-                "type": "boolean",
-                "description": "Do a full chip erase, versus page-by-page erase.",
-                "default": false
-              },
-              "restoreUnwrittenBytes": {
-                "type": "boolean",
-                "description": "Restore erased bytes that will not be rewritten from ELF.",
-                "default": false
-              },
-              "rttEnabled": {
-                "type": "boolean",
-                "description": "If true, the debugger will open an RTT Terminal tab for each of the active channels on the target.",
-                "default": false
-              },
-              "rttChannelFormats": {
+              "coreConfigs": {
                 "type": "array",
+                "description": "Each MCU core will have a mandatory `coreIndex`, `programBinary`, and `chip` as well as several other optional properties.",
                 "items": {
-                  "channelNumber": {
+                  "required": [
+                    "programBinary"
+                  ],
+                  "coreIndex": {
                     "type": "number",
-                    "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `dataFormat=String', and 'showTimestamps=false'."
+                    "description": "The zero based index of the MCU core for this session",
+                    "default": 0
                   },
-                  "dataFormat": {
+                  "programBinary": {
                     "type": "string",
-                    "description": "One of the supported data formats for RTT channels.",
-                    "enum": [
-                      "String",
-                      "BinaryLE",
-                      "Defmt"
-                    ],
-                    "enumDescriptions": [
-                      "String (text) format.",
-                      "Binary Little Endian format.",
-                      "Deferred formatting (see: https://defmt.ferrous-systems.com)."
-                    ],
-                    "default": "String"
+                    "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware",
+                    "default": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}"
                   },
-                  "showTimestamps": {
+                  "svdFile": {
+                    "type": "string",
+                    "description": "The path (relative to `cwd` or absolute) to the CMCIS-SVD file for your target core",
+                    "default": "./CMSIS.SVD"
+                  },
+                  "rttEnabled": {
                     "type": "boolean",
-                    "default": false,
-                    "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
+                    "description": "If true, the debugger will open an RTT Terminal tab for each of the active channels on the target.",
+                    "default": false
+                  },
+                  "rttChannelFormats": {
+                    "type": "array",
+                    "items": {
+                      "channelNumber": {
+                        "type": "number",
+                        "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `dataFormat=String', and 'showTimestamps=false'."
+                      },
+                      "dataFormat": {
+                        "type": "string",
+                        "description": "One of the supported data formats for RTT channels.",
+                        "enum": [
+                          "String",
+                          "BinaryLE",
+                          "Defmt"
+                        ],
+                        "enumDescriptions": [
+                          "String (text) format.",
+                          "Binary Little Endian format.",
+                          "Deferred formatting (see: https://defmt.ferrous-systems.com)."
+                        ],
+                        "default": "String"
+                      },
+                      "showTimestamps": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
+                      }
+                    }
                   }
                 }
               }
@@ -232,7 +255,7 @@
           "attach": {
             "required": [
               "chip",
-              "programBinary"
+              "coreConfigs"
             ],
             "properties": {
               "server": {
@@ -240,28 +263,17 @@
                 "description": "Optionally onnect to an existing `probe-rs-debugger` session on IP and Port, e.g. '127.0.0.1:50000'",
                 "default": "127.0.0.1:50000"
               },
-              "programBinary": {
+              "consoleLogLevel": {
                 "type": "string",
-                "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware",
-                "default": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}"
-              },
-              "cwd": {
-                "type": "string",
-                "description": "The working directory of the debugger, typically the RUST crate root",
-                "default": "${workspaceFolder}"
-              },
-              "chip": {
-                "type": "string",
-                "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs-debugger list-chips`."
-              },
-              "coreIndex": {
-                "type": "number",
-                "description": "The zero based index of the MCU core for this session",
-                "default": 0
-              },
-              "probe": {
-                "type": "string",
-                "description": "Use this flag to select a specific probe in the list. Use '--probe VID:PID' or '--probe VID:PID:Serial' if you have more than one probe with the same VID:PID."
+                "description": "The level of log info printed to the console. This also sets the RUST_LOG environment variable wherever possible.",
+                "enum": [
+                  "Error",
+                  "Warn",
+                  "Info",
+                  "Debug",
+                  "Trace"
+                ],
+                "default": "Error"
               },
               "runtimeExecutable": {
                 "type": "string",
@@ -279,6 +291,24 @@
                   "--dap"
                 ]
               },
+              "cwd": {
+                "type": "string",
+                "description": "The working directory of the debugger, typically the RUST crate root",
+                "default": "${workspaceFolder}"
+              },
+              "probe": {
+                "type": "string",
+                "description": "Use this flag to select a specific probe in the list. Use '--probe VID:PID' or '--probe VID:PID:Serial' if you have more than one probe with the same VID:PID."
+              },
+              "chip": {
+                "type": "string",
+                "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs-debugger list-chips`."
+              },
+              "connectUnderReset": {
+                "type": "boolean",
+                "description": "This option will result in the target reset pin being held high during the attach operation.",
+                "default": false
+              },
               "speed": {
                 "type": "number",
                 "description": "Specify the protocol speed in kHz."
@@ -291,49 +321,95 @@
                   "Jtag"
                 ]
               },
-              "consoleLogLevel": {
-                "type": "string",
-                "description": "The level of log info printed to the console. This also sets the RUST_LOG environment variable wherever possible.",
-                "enum": [
-                  "Error",
-                  "Warn",
-                  "Info",
-                  "Debug",
-                  "Trace"
-                ],
-                "default": "Error"
-              },
-              "rttEnabled": {
+              "allowEraseAll": {
                 "type": "boolean",
-                "description": "If true, the debugger will open an RTT Terminal tab for each of the active channels on the target.",
-                "default": false
+                "description": "Allow the session to erase all memory of the chip or reset it to factory default.",
+                "default": true
               },
-              "rttChannelFormats": {
+              "flashingConfig": {
+                "type": "object",
+                "description": "These flashing options are applied when flashing one or more core `program_binary` files to the target memory.",
+                "flashingEnabled": {
+                  "type": "boolean",
+                  "description": "Flash the target before debugging.",
+                  "default": true
+                },
+                "resetAfterFlashing": {
+                  "type": "boolean",
+                  "description": "Reset all cores on the target after flashing.",
+                  "default": true
+                },
+                "haltAfterReset": {
+                  "type": "boolean",
+                  "description": "Halt all cores on the target after reset.",
+                  "default": true
+                },
+                "fullChipErase": {
+                  "type": "boolean",
+                  "description": "Do a full chip erase, versus page-by-page erase.",
+                  "default": false
+                },
+                "restoreUnwrittenBytes": {
+                  "type": "boolean",
+                  "description": "Restore erased bytes that will not be rewritten from ELF.",
+                  "default": false
+                }
+              },
+              "coreConfigs": {
                 "type": "array",
+                "description": "Each MCU core will have a mandatory `coreIndex`, `programBinary`, and `chip` as well as several other optional properties.",
                 "items": {
-                  "channelNumber": {
+                  "required": [
+                    "programBinary"
+                  ],
+                  "coreIndex": {
                     "type": "number",
-                    "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `dataFormat=String', and 'showTimestamps=false'."
+                    "description": "The zero based index of the MCU core for this session",
+                    "default": 0
                   },
-                  "dataFormat": {
+                  "programBinary": {
                     "type": "string",
-                    "description": "One of the supported data formats for RTT channels.",
-                    "enum": [
-                      "String",
-                      "BinaryLE",
-                      "Defmt"
-                    ],
-                    "enumDescriptions": [
-                      "String (text) format.",
-                      "Binary Little Endian format.",
-                      "Deferred formatting (see: https://defmt.ferrous-systems.com)."
-                    ],
-                    "default": "String"
+                    "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware",
+                    "default": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}"
                   },
-                  "showTimestamps": {
+                  "svdFile": {
+                    "type": "string",
+                    "description": "The path (relative to `cwd` or absolute) to the CMCIS-SVD file for your target core",
+                    "default": "./CMSIS.SVD"
+                  },
+                  "rttEnabled": {
                     "type": "boolean",
-                    "default": false,
-                    "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
+                    "description": "If true, the debugger will open an RTT Terminal tab for each of the active channels on the target.",
+                    "default": false
+                  },
+                  "rttChannelFormats": {
+                    "type": "array",
+                    "items": {
+                      "channelNumber": {
+                        "type": "number",
+                        "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `dataFormat=String', and 'showTimestamps=false'."
+                      },
+                      "dataFormat": {
+                        "type": "string",
+                        "description": "One of the supported data formats for RTT channels.",
+                        "enum": [
+                          "String",
+                          "BinaryLE",
+                          "Defmt"
+                        ],
+                        "enumDescriptions": [
+                          "String (text) format.",
+                          "Binary Little Endian format.",
+                          "Deferred formatting (see: https://defmt.ferrous-systems.com)."
+                        ],
+                        "default": "String"
+                      },
+                      "showTimestamps": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
+                      }
+                    }
                   }
                 }
               }
@@ -345,13 +421,20 @@
             "type": "probe-rs-debug",
             "request": "launch",
             "name": "probe-rs Test",
-            "programBinary": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}",
             "cwd": "${workspaceFolder}",
-            "chip": "STM32H745ZITx",
             "connectUnderReset": true,
-            "flashingEnabled": true,
-            "resetAfterFlashing": true,
-            "haltAfterReset": true
+            "chip": "STM32H745ZITx",
+            "flashingConfig": {
+              "flashingEnabled": true,
+              "resetAfterFlashing": true,
+              "haltAfterReset": true
+            },
+            "coreConfigs": [
+              {
+                "coreIndex": 0,
+                "programBinary": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}"
+              }
+            ]
           }
         ],
         "configurationSnippets": [
@@ -362,10 +445,20 @@
               "type": "probe-rs-debug",
               "request": "launch",
               "name": "probe-rs Test",
-              "programBinary": "./target/thumbv7em-none-eabihf/$debug/{workspaceFolderBasename}",
               "cwd": "${workspaceFolder}",
+              "connectUnderReset": true,
               "chip": "STM32H745ZITx",
-              "connectUnderReset": true
+              "flashingConfig": {
+                "flashingEnabled": true,
+                "resetAfterFlashing": true,
+                "haltAfterReset": true
+              },
+              "coreConfigs": [
+                {
+                  "coreIndex": 0,
+                  "programBinary": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}"
+                }
+              ]
             }
           }
         ]
