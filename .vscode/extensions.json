@@ -4,6 +4,7 @@
 	"recommendations": [
 		"dbaeumer.vscode-eslint",
 		"amodio.tsl-problem-matcher",
-		"ms-vscode.hexeditor"
+		"ms-vscode.hexeditor",
+		"esbenp.prettier-vscode"
 	]
 }
