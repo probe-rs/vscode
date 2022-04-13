@@ -1,0 +1,15 @@
+# Global rules
+arrowParens: always
+bracketSpacing: false
+endOfLine: lf
+printWidth: 100
+quoteProps: consistent
+singleQuote: true
+tabWidth: 4
+trailingComma: all
+
+# Overrides
+overrides:
+  - files: '*.yml'
+    options:
+      tabWidth: 2
