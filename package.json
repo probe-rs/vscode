@@ -1,375 +1,376 @@
 {
-  "name": "probe-rs-debugger",
-  "displayName": "Debugger for probe-rs",
-  "version": "0.3.6",
-  "publisher": "probe-rs",
-  "description": "probe-rs Debug Adapter for VS Code.",
-  "author": {
-    "name": "Jack Noppé",
-    "email": "noppej@hotmail.com"
-  },
-  "license": "MIT",
-  "keywords": [
-    "probe-rs embedded debug"
-  ],
-  "engines": {
-    "vscode": "^1.65.0"
-  },
-  "icon": "images/probe-rs-debugger.png",
-  "categories": [
-    "Debuggers"
-  ],
-  "private": true,
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/probe-rs/vscode.git"
-  },
-  "bugs": {
-    "url": "https://github.com/probe-rs/vscode/issues"
-  },
-  "scripts": {
-    "probe-rs: getDebugProtocolLatest": "curl -LJs https://microsoft.github.io/debug-adapter-protocol/debugAdapterProtocol.json -o src/debugProtocol.json",
-    "probe-rs:Update Dev Dependencies": "yarn upgrade --latest",
-    "probe-rs:package": "vsce package",
-    "vscode:prepublish": "yarn run package-ext && yarn run package-web",
-    "compile": "tsc -p ./",
-    "lint": "eslint src --ext ts",
-    "watch": "webpack --watch --devtool nosources-source-map  --config ./build/extension.webpack.config.js",
-    "watch2": "tsc -watch -p ./",
-    "pretest": "yarn run compile && yarn run lint",
-    "publish": "vsce publish",
-    "package-ext": "webpack --mode production --config ./build/extension.webpack.config.js",
-    "compile-web": "webpack --devtool nosources-source-map --config ./build/web-extension.webpack.config.js",
-    "watch-web": "webpack --watch --devtool nosources-source-map  --config ./build/web-extension.webpack.config.js",
-    "package-web": "webpack --mode production --config ./build/web-extension.webpack.config.js"
-  },
-  "enabledApiProposals": [],
-  "dependencies": {
-    "@vscode/debugadapter": "^1.54.0",
-    "await-notify": "1.0.1",
-    "portfinder": "^1.0.28"
-  },
-  "devDependencies": {
-    "@types/glob": "^7.2.0",
-    "@types/mocha": "^9.1.0",
-    "@types/node": "^17.0.21",
-    "@types/vscode": "^1.65.0",
-    "@typescript-eslint/eslint-plugin": "^5.13.0",
-    "@typescript-eslint/parser": "^5.13.0",
-    "@vscode/debugprotocol": "^1.54.0",
-    "eslint": "^8.10.0",
-    "glob": "^7.2.0",
-    "mocha": "^9.2.1",
-    "portfinder": "^1.0.28",
-    "ts-loader": "^9.2.7",
-    "typescript": "^4.6.2",
-    "vsce": "^2.6.5",
-    "webpack": "^5.70.0",
-    "webpack-cli": "^4.9.2"
-  },
-  "main": "./dist/ext/extension.js",
-  "browser": "./dist/web/extension.js",
-  "activationEvents": [
-    "onDebug"
-  ],
-  "workspaceTrust": {
-    "request": "never"
-  },
-  "contributes": {
-    "breakpoints": [
-      {
-        "language": "rust"
-      }
+    "name": "probe-rs-debugger",
+    "displayName": "Debugger for probe-rs",
+    "version": "0.3.6",
+    "publisher": "probe-rs",
+    "description": "probe-rs Debug Adapter for VS Code.",
+    "author": {
+        "name": "Jack Noppé",
+        "email": "noppej@hotmail.com"
+    },
+    "license": "MIT",
+    "keywords": [
+        "probe-rs embedded debug"
     ],
-    "debuggers": [
-      {
-        "type": "probe-rs-debug",
-        "label": "Debug adapter on top of probe-rs",
-        "languages": [
-          "rust"
+    "engines": {
+        "vscode": "^1.65.0"
+    },
+    "icon": "images/probe-rs-debugger.png",
+    "categories": [
+        "Debuggers"
+    ],
+    "private": true,
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/probe-rs/vscode.git"
+    },
+    "bugs": {
+        "url": "https://github.com/probe-rs/vscode/issues"
+    },
+    "scripts": {
+        "probe-rs: getDebugProtocolLatest": "curl -LJs https://microsoft.github.io/debug-adapter-protocol/debugAdapterProtocol.json -o src/debugProtocol.json",
+        "probe-rs:Update Dev Dependencies": "yarn upgrade --latest",
+        "probe-rs:package": "vsce package",
+        "vscode:prepublish": "yarn run package-ext && yarn run package-web",
+        "compile": "tsc -p ./",
+        "lint": "eslint src --ext ts",
+        "watch": "webpack --watch --devtool nosources-source-map  --config ./build/extension.webpack.config.js",
+        "watch2": "tsc -watch -p ./",
+        "pretest": "yarn run compile && yarn run lint && prettier --check .",
+        "publish": "vsce publish",
+        "package-ext": "webpack --mode production --config ./build/extension.webpack.config.js",
+        "compile-web": "webpack --devtool nosources-source-map --config ./build/web-extension.webpack.config.js",
+        "watch-web": "webpack --watch --devtool nosources-source-map  --config ./build/web-extension.webpack.config.js",
+        "package-web": "webpack --mode production --config ./build/web-extension.webpack.config.js"
+    },
+    "enabledApiProposals": [],
+    "dependencies": {
+        "@vscode/debugadapter": "^1.54.0",
+        "await-notify": "1.0.1",
+        "portfinder": "^1.0.28"
+    },
+    "devDependencies": {
+        "@types/glob": "^7.2.0",
+        "@types/mocha": "^9.1.0",
+        "@types/node": "^17.0.21",
+        "@types/vscode": "^1.65.0",
+        "@typescript-eslint/eslint-plugin": "^5.13.0",
+        "@typescript-eslint/parser": "^5.13.0",
+        "@vscode/debugprotocol": "^1.54.0",
+        "eslint": "^8.10.0",
+        "glob": "^7.2.0",
+        "mocha": "^9.2.1",
+        "portfinder": "^1.0.28",
+        "prettier": "^2.6.2",
+        "ts-loader": "^9.2.7",
+        "typescript": "^4.6.2",
+        "vsce": "^2.6.5",
+        "webpack": "^5.70.0",
+        "webpack-cli": "^4.9.2"
+    },
+    "main": "./dist/ext/extension.js",
+    "browser": "./dist/web/extension.js",
+    "activationEvents": [
+        "onDebug"
+    ],
+    "workspaceTrust": {
+        "request": "never"
+    },
+    "contributes": {
+        "breakpoints": [
+            {
+                "language": "rust"
+            }
         ],
-        "configurationAttributes": {
-          "launch": {
-            "required": [
-              "programBinary",
-              "chip"
-            ],
-            "properties": {
-              "server": {
-                "type": "string",
-                "description": "Optionally onnect to an existing `probe-rs-debugger` session on IP and Port, e.g. '127.0.0.1:50000'",
-                "default": "127.0.0.1:50000"
-              },
-              "programBinary": {
-                "type": "string",
-                "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware",
-                "default": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}"
-              },
-              "cwd": {
-                "type": "string",
-                "description": "The working directory of the debugger, typically the RUST crate root",
-                "default": "${workspaceFolder}"
-              },
-              "chip": {
-                "type": "string",
-                "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs-debugger list-chips`."
-              },
-              "coreIndex": {
-                "type": "number",
-                "description": "The zero based index of the MCU core for this session",
-                "default": 0
-              },
-              "probe": {
-                "type": "string",
-                "description": "Use this flag to select a specific probe in the list. Use '--probe VID:PID' or '--probe VID:PID:Serial' if you have more than one probe with the same VID:PID."
-              },
-              "runtimeExecutable": {
-                "type": "string",
-                "description": "An OS resolvable path to the Probe-rs debugger executable.",
-                "default": "probe-rs-debugger"
-              },
-              "runtimeArgs": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "description": "String array of arguments to provide the startup arguments for the Probe-rs debugger executable.",
-                "default": [
-                  "debug",
-                  "--dap"
-                ]
-              },
-              "speed": {
-                "type": "number",
-                "description": "Specify the protocol speed in kHz."
-              },
-              "wireProtocol": {
-                "type": "string",
-                "description": "The correct wire Protocol to use.",
-                "enum": [
-                  "Swd",
-                  "Jtag"
-                ]
-              },
-              "consoleLogLevel": {
-                "type": "string",
-                "description": "The level of log info printed to the console. This also sets the RUST_LOG environment variable wherever possible.",
-                "enum": [
-                  "Error",
-                  "Warn",
-                  "Info",
-                  "Debug",
-                  "Trace"
+        "debuggers": [
+            {
+                "type": "probe-rs-debug",
+                "label": "Debug adapter on top of probe-rs",
+                "languages": [
+                    "rust"
                 ],
-                "default": "Error"
-              },
-              "connectUnderReset": {
-                "type": "boolean",
-                "description": "This option will result in the target reset pin being held high during the attach operation.",
-                "default": false
-              },
-              "flashingEnabled": {
-                "type": "boolean",
-                "description": "Flash the target before debugging.",
-                "default": true
-              },
-              "resetAfterFlashing": {
-                "type": "boolean",
-                "description": "Reset the target after flashing.",
-                "default": true
-              },
-              "haltAfterReset": {
-                "type": "boolean",
-                "description": "Halt the target after reset.",
-                "default": true
-              },
-              "fullChipErase": {
-                "type": "boolean",
-                "description": "Do a full chip erase, versus page-by-page erase.",
-                "default": false
-              },
-              "restoreUnwrittenBytes": {
-                "type": "boolean",
-                "description": "Restore erased bytes that will not be rewritten from ELF.",
-                "default": false
-              },
-              "rttEnabled": {
-                "type": "boolean",
-                "description": "If true, the debugger will open an RTT Terminal tab for each of the active channels on the target.",
-                "default": false
-              },
-              "rttChannelFormats": {
-                "type": "array",
-                "items": {
-                  "channelNumber": {
-                    "type": "number",
-                    "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `dataFormat=String', and 'showTimestamps=false'."
-                  },
-                  "dataFormat": {
-                    "type": "string",
-                    "description": "One of the supported data formats for RTT channels.",
-                    "enum": [
-                      "String",
-                      "BinaryLE",
-                      "Defmt"
-                    ],
-                    "enumDescriptions": [
-                      "String (text) format.",
-                      "Binary Little Endian format.",
-                      "Deferred formatting (see: https://defmt.ferrous-systems.com)."
-                    ],
-                    "default": "String"
-                  },
-                  "showTimestamps": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
-                  }
-                }
-              }
-            }
-          },
-          "attach": {
-            "required": [
-              "chip",
-              "programBinary"
-            ],
-            "properties": {
-              "server": {
-                "type": "string",
-                "description": "Optionally onnect to an existing `probe-rs-debugger` session on IP and Port, e.g. '127.0.0.1:50000'",
-                "default": "127.0.0.1:50000"
-              },
-              "programBinary": {
-                "type": "string",
-                "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware",
-                "default": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}"
-              },
-              "cwd": {
-                "type": "string",
-                "description": "The working directory of the debugger, typically the RUST crate root",
-                "default": "${workspaceFolder}"
-              },
-              "chip": {
-                "type": "string",
-                "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs-debugger list-chips`."
-              },
-              "coreIndex": {
-                "type": "number",
-                "description": "The zero based index of the MCU core for this session",
-                "default": 0
-              },
-              "probe": {
-                "type": "string",
-                "description": "Use this flag to select a specific probe in the list. Use '--probe VID:PID' or '--probe VID:PID:Serial' if you have more than one probe with the same VID:PID."
-              },
-              "runtimeExecutable": {
-                "type": "string",
-                "description": "An OS resolvable path to the Probe-rs debugger executable.",
-                "default": "probe-rs-debugger"
-              },
-              "runtimeArgs": {
-                "type": "array",
-                "items": {
-                  "type": "string"
+                "configurationAttributes": {
+                    "launch": {
+                        "required": [
+                            "programBinary",
+                            "chip"
+                        ],
+                        "properties": {
+                            "server": {
+                                "type": "string",
+                                "description": "Optionally onnect to an existing `probe-rs-debugger` session on IP and Port, e.g. '127.0.0.1:50000'",
+                                "default": "127.0.0.1:50000"
+                            },
+                            "programBinary": {
+                                "type": "string",
+                                "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware",
+                                "default": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}"
+                            },
+                            "cwd": {
+                                "type": "string",
+                                "description": "The working directory of the debugger, typically the RUST crate root",
+                                "default": "${workspaceFolder}"
+                            },
+                            "chip": {
+                                "type": "string",
+                                "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs-debugger list-chips`."
+                            },
+                            "coreIndex": {
+                                "type": "number",
+                                "description": "The zero based index of the MCU core for this session",
+                                "default": 0
+                            },
+                            "probe": {
+                                "type": "string",
+                                "description": "Use this flag to select a specific probe in the list. Use '--probe VID:PID' or '--probe VID:PID:Serial' if you have more than one probe with the same VID:PID."
+                            },
+                            "runtimeExecutable": {
+                                "type": "string",
+                                "description": "An OS resolvable path to the Probe-rs debugger executable.",
+                                "default": "probe-rs-debugger"
+                            },
+                            "runtimeArgs": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "String array of arguments to provide the startup arguments for the Probe-rs debugger executable.",
+                                "default": [
+                                    "debug",
+                                    "--dap"
+                                ]
+                            },
+                            "speed": {
+                                "type": "number",
+                                "description": "Specify the protocol speed in kHz."
+                            },
+                            "wireProtocol": {
+                                "type": "string",
+                                "description": "The correct wire Protocol to use.",
+                                "enum": [
+                                    "Swd",
+                                    "Jtag"
+                                ]
+                            },
+                            "consoleLogLevel": {
+                                "type": "string",
+                                "description": "The level of log info printed to the console. This also sets the RUST_LOG environment variable wherever possible.",
+                                "enum": [
+                                    "Error",
+                                    "Warn",
+                                    "Info",
+                                    "Debug",
+                                    "Trace"
+                                ],
+                                "default": "Error"
+                            },
+                            "connectUnderReset": {
+                                "type": "boolean",
+                                "description": "This option will result in the target reset pin being held high during the attach operation.",
+                                "default": false
+                            },
+                            "flashingEnabled": {
+                                "type": "boolean",
+                                "description": "Flash the target before debugging.",
+                                "default": true
+                            },
+                            "resetAfterFlashing": {
+                                "type": "boolean",
+                                "description": "Reset the target after flashing.",
+                                "default": true
+                            },
+                            "haltAfterReset": {
+                                "type": "boolean",
+                                "description": "Halt the target after reset.",
+                                "default": true
+                            },
+                            "fullChipErase": {
+                                "type": "boolean",
+                                "description": "Do a full chip erase, versus page-by-page erase.",
+                                "default": false
+                            },
+                            "restoreUnwrittenBytes": {
+                                "type": "boolean",
+                                "description": "Restore erased bytes that will not be rewritten from ELF.",
+                                "default": false
+                            },
+                            "rttEnabled": {
+                                "type": "boolean",
+                                "description": "If true, the debugger will open an RTT Terminal tab for each of the active channels on the target.",
+                                "default": false
+                            },
+                            "rttChannelFormats": {
+                                "type": "array",
+                                "items": {
+                                    "channelNumber": {
+                                        "type": "number",
+                                        "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `dataFormat=String', and 'showTimestamps=false'."
+                                    },
+                                    "dataFormat": {
+                                        "type": "string",
+                                        "description": "One of the supported data formats for RTT channels.",
+                                        "enum": [
+                                            "String",
+                                            "BinaryLE",
+                                            "Defmt"
+                                        ],
+                                        "enumDescriptions": [
+                                            "String (text) format.",
+                                            "Binary Little Endian format.",
+                                            "Deferred formatting (see: https://defmt.ferrous-systems.com)."
+                                        ],
+                                        "default": "String"
+                                    },
+                                    "showTimestamps": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "attach": {
+                        "required": [
+                            "chip",
+                            "programBinary"
+                        ],
+                        "properties": {
+                            "server": {
+                                "type": "string",
+                                "description": "Optionally onnect to an existing `probe-rs-debugger` session on IP and Port, e.g. '127.0.0.1:50000'",
+                                "default": "127.0.0.1:50000"
+                            },
+                            "programBinary": {
+                                "type": "string",
+                                "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware",
+                                "default": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}"
+                            },
+                            "cwd": {
+                                "type": "string",
+                                "description": "The working directory of the debugger, typically the RUST crate root",
+                                "default": "${workspaceFolder}"
+                            },
+                            "chip": {
+                                "type": "string",
+                                "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs-debugger list-chips`."
+                            },
+                            "coreIndex": {
+                                "type": "number",
+                                "description": "The zero based index of the MCU core for this session",
+                                "default": 0
+                            },
+                            "probe": {
+                                "type": "string",
+                                "description": "Use this flag to select a specific probe in the list. Use '--probe VID:PID' or '--probe VID:PID:Serial' if you have more than one probe with the same VID:PID."
+                            },
+                            "runtimeExecutable": {
+                                "type": "string",
+                                "description": "An OS resolvable path to the Probe-rs debugger executable.",
+                                "default": "probe-rs-debugger"
+                            },
+                            "runtimeArgs": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "String array of arguments to provide the startup arguments for the Probe-rs debugger executable.",
+                                "default": [
+                                    "debug",
+                                    "--dap"
+                                ]
+                            },
+                            "speed": {
+                                "type": "number",
+                                "description": "Specify the protocol speed in kHz."
+                            },
+                            "wireProtocol": {
+                                "type": "string",
+                                "description": "The correct wire Protocol to use.",
+                                "enum": [
+                                    "Swd",
+                                    "Jtag"
+                                ]
+                            },
+                            "consoleLogLevel": {
+                                "type": "string",
+                                "description": "The level of log info printed to the console. This also sets the RUST_LOG environment variable wherever possible.",
+                                "enum": [
+                                    "Error",
+                                    "Warn",
+                                    "Info",
+                                    "Debug",
+                                    "Trace"
+                                ],
+                                "default": "Error"
+                            },
+                            "rttEnabled": {
+                                "type": "boolean",
+                                "description": "If true, the debugger will open an RTT Terminal tab for each of the active channels on the target.",
+                                "default": false
+                            },
+                            "rttChannelFormats": {
+                                "type": "array",
+                                "items": {
+                                    "channelNumber": {
+                                        "type": "number",
+                                        "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `dataFormat=String', and 'showTimestamps=false'."
+                                    },
+                                    "dataFormat": {
+                                        "type": "string",
+                                        "description": "One of the supported data formats for RTT channels.",
+                                        "enum": [
+                                            "String",
+                                            "BinaryLE",
+                                            "Defmt"
+                                        ],
+                                        "enumDescriptions": [
+                                            "String (text) format.",
+                                            "Binary Little Endian format.",
+                                            "Deferred formatting (see: https://defmt.ferrous-systems.com)."
+                                        ],
+                                        "default": "String"
+                                    },
+                                    "showTimestamps": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
+                                    }
+                                }
+                            }
+                        }
+                    }
                 },
-                "description": "String array of arguments to provide the startup arguments for the Probe-rs debugger executable.",
-                "default": [
-                  "debug",
-                  "--dap"
-                ]
-              },
-              "speed": {
-                "type": "number",
-                "description": "Specify the protocol speed in kHz."
-              },
-              "wireProtocol": {
-                "type": "string",
-                "description": "The correct wire Protocol to use.",
-                "enum": [
-                  "Swd",
-                  "Jtag"
-                ]
-              },
-              "consoleLogLevel": {
-                "type": "string",
-                "description": "The level of log info printed to the console. This also sets the RUST_LOG environment variable wherever possible.",
-                "enum": [
-                  "Error",
-                  "Warn",
-                  "Info",
-                  "Debug",
-                  "Trace"
+                "initialConfigurations": [
+                    {
+                        "type": "probe-rs-debug",
+                        "request": "launch",
+                        "name": "probe-rs Test",
+                        "programBinary": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}",
+                        "cwd": "${workspaceFolder}",
+                        "chip": "STM32H745ZITx",
+                        "connectUnderReset": true,
+                        "flashingEnabled": true,
+                        "resetAfterFlashing": true,
+                        "haltAfterReset": true
+                    }
                 ],
-                "default": "Error"
-              },
-              "rttEnabled": {
-                "type": "boolean",
-                "description": "If true, the debugger will open an RTT Terminal tab for each of the active channels on the target.",
-                "default": false
-              },
-              "rttChannelFormats": {
-                "type": "array",
-                "items": {
-                  "channelNumber": {
-                    "type": "number",
-                    "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `dataFormat=String', and 'showTimestamps=false'."
-                  },
-                  "dataFormat": {
-                    "type": "string",
-                    "description": "One of the supported data formats for RTT channels.",
-                    "enum": [
-                      "String",
-                      "BinaryLE",
-                      "Defmt"
-                    ],
-                    "enumDescriptions": [
-                      "String (text) format.",
-                      "Binary Little Endian format.",
-                      "Deferred formatting (see: https://defmt.ferrous-systems.com)."
-                    ],
-                    "default": "String"
-                  },
-                  "showTimestamps": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
-                  }
-                }
-              }
+                "configurationSnippets": [
+                    {
+                        "label": "probe-rs Debug: Launch",
+                        "description": "A new configuration for embedded debugging of a user selected rust file with probe-rs.",
+                        "body": {
+                            "type": "probe-rs-debug",
+                            "request": "launch",
+                            "name": "probe-rs Test",
+                            "programBinary": "./target/thumbv7em-none-eabihf/$debug/{workspaceFolderBasename}",
+                            "cwd": "${workspaceFolder}",
+                            "chip": "STM32H745ZITx",
+                            "connectUnderReset": true
+                        }
+                    }
+                ]
             }
-          }
-        },
-        "initialConfigurations": [
-          {
-            "type": "probe-rs-debug",
-            "request": "launch",
-            "name": "probe-rs Test",
-            "programBinary": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}",
-            "cwd": "${workspaceFolder}",
-            "chip": "STM32H745ZITx",
-            "connectUnderReset": true,
-            "flashingEnabled": true,
-            "resetAfterFlashing": true,
-            "haltAfterReset": true
-          }
-        ],
-        "configurationSnippets": [
-          {
-            "label": "probe-rs Debug: Launch",
-            "description": "A new configuration for embedded debugging of a user selected rust file with probe-rs.",
-            "body": {
-              "type": "probe-rs-debug",
-              "request": "launch",
-              "name": "probe-rs Test",
-              "programBinary": "./target/thumbv7em-none-eabihf/$debug/{workspaceFolderBasename}",
-              "cwd": "${workspaceFolder}",
-              "chip": "STM32H745ZITx",
-              "connectUnderReset": true
-            }
-          }
         ]
-      }
-    ]
-  }
+    }
 }

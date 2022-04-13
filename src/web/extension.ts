@@ -10,5 +10,5 @@
 // }
 
 export function deactivate() {
-	// nothing to do
+    // nothing to do
 }
