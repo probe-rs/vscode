@@ -16,19 +16,28 @@
             "script": "watch",
             "group": "build",
             "isBackground": true,
-            "problemMatcher": ["$ts-webpack-watch", "$tslint-webpack-watch"]
+            "problemMatcher": [
+                "$ts-webpack-watch",
+                "$tslint-webpack-watch"
+            ]
         },
         {
             "type": "npm",
             "script": "compile-web",
-            "problemMatcher": ["$ts-webpack", "$tslint-webpack"]
+            "problemMatcher": [
+                "$ts-webpack",
+                "$tslint-webpack"
+            ]
         },
         {
             "type": "npm",
             "script": "watch-web",
             "group": "build",
             "isBackground": true,
-            "problemMatcher": ["$ts-webpack-watch", "$tslint-webpack-watch"]
+            "problemMatcher": [
+                "$ts-webpack-watch",
+                "$tslint-webpack-watch"
+            ]
         }
     ]
 }
