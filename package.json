@@ -28,7 +28,7 @@
     "url": "https://github.com/probe-rs/vscode/issues"
   },
   "scripts": {
-    "probe-rs: getDebugProtocolLatest": "curl -LJs https://microsoft.github.io/debug-adapter-protocol/debugAdapterProtocol.json -o src/debugProtocol.json",
+    "probe-rs: getDebugProtocolLatest": "curl -LJs https://microsoft.github.io/debug-adapter-protocol/debugAdapterProtocol.json -o dap/debugProtocol.json",
     "probe-rs:Update Dev Dependencies": "yarn upgrade --latest",
     "probe-rs:package": "vsce package",
     "vscode:prepublish": "yarn run package-ext && yarn run package-web",
@@ -245,6 +245,11 @@
                         "type": "boolean",
                         "default": false,
                         "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
+                      },
+                      "showLocation": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Enable the inclusion of Defmt location information in the RTT output for `dataFormat=Defmt`."
                       }
                     }
                   }
@@ -408,6 +413,11 @@
                         "type": "boolean",
                         "default": false,
                         "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
+                      },
+                      "showLocation": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Enable the inclusion of Defmt location information in the RTT output for `dataFormat=Defmt`."
                       }
                     }
                   }
