@@ -48,7 +48,7 @@ function handleExit(code: number | null, signal: string | null) {
 }
 
 // Messages to be sent to the debug session's console. 
-// Any local (generated directly by this extension) messages MUST start with 'ERROR', or 'probe-rs-debug' , or `DEBUG`. 
+// Any local (generated directly by this extension) messages MUST start with 'ERROR', or 'probe-rs-debug', or `DEBUG`. 
 // Any messages that start with `ERROR` or `probe-rs-debug` will ALWAYS be logged.
 // Any messages that come from the `probe-rs-debug` STDERR will always be logged.
 function logToConsole(consoleMesssage: string, fromDebugger: boolean = false) {
