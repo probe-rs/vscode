@@ -54,7 +54,7 @@ function handleExit(code: number | null, signal: string | null) {
 function logToConsole(consoleMesssage: string, fromDebugger: boolean = false) {
 	console.log(consoleMesssage); // During VSCode extension development, this will also log to the local debug console
 	if (fromDebugger) {
-		// RUST_LOG messages of the `error` variant. These deserve to be shown as an error message in the UI also.
+		// STDERR messages of the `error` variant. These deserve to be shown as an error message in the UI also.
 		// This filter might capture more than expected, but since RUST_LOG messages can take many formats, it seems that this is the safest/most inclusive.
 		if (consoleMesssage.includes("ERROR")) {
 			vscode.window.showErrorMessage(consoleMesssage);
