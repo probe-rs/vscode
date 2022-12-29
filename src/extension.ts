@@ -9,9 +9,6 @@ import * as os from 'os';
 import * as vscode from 'vscode';
 import { DebugAdapterTracker, DebugAdapterTrackerFactory, } from 'vscode';
 
-// This is just the default. It will be updated after the configuration has been resolved. 
-var consoleLogLevel = 'Console';
-
 export async function activate(context: vscode.ExtensionContext) {
 
 	const descriptorFactory = new ProbeRSDebugAdapterServerDescriptorFactory();
@@ -37,42 +34,61 @@ export function deactivate(context: vscode.ExtensionContext) {
 // Cleanup inconsitent line breaks in String data
 const formatText = (text: string) => `\r${text.split(/(\r?\n)/g).join("\r")}\r`;
 
+// Constant for handling/filtering  console log messages.
+const enum ConsoleLogSources {
+	console = 'probe-rs-debug', // Identifies messages from the extension or debug adapter that must be sent to the Debug Console.
+	debug = 'DEBUG', // Identifies messages that contain detailed level debug information.
+	info = 'INFO', // Identifies messages that contain summary level of debug information.
+	error = 'ERROR', // Identifies messages that contain error information.
+};
+
+// This is just the default. It will be updated after the configuration has been resolved. 
+var consoleLogLevel = ConsoleLogSources.console;
+
 // Common handler for error/exit codes
 function handleExit(code: number | null, signal: string | null) {
 	var actionHint: string = '\tPlease report this issue at https://github.com/probe-rs/probe-rs/issues/new';
 	if (code) {
-		vscode.window.showErrorMessage("ERROR: `probe-rs-debug` exited with an unexpected code: ".concat(`${code}`).concat(actionHint));
+		vscode.window.showErrorMessage(`${ConsoleLogSources.error}: ${ConsoleLogSources.console.toLowerCase()} exited with an unexpected code: ${code} ${actionHint}`);
 	} else if (signal) {
-		vscode.window.showErrorMessage("ERROR: `probe-rs-debug` exited with signal: ".concat(`${signal}`).concat(actionHint));
+		vscode.window.showErrorMessage(`${ConsoleLogSources.error}: ${ConsoleLogSources.console.toLowerCase()} exited with signal: ${signal} ${actionHint}`);
 	}
 }
 
+// Adapted from https://stackoverflow.com/questions/2970525/converting-any-string-into-camel-case
+function toCamelCase(str: string) {
+  return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match: string, index: number) {
+    if (+match === 0) {return "";} // or if (/\s+/.test(match)) for white spaces
+    return index === 0 ? match.toLowerCase() : match.toUpperCase();
+  });
+}
+
 // Messages to be sent to the debug session's console. 
-// Any local (generated directly by this extension) messages MUST start with 'ERROR', or 'probe-rs-debug', or `DEBUG`. 
-// Any messages that start with `ERROR` or `probe-rs-debug` will always be logged.
-// Any messages that come from the `probe-rs-debug` STDERR will always be logged.
+// Any local (generated directly by this extension) messages MUST start with ConsoleLogLevels.error, or ConsoleLogSources.console.toLowerCase(), or `DEBUG`. 
+// Any messages that start with ConsoleLogLevels.error or ConsoleLogSources.console.toLowerCase() will always be logged.
+// Any messages that come from the ConsoleLogSources.console.toLowerCase() STDERR will always be logged.
 function logToConsole(consoleMesssage: string, fromDebugger: boolean = false) {
 	console.log(consoleMesssage); // During VSCode extension development, this will also log to the local debug console
 	if (fromDebugger) {
 		// STDERR messages of the `error` variant. These deserve to be shown as an error message in the UI also.
 		// This filter might capture more than expected, but since RUST_LOG messages can take many formats, it seems that this is the safest/most inclusive.
-		if (consoleMesssage.includes("ERROR")) {
+		if (consoleMesssage.includes(ConsoleLogSources.error)) {
 			vscode.window.showErrorMessage(consoleMesssage);
 		} else {
 			// Any other messages that come directly from the debugger, are assumed to be relevant and should be logged to the console.
 			vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
 		}
-	} else if (consoleMesssage.includes('probe-rs-debug')) {
+	} else if (consoleMesssage.includes(ConsoleLogSources.console.toLowerCase())) {
 		vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
 	} else {
 		switch (consoleLogLevel) {
-			case 'Debug': //  Log Info, Error AND Debug
-				if (consoleMesssage.includes('probe-rs-debug') || consoleMesssage.includes('ERROR') || consoleMesssage.includes('DEBUG')) {
+			case ConsoleLogSources.debug: //  Log Info, Error AND Debug
+				if (consoleMesssage.includes(ConsoleLogSources.console.toLowerCase()) || consoleMesssage.includes(ConsoleLogSources.error) || consoleMesssage.includes(ConsoleLogSources.debug)) {
 					vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
 				}
 				break;
 			default: // ONLY log console and error messages
-				if (consoleMesssage.includes('probe-rs-debug') || consoleMesssage.includes('ERROR')) {
+				if (consoleMesssage.includes(ConsoleLogSources.console.toLowerCase()) || consoleMesssage.includes(ConsoleLogSources.error)) {
 					vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
 				}
 				break;
@@ -94,13 +110,13 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 				open: () => {
 					let windowIsOpen = true;
 					session.customRequest("rttWindowOpened", { channelNumber, windowIsOpen }).then((response) => {
-						logToConsole("probe-rs-debug: RTT Window opened, and ready to receive RTT data on channel" + JSON.stringify(channelNumber, null, 2));
+						logToConsole(`${ConsoleLogSources.console.toLowerCase()}: RTT Window opened, and ready to receive RTT data on channel ${JSON.stringify(channelNumber, null, 2)}`);
 					});
 				},
 				close: () => {
 					let windowIsOpen = false;
 					session.customRequest("rttWindowOpened", { channelNumber, windowIsOpen }).then((response) => {
-						logToConsole("probe-rs-debug: RTT Window closed, and can no longer receive RTT data on channel" + JSON.stringify(channelNumber, null, 2));
+						logToConsole(`${ConsoleLogSources.console.toLowerCase()}: RTT Window closed, and can no longer receive RTT data on channel ${JSON.stringify(channelNumber, null, 2)}`);
 					});
 				},
 			};
@@ -112,7 +128,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 					channelTerminalConfig = channelTerminal.creationOptions as vscode.ExtensionTerminalOptions;
 					let windowIsOpen = true;
 					session.customRequest("rttWindowOpened", { channelNumber, windowIsOpen }).then((response) => {
-						logToConsole("probe-rs-debug: RTT Window reused, and ready to receive RTT data on channel" + JSON.stringify(channelNumber, null, 2));
+						logToConsole(`${ConsoleLogSources.console.toLowerCase()}: RTT Window reused, and ready to receive RTT data on channel ${JSON.stringify(channelNumber, null, 2)}`);
 					});
 					break;
 				}
@@ -130,7 +146,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 					}
 				}
 				channelTerminal = vscode.window.createTerminal(channelTerminalConfig);
-				vscode.debug.activeDebugConsole.appendLine("probe-rs-debug: Opened a new RTT Terminal window named: " + channelName);
+				vscode.debug.activeDebugConsole.appendLine(`${ConsoleLogSources.console.toLowerCase()}: Opened a new RTT Terminal window named: ${channelName}`);
 				this.rttTerminals.push([+channelNumber, dataFormat, channelTerminal, channelWriteEmitter]);
 			}
 			if (channelNumber === 0) {
@@ -174,14 +190,16 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 						vscode.window.showErrorMessage(customEvent.body?.message);
 						break;
 					default:
-						logToConsole("ERROR: probe-rs-debug: Received custom event with unknown message severity: \n" + JSON.stringify(customEvent.body?.severity, null, 2));
+						logToConsole(`${ConsoleLogSources.error}: ${ConsoleLogSources.console.toLowerCase()}: Received custom event with unknown message severity:
+						${JSON.stringify(customEvent.body?.severity, null, 2)}`);
 				}
 				break;
 			case `exited`:
 				this.dispose();
 				break;
 			default:
-				logToConsole("ERROR: probe-rs-debug: Received unknown custom event:\n" + JSON.stringify(customEvent, null, 2));
+				logToConsole(`${ConsoleLogSources.error}: ${ConsoleLogSources.console.toLowerCase()}: Received unknown custom event:
+				${JSON.stringify(customEvent, null, 2)}`);
 				break;
 		}
 	}
@@ -196,7 +214,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 
 
 		// Initiate either the 'attach' or 'launch' request.
-		logToConsole("probe-rs-debug: Session: " + JSON.stringify(session, null, 2));
+		logToConsole(`${ConsoleLogSources.console.toLowerCase()}: Session: ${JSON.stringify(session, null, 2)}`);
 
 		// When starting the debugger process, we have to wait for debuggerStatus to be set to `DebuggerStatus.running` before we continue
 		enum DebuggerStatus {
@@ -209,18 +227,18 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 		var debugServer = new String("127.0.0.1:50000").split(":", 2); // ... provide default server host and port for "launch" configurations, where this is NOT a mandatory config
 		if (session.configuration.hasOwnProperty('server')) {
 			debugServer = new String(session.configuration.server).split(":", 2);
-			logToConsole("probe-rs-debug: Debug using existing server" + JSON.stringify(debugServer[0]) + " on port " + JSON.stringify(debugServer[1]));
-			logToConsole("probe-rs-debug: Please note that debug server error messages will only be reported by the existing server console.");
+			logToConsole(`${ConsoleLogSources.console.toLowerCase()}: Debug using existing server" ${JSON.stringify(debugServer[0])} on port ${JSON.stringify(debugServer[1])}`);
+			logToConsole(`${ConsoleLogSources.console.toLowerCase()}: Please note that debug server error messages will only be reported by the existing server console.`);
 			debuggerStatus = DebuggerStatus.running; // If this is not true as expected, then the user will be notified later.
 		} else { // Find and use the first available port and spawn a new probe-rs-debugger process
 			var portfinder = require('portfinder');
 			try {
 				var port: number = await portfinder.getPortPromise();
-				debugServer = new String("127.0.0.1:" + port).split(":", 2);
+				debugServer = `127.0.0.1:${port}`.split(":", 2);
 			}
 			catch (err: any) {
-				logToConsole("ERROR: " + JSON.stringify(err.message, null, 2));
-				vscode.window.showErrorMessage("Searching for available port failed with: " + JSON.stringify(err.message, null, 2));
+				logToConsole(`${ConsoleLogSources.error}: ${JSON.stringify(err.message, null, 2)}`);
+				vscode.window.showErrorMessage(`Searching for available port failed with: ${JSON.stringify(err.message, null, 2)}`);
 				return undefined;
 			}
 			var args: string[];
@@ -259,7 +277,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			args.push("--vscode");
 
 			// Launch the debugger ... launch errors will be reported in `onClose event`
-			logToConsole("probe-rs-debug: Launching new server " + JSON.stringify(command) + " " + JSON.stringify(args) + " " + JSON.stringify(options));
+			logToConsole(`${ConsoleLogSources.console.toLowerCase()}: Launching new server ${JSON.stringify(command)} ${JSON.stringify(args)} ${JSON.stringify(options)}`);
 			var launchedDebugAdapter = child_process.spawn(
 				command,
 				args,
@@ -267,7 +285,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			);
 
 			// Capture stdout and stderr to ensure OS and RUST_LOG error messages can be brought to the user's attention.
-			var debuggerReadySignature = "probe-rs-debug: Listening for requests on port " + debugServer[1];
+			var debuggerReadySignature = `${ConsoleLogSources.console.toLowerCase()}: Listening for requests on port ${debugServer[1]}`;
 			launchedDebugAdapter.stderr?.on('data', (data: string) => {
 				if (data.includes(debuggerReadySignature)) {
 					debuggerStatus = DebuggerStatus.running;
@@ -285,7 +303,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 			launchedDebugAdapter.on('error', (err: Error) => {
 				if (debuggerStatus !== (DebuggerStatus.failed as DebuggerStatus)) {
 					debuggerStatus = DebuggerStatus.failed;
-					vscode.window.showErrorMessage("`probe-rs-debugger` process encountered an error: " + JSON.stringify(err));
+					vscode.window.showErrorMessage(`probe-rs-debugger process encountered an error: ${JSON.stringify(err)}`);
 					launchedDebugAdapter.kill();
 				}
 			});
@@ -298,7 +316,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 					numRetries--;
 				} else {
 					debuggerStatus = DebuggerStatus.failed;
-					logToConsole("ERROR: Timeout waiting for probe-rs-debugger to launch");
+					logToConsole(`${ConsoleLogSources.error}: Timeout waiting for probe-rs-debugger to launch`);
 					vscode.window.showErrorMessage("Timeout waiting for probe-rs-debugger to launch");
 					break;
 				}
@@ -319,7 +337,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 	}
 
 	dispose() {
-		logToConsole("probe-rs-debug: Closing probe-rs debug extension");
+		logToConsole(`${ConsoleLogSources.console.toLowerCase()}: Closing probe-rs debug extension`);
 	}
 }
 
@@ -327,7 +345,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 class ProbeRsDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory {
 	createDebugAdapterTracker(session: vscode.DebugSession): vscode.ProviderResult<vscode.DebugAdapterTracker> {
 		logToConsole(
-			"DEBUG: Creating new debug adapter tracker");
+			`${ConsoleLogSources.debug}: Creating new debug adapter tracker`);
 		const tracker = new ProbeRsDebugAdapterTracker();
 
 		return tracker;
@@ -337,20 +355,23 @@ class ProbeRsDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory {
 class ProbeRsDebugAdapterTracker implements DebugAdapterTracker {
 
 	onWillReceiveMessage(message: any) {
-		if (consoleLogLevel === 'Debug') {
-			logToConsole("DEBUG: Received message from debug adapter:\n" + JSON.stringify(message, null, 2));
+		if (consoleLogLevel === toCamelCase(ConsoleLogSources.debug)) {
+			logToConsole(`${ConsoleLogSources.debug}: Received message from debug adapter:
+			${JSON.stringify(message, null, 2)}`);
 		}
 	}
 
 	onDidSendMessage(message: any) {
-		if (consoleLogLevel === 'Debug') {
-			logToConsole("DEBUG: Sending message to debug adapter:\n" + JSON.stringify(message, null, 2));
+		if (consoleLogLevel === toCamelCase(ConsoleLogSources.debug)) {
+			logToConsole(`${ConsoleLogSources.debug}: Sending message to debug adapter:
+			${JSON.stringify(message, null, 2)}`);
 		}
 	}
 
 	onError(error: Error) {
-		if (consoleLogLevel === 'Debug') {
-			logToConsole("ERROR: Error in communication with debug adapter:\n" + JSON.stringify(error, null, 2));
+		if (consoleLogLevel === toCamelCase(ConsoleLogSources.debug)) {
+			logToConsole(`${ConsoleLogSources.error}: Error in communication with debug adapter:
+			${JSON.stringify(error, null, 2)}`);
 		}
 	}
 
