@@ -1,7 +1,7 @@
 {
   "name": "probe-rs-debugger",
   "displayName": "Debugger for probe-rs",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "publisher": "probe-rs",
   "description": "probe-rs Debug Adapter for VS Code.",
   "author": {
@@ -13,7 +13,7 @@
     "probe-rs embedded debug"
   ],
   "engines": {
-    "vscode": "^1.66.0"
+    "vscode": "^1.74.1"
   },
   "icon": "images/probe-rs-debugger.png",
   "categories": [
@@ -45,27 +45,27 @@
   },
   "enabledApiProposals": [],
   "dependencies": {
-    "@vscode/debugadapter": "^1.55.1",
+    "@vscode/debugadapter": "^1.58.0",
     "await-notify": "1.0.1",
-    "portfinder": "^1.0.28"
+    "portfinder": "^1.0.32"
   },
   "devDependencies": {
-    "@types/glob": "^7.2.0",
-    "@types/mocha": "^9.1.0",
-    "@types/node": "^17.0.23",
-    "@types/vscode": "^1.66.0",
-    "@typescript-eslint/eslint-plugin": "^5.18.0",
-    "@typescript-eslint/parser": "^5.18.0",
-    "@vscode/debugprotocol": "^1.55.1",
-    "eslint": "^8.12.0",
-    "glob": "^7.2.0",
-    "mocha": "^9.2.2",
-    "portfinder": "^1.0.28",
-    "ts-loader": "^9.2.8",
-    "typescript": "^4.6.3",
-    "vsce": "^2.7.0",
-    "webpack": "^5.72.0",
-    "webpack-cli": "^4.9.2"
+    "@types/glob": "^8.0.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^18.11.15",
+    "@types/vscode": "^1.74.0",
+    "@typescript-eslint/eslint-plugin": "^5.46.1",
+    "@typescript-eslint/parser": "^5.46.1",
+    "@vscode/debugprotocol": "^1.58.0",
+    "eslint": "^8.29.0",
+    "glob": "^8.0.3",
+    "mocha": "^10.2.0",
+    "portfinder": "^1.0.32",
+    "ts-loader": "^9.4.2",
+    "typescript": "^4.9.4",
+    "vsce": "^2.15.0",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
   },
   "main": "./dist/ext/extension.js",
   "browser": "./dist/web/extension.js",
@@ -97,20 +97,23 @@
             "properties": {
               "server": {
                 "type": "string",
-                "description": "Optionally onnect to an existing `probe-rs-debugger` session on IP and Port, e.g. '127.0.0.1:50000'",
+                "description": "Optionally connect to an existing `probe-rs-debugger` session on IP and Port, e.g. '127.0.0.1:50000'",
                 "default": "127.0.0.1:50000"
               },
               "consoleLogLevel": {
                 "type": "string",
-                "description": "The level of log info printed to the console. This also sets the RUST_LOG environment variable wherever possible.",
+                "description": "The level of log info printed to the console. This does NOT affect the RUST_LOG defined in the `env` property.",
                 "enum": [
-                  "Error",
-                  "Warn",
+                  "Console",
                   "Info",
-                  "Debug",
-                  "Trace"
+                  "Debug"
                 ],
-                "default": "Error"
+                "enumDescriptions": [
+                  "The console will only contain error messages and process status messages.",
+                  "The console log will also contain high level information about interactions between the extension and the debug adapter.",
+                  "The console log will also contain detailed information about interactions between the extension and the debug adapter."
+                ],
+                "default": "Console"
               },
               "runtimeExecutable": {
                 "type": "string",
@@ -127,6 +130,14 @@
                   "debug",
                   "--dap"
                 ]
+              },
+              "env": {
+                "additionalProperties": {
+                    "type": "string"
+                },
+                "default": {},
+                "description": "Environment variables defined as a key value pair. The 'key' is the name of the environment variable, and the 'value' is value of the environment variable.",
+                "type": "object"
               },
               "cwd": {
                 "type": "string",
@@ -156,6 +167,10 @@
                 "enum": [
                   "Swd",
                   "Jtag"
+                ],
+                "enumDescriptions": [
+                  "Use the Serial Wire Debug (SWD) protocol.",
+                  "Use the Joint Test Action Group (JTAG) protocol."
                 ]
               },
               "allowEraseAll": {
@@ -270,15 +285,18 @@
               },
               "consoleLogLevel": {
                 "type": "string",
-                "description": "The level of log info printed to the console. This also sets the RUST_LOG environment variable wherever possible.",
+                "description": "The level of log info printed to the console. This does NOT affect the RUST_LOG defined in the `env` property.",
                 "enum": [
-                  "Error",
-                  "Warn",
+                  "Console",
                   "Info",
-                  "Debug",
-                  "Trace"
+                  "Debug"
                 ],
-                "default": "Error"
+                "enumDescriptions": [
+                  "The console will only contain error messages and process status messages.",
+                  "The console log will also contain high level information about interactions between the extension and the debug adapter.",
+                  "The console log will also contain detailed information about interactions between the extension and the debug adapter."
+                ],
+                "default": "Console"
               },
               "runtimeExecutable": {
                 "type": "string",
@@ -295,6 +313,14 @@
                   "debug",
                   "--dap"
                 ]
+              },
+              "env": {
+                "additionalProperties": {
+                    "type": "string"
+                },
+                "default": {},
+                "description": "Environment variables defined as a key value pair. The 'key' is the name of the environment variable, and the 'value' is value of the environment variable.",
+                "type": "object"
               },
               "cwd": {
                 "type": "string",
@@ -324,6 +350,10 @@
                 "enum": [
                   "Swd",
                   "Jtag"
+                ],
+                "enumDescriptions": [
+                  "Use the Serial Wire Debug (SWD) protocol.",
+                  "Use the Joint Test Action Group (JTAG) protocol."
                 ]
               },
               "allowEraseAll": {
@@ -456,7 +486,7 @@
               "request": "launch",
               "name": "probe-rs Test",
               "cwd": "${workspaceFolder}",
-              "connectUnderReset": true,
+              "connectUnderReset": false,
               "chip": "STM32H745ZITx",
               "flashingConfig": {
                 "flashingEnabled": true,
