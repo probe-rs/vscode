@@ -1,0 +1,12 @@
+# This file is used to ignore certain commits (e.g. reformatting) in git blame.
+#
+# To use it, invoke `git blame` like this:
+#
+#     git blame --ignore-revs-file .git-blame-ignore-revs
+#
+# Alternatively, make this the default:
+#
+#     git config [--global] blame.ignoreRevsFile .git-blame-ignore-revs
+
+# 2022-12-31: Reformat code with prettier
+fcc2ef44edfc1cc2bc10ade2522e7baf942ae090
