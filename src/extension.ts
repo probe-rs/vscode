@@ -5,6 +5,7 @@
 'use strict';
 
 import * as child_process from 'child_process';
+import getPort from 'get-port';
 import * as os from 'os';
 import * as vscode from 'vscode';
 import {DebugAdapterTracker, DebugAdapterTrackerFactory} from 'vscode';
@@ -308,9 +309,8 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             debuggerStatus = DebuggerStatus.running; // If this is not true as expected, then the user will be notified later.
         } else {
             // Find and use the first available port and spawn a new probe-rs-debugger process
-            var portfinder = require('portfinder');
             try {
-                var port: number = await portfinder.getPortPromise();
+                var port: number = await getPort();
                 debugServer = `127.0.0.1:${port}`.split(':', 2);
             } catch (err: any) {
                 logToConsole(`${ConsoleLogSources.error}: ${JSON.stringify(err.message, null, 2)}`);
@@ -366,14 +366,9 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             );
             var launchedDebugAdapter = child_process.spawn(command, args, options);
 
-            // Capture stdout and stderr to ensure OS and RUST_LOG error messages can be brought to the user's attention.
-            var debuggerReadySignature = `${ConsoleLogSources.console.toLowerCase()}: Listening for requests on port ${
-                debugServer[1]
-            }`;
+            // Capture stderr to ensure OS and RUST_LOG error messages can be brought to the user's attention.
             launchedDebugAdapter.stderr?.on('data', (data: string) => {
-                if (data.includes(debuggerReadySignature)) {
-                    debuggerStatus = DebuggerStatus.running;
-                } else if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
+                if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
                     logToConsole(data, true);
                 } else {
                     vscode.window.showErrorMessage(data);
@@ -399,7 +394,31 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             while (debuggerStatus === DebuggerStatus.starting) {
                 await new Promise<void>((resolve) => setTimeout(resolve, msRetrySleep));
                 if (numRetries > 0) {
-                    numRetries--;
+                    // Test to confirm probe-rs-debugger is ready to accept requests on the specified port.
+                    try {
+                        var testPort: number = await getPort({
+                            port: +debugServer[1],
+                        });
+                        if (testPort === +debugServer[1]) {
+                            // Port is available, so probe-rs-debugger is not yet initialized.
+                            numRetries--;
+                        } else {
+                            // Port is not available, so probe-rs-debugger is initialized.
+                            debuggerStatus = DebuggerStatus.running;
+                        }
+                    } catch (err: any) {
+                        logToConsole(
+                            `${ConsoleLogSources.error}: ${JSON.stringify(err.message, null, 2)}`,
+                        );
+                        vscode.window.showErrorMessage(
+                            `Testing probe-rs-debugger port availability failed with: ${JSON.stringify(
+                                err.message,
+                                null,
+                                2,
+                            )}`,
+                        );
+                        return undefined;
+                    }
                 } else {
                     debuggerStatus = DebuggerStatus.failed;
                     logToConsole(

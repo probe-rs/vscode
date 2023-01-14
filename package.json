@@ -1,7 +1,7 @@
 {
     "name": "probe-rs-debugger",
     "displayName": "Debugger for probe-rs",
-    "version": "0.4.1",
+    "version": "0.4.2",
     "publisher": "probe-rs",
     "description": "probe-rs Debug Adapter for VS Code.",
     "author": {
@@ -47,20 +47,20 @@
     "dependencies": {
         "@vscode/debugadapter": "^1.58.0",
         "await-notify": "1.0.1",
-        "portfinder": "^1.0.32"
+        "get-port": "^6.1.2"
     },
     "devDependencies": {
         "@types/glob": "^8.0.0",
         "@types/mocha": "^10.0.1",
-        "@types/node": "^18.11.15",
+        "@types/node": "^18.11.18",
         "@types/vscode": "^1.74.0",
-        "@typescript-eslint/eslint-plugin": "^5.46.1",
-        "@typescript-eslint/parser": "^5.46.1",
+        "@typescript-eslint/eslint-plugin": "^5.48.1",
+        "@typescript-eslint/parser": "^5.48.1",
         "@vscode/debugprotocol": "^1.58.0",
-        "eslint": "^8.29.0",
+        "eslint": "^8.31.0",
+        "get-port": "^6.1.2",
         "glob": "^8.0.3",
         "mocha": "^10.2.0",
-        "portfinder": "^1.0.32",
         "prettier": "^2.8.1",
         "ts-loader": "^9.4.2",
         "typescript": "^4.9.4",
