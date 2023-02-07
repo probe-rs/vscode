@@ -5,6 +5,7 @@
 'use strict';
 
 import * as child_process from 'child_process';
+import {existsSync} from 'fs';
 import getPort from 'get-port';
 import * as os from 'os';
 import * as vscode from 'vscode';
@@ -308,6 +309,28 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             );
             debuggerStatus = DebuggerStatus.running; // If this is not true as expected, then the user will be notified later.
         } else {
+            // Validate that the `cwd` folder exists.
+            if (session.configuration.hasOwnProperty('cwd')) {
+                if (!existsSync(session.configuration.cwd)) {
+                    logToConsole(
+                        `${
+                            ConsoleLogSources.error
+                        }: ${ConsoleLogSources.console.toLowerCase()}: The 'cwd' folder does not exist: ${JSON.stringify(
+                            session.configuration.cwd,
+                            null,
+                            2,
+                        )}`,
+                    );
+                    vscode.window.showErrorMessage(
+                        `The 'cwd' folder does not exist: ${JSON.stringify(
+                            session.configuration.cwd,
+                            null,
+                            2,
+                        )}`,
+                    );
+                    return undefined;
+                }
+            }
             // Find and use the first available port and spawn a new probe-rs-debugger process
             try {
                 var port: number = await getPort();
