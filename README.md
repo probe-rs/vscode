@@ -62,13 +62,9 @@ Afterwards, follow the following steps:
   * Select the debug environment `probe_rs Server Test`.
   * Press `F5` to start debugging.
 
-## Generating and releasing the extension
+## Releasing the extension
 
-Because the extension is still regarded as being in 'Alpha' state, it is NOT
-being released on the Microsoft Visual Studio Code Extension Marketplace. The
-only way to get access to updated versions of the extension is to build it
-yourself, or to download it from the [GitHub release page](#development-setup)
-for this extension.
+The extension is released as part of the CI process on GitHub Actions.
 
 ### Build the extension
 
@@ -82,12 +78,3 @@ Building the extension refers to the process that generates the installable
       yarn probe-rs:package
 
 * This will generate a .vsix file in the root of the repository
-
-### Updating the GitHub release page
-
-* Whenever any PR has been merged, you need to create a new release and upload
-  the `.vsix` in the repository's [release
-  page](https://github.com/probe-rs/vscode/releases).
-* This means that every PR needs to update the version number appropriately in
-  the `package.json` file. Please [see the Semantic Versioning
-  guidelines](https://semver.org/).

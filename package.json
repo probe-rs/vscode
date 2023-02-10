@@ -1,7 +1,7 @@
 {
     "name": "probe-rs-debugger",
     "displayName": "Debugger for probe-rs",
-    "version": "0.4.3",
+    "version": "1.0.0",
     "publisher": "probe-rs",
     "description": "probe-rs Debug Adapter for VS Code.",
     "author": {
@@ -32,12 +32,12 @@
         "probe-rs:Update Dev Dependencies": "yarn upgrade --latest",
         "probe-rs:package": "vsce package",
         "vscode:prepublish": "yarn run package-ext && yarn run package-web",
+        "publish": "vsce publish",
         "compile": "tsc -p ./",
         "lint": "eslint src --ext ts",
         "watch": "webpack --watch --devtool nosources-source-map  --config ./build/extension.webpack.config.js",
         "watch2": "tsc -watch -p ./",
         "pretest": "yarn run compile && yarn run lint && prettier --check .",
-        "publish": "vsce publish",
         "package-ext": "webpack --mode production --config ./build/extension.webpack.config.js",
         "compile-web": "webpack --devtool nosources-source-map --config ./build/web-extension.webpack.config.js",
         "watch-web": "webpack --watch --devtool nosources-source-map  --config ./build/web-extension.webpack.config.js",
