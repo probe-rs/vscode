@@ -385,7 +385,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             logToConsole(
                 `${ConsoleLogSources.console.toLowerCase()}: Launching new server ${JSON.stringify(
                     command,
-                )} ${JSON.stringify(args)}}`,
+                )} ${JSON.stringify(args)}} ${JSON.stringify(options)}`,
             );
 
             try {
