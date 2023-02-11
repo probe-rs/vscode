@@ -387,7 +387,21 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                     command,
                 )} ${JSON.stringify(args)} ${JSON.stringify(options)}`,
             );
-            var launchedDebugAdapter = child_process.spawn(command, args, options);
+
+            try {
+                var launchedDebugAdapter = await startDebugServer(command, args, options);
+            } catch (error: any) {
+                logToConsole(`Failed to launch debug adapter: ${JSON.stringify(error)}`);
+
+                var errorMessage = error;
+
+                // Nicer error message when the executable could not be found.
+                if ('code' in error && error.code === 'ENOENT') {
+                    errorMessage = `Executable '${command}' was not found.`;
+                }
+
+                return Promise.reject(`Failed to launch probe-rs debug adapter: ${errorMessage}`);
+            }
 
             // Capture stderr to ensure OS and RUST_LOG error messages can be brought to the user's attention.
             launchedDebugAdapter.stderr?.on('data', (data: string) => {
@@ -411,6 +425,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                     launchedDebugAdapter.kill();
                 }
             });
+
             // Wait to make sure probe-rs-debugger startup completed, and is ready to accept connections.
             var msRetrySleep = 250;
             var numRetries = 5000 / msRetrySleep;
@@ -472,6 +487,29 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             `${ConsoleLogSources.console.toLowerCase()}: Closing probe-rs debug extension`,
         );
     }
+}
+
+function startDebugServer(
+    command: string,
+    args: readonly string[],
+    options: child_process.SpawnOptionsWithoutStdio,
+): Promise<child_process.ChildProcessWithoutNullStreams> {
+    var launchedDebugAdapter = child_process.spawn(command, args, options);
+
+    return new Promise<child_process.ChildProcessWithoutNullStreams>((resolve, reject) => {
+        function errorListener(error) {
+            reject(error);
+        }
+
+        launchedDebugAdapter.on('spawn', () => {
+            // The error listenere here is only used for failed spawn,
+            // so has to be removed afterwards.
+            launchedDebugAdapter.removeListener('error', errorListener);
+
+            resolve(launchedDebugAdapter);
+        });
+        launchedDebugAdapter.on('error', errorListener);
+    });
 }
 
 // @ts-ignore
