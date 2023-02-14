@@ -16,9 +16,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: 14.x
-      - run: yarn install
-      - run: xvfb-run -a yarn pretest
-        if: runner.os == 'Linux'
-      - run: yarn pretest
-        if: runner.os != 'Linux'
+          node-version: ['^16']
+      - run: yarn install  --frozen-lockfile
+      - run: yarn vscode:prepublish
+      - run: yarn probe-rs:package
