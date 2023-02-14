@@ -1,25 +1,24 @@
 {
     "name": "probe-rs-debugger",
     "displayName": "Debugger for probe-rs",
-    "version": "1.0.0",
+    "version": "1.0.4",
     "publisher": "probe-rs",
     "description": "probe-rs Debug Adapter for VS Code.",
     "author": {
         "name": "Jack Noppé",
         "email": "noppej@hotmail.com"
     },
-    "license": "MIT, Apache-2.0",
+    "license": "MIT OR Apache-2.0",
     "keywords": [
         "probe-rs rust embedded debug cortex cortex-m cortex-a riscv risc-v RTT SVD unwind disassemble"
     ],
     "engines": {
-        "vscode": "^1.75.1"
+        "vscode": ">=1.75.1"
     },
     "icon": "images/probe-rs-debugger.png",
     "categories": [
         "Debuggers"
     ],
-    "private": true,
     "sponsor": {
         "url": "https://github.com/sponsors/probe-rs"
     },
@@ -34,9 +33,9 @@
     "scripts": {
         "probe-rs: getDebugProtocolLatest": "curl -LJs https://microsoft.github.io/debug-adapter-protocol/debugAdapterProtocol.json -o dap/debugProtocol.json",
         "probe-rs:Update Dev Dependencies": "yarn upgrade --latest",
-        "probe-rs:package": "vsce package",
-        "vscode:prepublish": "yarn run package-ext && yarn run package-web",
-        "publish": "vsce publish",
+        "probe-rs:package": "vsce package --yarn",
+        "probe-rs:prepublish": "yarn run package-ext",
+        "probe-rs:publish": "vsce publish --yarn",
         "login": "vsce login probe-rs",
         "compile": "tsc -p ./",
         "lint": "eslint src --ext ts",
@@ -48,7 +47,6 @@
         "watch-web": "webpack --watch --devtool nosources-source-map  --config ./build/web-extension.webpack.config.js",
         "package-web": "webpack --mode production --config ./build/web-extension.webpack.config.js"
     },
-    "enabledApiProposals": [],
     "dependencies": {
         "@vscode/debugadapter": "^1.58.0",
         "await-notify": "1.0.1",
@@ -85,6 +83,15 @@
         "breakpoints": [
             {
                 "language": "rust"
+            },
+            {
+                "language": "c"
+            },
+            {
+                "language": "cpp"
+            },
+            {
+                "language": "asm"
             }
         ],
         "debuggers": [

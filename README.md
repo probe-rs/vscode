@@ -7,7 +7,7 @@ can be found at [the probe-rs webpage](https://probe.rs/docs/tools/vscode/) and
 under the [visual tour
 heading](https://probe.rs/docs/tools/vscode/#a-visual-guide-of-implemented-features)
 
-![<img src="images/probe-rs-debugger.gif" style="margin-top: 1em; margin-bottom: 1em; max-width:100%; max-height:100%; width: auto; height: auto;"  />](https://probe.rs/img/vscode/intro_and_rtt.gif)
+![<img style="margin-top: 1em; margin-bottom: 1em; max-width:100%; max-height:100%; width: auto; height: auto;"  />](https://probe.rs/img/vscode/intro_and_rtt.gif)
 
 ## Development Setup
 
@@ -78,3 +78,9 @@ Building the extension refers to the process that generates the installable
       yarn probe-rs:package
 
 * This will generate a .vsix file in the root of the repository
+
+## Contributing
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall
+be dual licensed as above, without any additional terms or conditions.
