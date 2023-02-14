@@ -7,7 +7,7 @@ can be found at [the probe-rs webpage](https://probe.rs/docs/tools/vscode/) and
 under the [visual tour
 heading](https://probe.rs/docs/tools/vscode/#a-visual-guide-of-implemented-features)
 
-![<img src="images/probe-rs-debugger.gif" style="margin-top: 1em; margin-bottom: 1em; max-width:100%; max-height:100%; width: auto; height: auto;"  />](images/probe-rs-debugger.gif)
+![<img src="images/probe-rs-debugger.gif" style="margin-top: 1em; margin-bottom: 1em; max-width:100%; max-height:100%; width: auto; height: auto;"  />](https://probe.rs/img/vscode/intro_and_rtt.gif)
 
 ## Development Setup
 

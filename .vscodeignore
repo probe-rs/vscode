@@ -1,7 +1,5 @@
 .vscode/**/*
 .gitignore
-.travis.yml
-appveyor.yml
 src/**/*
 out/tests/**/*
 **/*.js.map
@@ -9,4 +7,4 @@ build
 node_modules
 tsconfig.json
 out
-debug_example/target
+*.vsix

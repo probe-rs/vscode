@@ -13,13 +13,17 @@
         "probe-rs rust embedded debug cortex cortex-m cortex-a riscv risc-v RTT SVD unwind disassemble"
     ],
     "engines": {
-        "vscode": "^1.74.1"
+        "vscode": "^1.75.1"
     },
     "icon": "images/probe-rs-debugger.png",
     "categories": [
         "Debuggers"
     ],
     "private": true,
+    "sponsor": {
+        "url": "https://github.com/sponsors/probe-rs"
+    },
+    "homepage": "https://probe.rs/",
     "repository": {
         "type": "git",
         "url": "https://github.com/probe-rs/vscode.git"
