@@ -14,14 +14,10 @@ heading](https://probe.rs/docs/tools/vscode/#a-visual-guide-of-implemented-featu
 To work on this extensions, you first need to install VS Code and nodejs.
 Afterwards, follow the following steps:
 
-* Install yarn:
-
-      npm install -g yarn
-
 * Checkout this repository
 * Inside the repository, install the prerequisites:
 
-      yarn
+      npm install
 
 * Install the extensions VS Code recommends. If you prefer to do this manually,
   you can find the list of recommended extensions in the repository's
@@ -75,7 +71,7 @@ Building the extension refers to the process that generates the installable
   environment](#development-setup).
 * In a terminal window, execute the following command:
 
-      yarn probe-rs:package
+      npm run package
 
 * This will generate a .vsix file in the root of the repository
 
