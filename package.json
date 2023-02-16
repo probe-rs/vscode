@@ -8,7 +8,7 @@
         "name": "Jack Noppé",
         "email": "noppej@hotmail.com"
     },
-    "license": "MIT OR Apache-2.0",
+    "license": "(MIT OR Apache-2.0)",
     "pricing": "Free",
     "keywords": [
         "probe-rs rust embedded debug cortex cortex-m cortex-a riscv risc-v RTT SVD unwind disassemble"
