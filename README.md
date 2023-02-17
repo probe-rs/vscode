@@ -2,12 +2,12 @@
 
 ## Documentation
 
-Full documentation on Installation, Configuration and supported functionality
+Full documentation on [Installation](https://probe.rs/docs/tools/vscode/#installation), Configuration and supported functionality
 can be found at [the probe-rs webpage](https://probe.rs/docs/tools/vscode/) and
 under the [visual tour
 heading](https://probe.rs/docs/tools/vscode/#a-visual-guide-of-implemented-features)
 
-![<img style="margin-top: 1em; margin-bottom: 1em; max-width:100%; max-height:100%; width: auto; height: auto;"  />](https://probe.rs/img/vscode/intro_and_rtt.gif)
+<img style="margin-top: 1em; margin-bottom: 1em; max-width:100%; max-height:100%; width: auto; height: auto;" src="https://probe.rs/img/vscode/probe-rs-debugger.gif" />
 
 ## Development Setup
 
