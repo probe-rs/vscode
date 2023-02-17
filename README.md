@@ -9,7 +9,7 @@ heading](https://probe.rs/docs/tools/vscode/#a-visual-guide-of-implemented-featu
 
 <img style="margin-top: 1em; margin-bottom: 1em; max-width:100%; max-height:100%; width: auto; height: auto;" src="https://probe.rs/img/vscode/probe-rs-debugger.gif" />
 
-## Development Setup
+## Development Setup - only applies if you want to contribute to the extension
 
 To work on this extensions, you first need to install VS Code and nodejs.
 Afterwards, follow the following steps:
