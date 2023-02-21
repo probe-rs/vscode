@@ -9,26 +9,26 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": "$tsc-watch"
+            "problemMatcher": "$esbuild"
         },
         {
             "type": "npm",
             "script": "watch",
             "group": "build",
             "isBackground": true,
-            "problemMatcher": ["$ts-webpack-watch", "$tslint-webpack-watch"]
+            "problemMatcher": ["$esbuild-watch"]
         },
         {
             "type": "npm",
             "script": "compile-web",
-            "problemMatcher": ["$ts-webpack", "$tslint-webpack"]
+            "problemMatcher": ["$esbuild-watch"]
         },
         {
             "type": "npm",
             "script": "watch-web",
             "group": "build",
             "isBackground": true,
-            "problemMatcher": ["$ts-webpack-watch", "$tslint-webpack-watch"]
+            "problemMatcher": ["$ts-webpack-watch"]
         }
     ]
 }
