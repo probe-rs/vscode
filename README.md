@@ -2,7 +2,7 @@
 
 ## Documentation
 
-Full documentation on [Installation](https://probe.rs/docs/tools/vscode/#installation), Configuration and supported functionality
+Full documentation on [Installation](https://probe.rs/docs/tools/vscode/#installation), [Configuration](https://probe.rs/docs/tools/vscode/#usage-and-configuration) and [supported functionality](https://probe.rs/docs/tools/vscode/#current-working-functionality-and-known-limitations)
 can be found at [the probe-rs webpage](https://probe.rs/docs/tools/vscode/) and
 under the [visual tour
 heading](https://probe.rs/docs/tools/vscode/#a-visual-guide-of-implemented-features)

@@ -12,7 +12,8 @@ on:
 jobs:
   publish:
     name: Publish the VS Code Extension
-    if: success() && startsWith(github.ref, 'refs/tags/') && matrix.os == 'ubuntu-latest'
+    runs-on: ubuntu-latest
+    if: success() && startsWith(github.ref, 'refs/tags/') && runner.name == 'ubuntu-latest'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
