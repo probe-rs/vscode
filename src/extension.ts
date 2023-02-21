@@ -366,13 +366,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                 if (session.configuration.hasOwnProperty('runtimeExecutable')) {
                     command = session.configuration.runtimeExecutable;
                 } else {
-                    switch (os.platform()) {
-                        case 'win32':
-                            command = 'probe-rs-debugger.exe';
-                            break;
-                        default:
-                            command = 'probe-rs-debugger';
-                    }
+                    command = debuggerExecutablePath();
                 }
             } else {
                 command = executable.command;
@@ -510,6 +504,27 @@ function startDebugServer(
         });
         launchedDebugAdapter.on('error', errorListener);
     });
+}
+
+// Get the name of the debugger executable
+//
+// This takes the value from configuration, if set, or
+// falls back to the default name.
+function debuggerExecutablePath(): string {
+    let configuration = vscode.workspace.getConfiguration('probe-rs-debugger');
+
+    let configuredPath: string = configuration.get('debuggerExecutable') ?? defaultExecutable();
+
+    return configuredPath;
+}
+
+function defaultExecutable(): string {
+    switch (os.platform()) {
+        case 'win32':
+            return 'probe-rs-debugger.exe';
+        default:
+            return 'probe-rs-debugger';
+    }
 }
 
 // @ts-ignore
