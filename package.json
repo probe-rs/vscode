@@ -1,14 +1,13 @@
 {
     "name": "probe-rs-debugger",
     "displayName": "Debugger for probe-rs",
-    "version": "0.17.1",
+    "version": "0.17.2",
     "publisher": "probe-rs",
     "description": "probe-rs Debug Adapter for VS Code.",
     "author": {
         "name": "Jack Noppé",
         "email": "noppej@hotmail.com"
     },
-    "readme": "README_publish.md",
     "license": "(MIT OR Apache-2.0)",
     "pricing": "Free",
     "keywords": [
