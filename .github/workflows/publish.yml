@@ -16,7 +16,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    if: success() && startsWith(github.ref, 'refs/tags/') && matrix.os == 'ubuntu-latest'
+    if: success() && startsWith(github.ref, 'refs/tags/') && ${{ matrix.os }} == 'ubuntu-latest'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
