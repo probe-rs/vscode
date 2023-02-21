@@ -17,8 +17,8 @@
         "embedded",
         "debug",
         "Arm",
-        "Arm Cortex-M",
-        "Arm Cortex-A",
+        "ARM Cortex-M",
+        "ARM Cortex-A",
         "Riscv-v",
         "RTT",
         "SVD"
