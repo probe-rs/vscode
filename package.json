@@ -11,14 +11,14 @@
     "license": "(MIT OR Apache-2.0)",
     "pricing": "Free",
     "keywords": [
-        "probe-rs", 
-        "rust", 
-        "embedded", 
-        "debug", 
-        "Arm", 
-        "Riscv-v", 
+        "probe-rs",
+        "rust",
+        "embedded",
+        "debug",
+        "Arm",
+        "Riscv-v",
         "RTT",
-        "SVD" 
+        "SVD"
     ],
     "engines": {
         "vscode": ">=1.75.1"
