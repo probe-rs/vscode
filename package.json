@@ -10,7 +10,19 @@
     },
     "license": "MIT",
     "keywords": [
-        "probe-rs rust embedded debug cortex cortex-m cortex-a riscv risc-v RTT SVD unwind disassemble"
+        "probe-rs", 
+        "rust", 
+        "embedded", 
+        "debug", 
+        "cortex", 
+        "cortex-m", 
+        "cortex-a", 
+        "riscv", 
+        "risc-v", 
+        "RTT", 
+        "SVD", 
+        "unwind", 
+        "disassemble"
     ],
     "engines": {
         "vscode": "^1.74.1"
