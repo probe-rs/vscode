@@ -33,13 +33,13 @@ Afterwards, follow the following steps:
 
 ### To run against a compiled executable of `probe-rs-debugger`
 
-* Modify the `debug-example` entry in '.vscode/launch.json' file to point to
-  your target project.
 * Press `F5` to __build and launch executable__ `probe-rs-debugger`. VSCode will
-  open another VS Code window. In that window,
-  * You will see the `debug-example` project you just configured.
-* Select the debug environment `probe_rs Executable Test`.* Press `F5` to start
-  debugging.
+  open another VS Code window, titled __[Extension Development Host]__.
+* In this new VSCode window,
+  * Open an existing project, or create a new one.
+  * In your project, configure the `launch.json` in your project, as per [the minimum configuration](https://probe.rs/docs/tools/vscode/#start-a-debug-session-with-minimum-configuration) example.
+  * Select the debug environment you just created.
+    * Press `F5` to start debugging.
 
 ### To run against a debuggable instance of `probe-rs-debugger`
 
@@ -49,18 +49,18 @@ Afterwards, follow the following steps:
     probe-rs-debugger`
   * Press `F5` to start `probe-rs-debugger` as a debuggable server.
 * Switch to the VSCode instance of the probe-rs `vscode` repository.
-  * Modify the `debug-example` entry in '.vscode/launch.json' file to point to
-    your target project.
-  * Press `F5` to __build and attach to the debuggable server instance of__
-    `probe-rs-debugger`. VSCode will open another VS Code window. In that
-    window:
-  * You will see the `debug-example` project you just configured.
-  * Select the debug environment `probe_rs Server Test`.
-  * Press `F5` to start debugging.
+* In this new VSCode window,
+  * Open an existing project, or create a new one.
+  * In your project, configure the `launch.json` in your project, as per [the existing debugger server](https://probe.rs/docs/tools/vscode/#using-to-an-existing-probe-rs-debugger-server) example.
+  * Select the debug environment you just created.
+    * Press `F5` to start debugging.
 
 ## Releasing the extension
 
-The extension is released as part of the CI process on GitHub Actions.
+The extension can only be released as part of the CI process on GitHub Actions.
+- The CI process will automatically build the extension and publish it to the
+  [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=probe-rs.probe-rs-debugger)
+  when the project maintainers create a new release on GitHub.
 
 ### Build the extension
 
@@ -79,4 +79,8 @@ Building the extension refers to the process that generates the installable
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall
-be dual licensed as above, without any additional terms or conditions.
+be dual licensed, without any additional terms or conditions, according to:
+ * Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or
+   http://www.apache.org/licenses/LICENSE-2.0)
+ * MIT license ([LICENSE-MIT](LICENSE-MIT) or
+   http://opensource.org/licenses/MIT) at your option.
