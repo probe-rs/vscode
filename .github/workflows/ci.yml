@@ -1,3 +1,4 @@
+name: Validate PR on push
 on:
   push:
     branches: [master, staging, trying]
@@ -12,13 +13,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: 14.x
-      - run: yarn install
-      - run: xvfb-run -a yarn pretest
-        if: runner.os == 'Linux'
-      - run: yarn pretest
-        if: runner.os != 'Linux'
+          node-version: '18'
+      - run: npm install  --frozen-lockfile
+      - run: npm run pretest
