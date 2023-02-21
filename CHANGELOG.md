@@ -1,5 +1,5 @@
 ## 1.0.0 The first stable release of the extension. 
-- The majority of functionality to support this functionality is implemented in the [probe-rs-debugger](https://github.com/probe-rs/probe-rs/tree/master/debugger).
+- The majority of the functionality is implemented in the [probe-rs-debugger](https://github.com/probe-rs/probe-rs/tree/master/debugger).
 - Please refer to the [probe-rs CHANGELOG](https://github.com/probe-rs/probe-rs/blob/master/CHANGELOG.md) for detailed information on changes that affect functionality in this extension.
 - 
 
