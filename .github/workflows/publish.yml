@@ -2,6 +2,9 @@
 # Based on: https://code.visualstudio.com/api/working-with-extensions/continuous-integration#github-actions
 # It packages and publishes the extension to the VSCode marketplace.
 
+# The publish will only have an effect if the version number was bumped in the `package.json`,
+# else it will complete this job, and silently fail to publish an update on the marketplace.
+
 name: Publish the VS Code Extension
 on:
   pull_request:
