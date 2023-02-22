@@ -4,19 +4,14 @@
 
 name: Publish the VS Code Extension
 on:
-  push:
-    branches: [master]
-  release:
-    types: closed
-
+  pull_request:
+    types:
+      - closed
 jobs:
-  publish:
+  if_merged:
     name: Publish the VS Code Extension
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
-    if: success() && startsWith(github.ref, 'refs/tags/')
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
