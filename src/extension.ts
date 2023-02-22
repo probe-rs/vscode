@@ -513,7 +513,7 @@ function startDebugServer(
 function debuggerExecutablePath(): string {
     let configuration = vscode.workspace.getConfiguration('probe-rs-debugger');
 
-    let configuredPath: string = configuration.get('debuggerExecutable') ?? defaultExecutable();
+    let configuredPath: string = configuration.get('debuggerExecutable') || defaultExecutable();
 
     return configuredPath;
 }
