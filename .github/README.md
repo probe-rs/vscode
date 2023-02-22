@@ -55,13 +55,6 @@ Afterwards, follow the following steps:
   * Select the debug environment you just created.
     * Press `F5` to start debugging.
 
-## Releasing the extension
-
-The extension can only be released as part of the CI process on GitHub Actions.
-- The CI process will automatically build the extension and publish it to the
-  [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=probe-rs.probe-rs-debugger)
-  when the project maintainers create a new release on GitHub.
-
 ### Build the extension
 
 Building the extension refers to the process that generates the installable
@@ -74,6 +67,15 @@ Building the extension refers to the process that generates the installable
       npm run package
 
 * This will generate a .vsix file in the root of the repository
+
+### Releasing the extension
+
+- The extension can only be released as part of the CI process on GitHub Actions.
+- The CI process is defined in `.github/publish.yml`.
+- Whenever a PR is merged, The CI process will also automatically build the extension, and:
+  - If the version number was bumped in `package.json`, it will publish the
+    extension to the [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=probe-rs.probe-rs-debugger).
+  - If the version number was not bumped, no publishing will occur.
 
 ## Contributing
 

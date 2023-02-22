@@ -1,7 +1,7 @@
 {
     "name": "probe-rs-debugger",
     "displayName": "Debugger for probe-rs",
-    "version": "0.17.2",
+    "version": "0.17.3",
     "publisher": "probe-rs",
     "description": "probe-rs Debug Adapter for VS Code.",
     "author": {
@@ -48,7 +48,7 @@
         "probe-rs:Update Dev Dependencies": "npm update",
         "package": "vsce package --no-yarn",
         "vscode:prepublish": "rimraf dist && npm run -S build -- --minify",
-        "publish": "vsce publish --no-yarn",
+        "publish": "vsce publish --no-yarn --skip-duplicate",
         "un-publish": "vsce unpublish",
         "login": "vsce login probe-rs",
         "pretest": "npm run compile && npm run lint && npm run typecheck && prettier --check .",
