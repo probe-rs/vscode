@@ -1,4 +1,4 @@
-# VS Code probe-rs-debugger
+# VS Code probe-rs dap-server
 
 ## Documentation
 
@@ -31,9 +31,9 @@ Afterwards, follow the following steps:
   You can also open the "Run and Debug" panel in the left sidebar, and then
   start the "Extension" debug configuration.
 
-### To run against a compiled executable of `probe-rs-debugger`
+### To run against a compiled executable of `probe-rs`
 
-* Press `F5` to __build and launch executable__ `probe-rs-debugger`. VSCode will
+* Press `F5` to __build and launch executable__ `probe-rs`. VSCode will
   open another VS Code window, titled __[Extension Development Host]__.
 * In this new VSCode window,
   * Open an existing project, or create a new one.
@@ -41,17 +41,17 @@ Afterwards, follow the following steps:
   * Select the debug environment you just created.
     * Press `F5` to start debugging.
 
-### To run against a debuggable instance of `probe-rs-debugger`
+### To run against a debuggable instance of `probe-rs`
 
 * Clone the [probe-rs](https://github.com/probe-rs/probe-rs.git) repository, and
   open it in VSCode.
   * In this `probe-rs` repo, select the debug environment `DAP-Server
-    probe-rs-debugger`
-  * Press `F5` to start `probe-rs-debugger` as a debuggable server.
+    probe-rs`
+  * Press `F5` to start `probe-rs` as a debuggable server.
 * Switch to the VSCode instance of the probe-rs `vscode` repository.
 * In this new VSCode window,
   * Open an existing project, or create a new one.
-  * In your project, configure the `launch.json` in your project, as per [the existing debugger server](https://probe.rs/docs/tools/vscode/#using-to-an-existing-probe-rs-debugger-server) example.
+  * In your project, configure the `launch.json` in your project, as per [the standalong debugger server](https://probe.rs/docs/tools/vscode/#connecting-to-a-standalone-probe-rs-dap-server-server) example.
   * Select the debug environment you just created.
     * Press `F5` to start debugging.
 
