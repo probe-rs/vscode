@@ -331,7 +331,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                     return undefined;
                 }
             }
-            // Find and use the first available port and spawn a new probe-rs-debugger process
+            // Find and use the first available port and spawn a new probe-rs dap-server process
             try {
                 var port: number = await getPort();
                 debugServer = `127.0.0.1:${port}`.split(':', 2);
@@ -350,7 +350,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             if (session.configuration.hasOwnProperty('runtimeArgs')) {
                 args = session.configuration.runtimeArgs;
             } else {
-                args = ['debug'];
+                args = ['dap-server', 'debug'];
             }
             args.push('--port');
             args.push(debugServer[1]);
@@ -414,28 +414,28 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                 if (debuggerStatus !== (DebuggerStatus.failed as DebuggerStatus)) {
                     debuggerStatus = DebuggerStatus.failed;
                     vscode.window.showErrorMessage(
-                        `probe-rs-debugger process encountered an error: ${JSON.stringify(err)}`,
+                        `probe-rs dap-server process encountered an error: ${JSON.stringify(err)}`,
                     );
                     launchedDebugAdapter.kill();
                 }
             });
 
-            // Wait to make sure probe-rs-debugger startup completed, and is ready to accept connections.
+            // Wait to make sure probe-rs dap-server startup completed, and is ready to accept connections.
             var msRetrySleep = 250;
             var numRetries = 5000 / msRetrySleep;
             while (debuggerStatus === DebuggerStatus.starting) {
                 await new Promise<void>((resolve) => setTimeout(resolve, msRetrySleep));
                 if (numRetries > 0) {
-                    // Test to confirm probe-rs-debugger is ready to accept requests on the specified port.
+                    // Test to confirm probe-rs dap-server is ready to accept requests on the specified port.
                     try {
                         var testPort: number = await getPort({
                             port: +debugServer[1],
                         });
                         if (testPort === +debugServer[1]) {
-                            // Port is available, so probe-rs-debugger is not yet initialized.
+                            // Port is available, so probe-rs dap-server is not yet initialized.
                             numRetries--;
                         } else {
-                            // Port is not available, so probe-rs-debugger is initialized.
+                            // Port is not available, so probe-rs dap-server is initialized.
                             debuggerStatus = DebuggerStatus.running;
                         }
                     } catch (err: any) {
@@ -443,7 +443,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                             `${ConsoleLogSources.error}: ${JSON.stringify(err.message, null, 2)}`,
                         );
                         vscode.window.showErrorMessage(
-                            `Testing probe-rs-debugger port availability failed with: ${JSON.stringify(
+                            `Testing probe-rs dap-server port availability failed with: ${JSON.stringify(
                                 err.message,
                                 null,
                                 2,
@@ -454,17 +454,17 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                 } else {
                     debuggerStatus = DebuggerStatus.failed;
                     logToConsole(
-                        `${ConsoleLogSources.error}: Timeout waiting for probe-rs-debugger to launch`,
+                        `${ConsoleLogSources.error}: Timeout waiting for probe-rs dap-server to launch`,
                     );
                     vscode.window.showErrorMessage(
-                        'Timeout waiting for probe-rs-debugger to launch',
+                        'Timeout waiting for probe-rs dap-server to launch',
                     );
                     break;
                 }
             }
 
             if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
-                await new Promise<void>((resolve) => setTimeout(resolve, 500)); // Wait for a fraction of a second more, to allow TCP/IP port to initialize in probe-rs-debugger
+                await new Promise<void>((resolve) => setTimeout(resolve, 500)); // Wait for a fraction of a second more, to allow TCP/IP port to initialize in probe-rs dap-server
             }
         }
 
@@ -511,7 +511,7 @@ function startDebugServer(
 // This takes the value from configuration, if set, or
 // falls back to the default name.
 function debuggerExecutablePath(): string {
-    let configuration = vscode.workspace.getConfiguration('probe-rs-debugger');
+    let configuration = vscode.workspace.getConfiguration('probe-rs');
 
     let configuredPath: string = configuration.get('debuggerExecutable') || defaultExecutable();
 
@@ -521,9 +521,9 @@ function debuggerExecutablePath(): string {
 function defaultExecutable(): string {
     switch (os.platform()) {
         case 'win32':
-            return 'probe-rs-debugger.exe';
+            return 'probe-rs.exe';
         default:
-            return 'probe-rs-debugger';
+            return 'probe-rs';
     }
 }
 

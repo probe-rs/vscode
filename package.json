@@ -1,7 +1,7 @@
 {
     "name": "probe-rs-debugger",
     "displayName": "Debugger for probe-rs",
-    "version": "0.17.5",
+    "version": "0.18.0",
     "publisher": "probe-rs",
     "description": "probe-rs Debug Adapter for VS Code.",
     "author": {
