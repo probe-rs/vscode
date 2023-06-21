@@ -350,7 +350,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             if (session.configuration.hasOwnProperty('runtimeArgs')) {
                 args = session.configuration.runtimeArgs;
             } else {
-                args = ['dap-server', 'debug'];
+                args = ['dap-server'];
             }
             args.push('--port');
             args.push(debugServer[1]);

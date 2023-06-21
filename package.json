@@ -139,7 +139,7 @@
                             "runtimeExecutable": {
                                 "type": "string",
                                 "description": "An OS resolvable path to the Probe-rs debugger executable.",
-                                "default": "probe-rs-debugger"
+                                "default": "probe-rs"
                             },
                             "runtimeArgs": {
                                 "type": "array",
@@ -148,8 +148,7 @@
                                 },
                                 "description": "String array of arguments to provide the startup arguments for the Probe-rs debugger executable.",
                                 "default": [
-                                    "debug",
-                                    "--dap"
+                                    "dap-server"
                                 ]
                             },
                             "env": {
@@ -322,7 +321,7 @@
                             "runtimeExecutable": {
                                 "type": "string",
                                 "description": "An OS resolvable path to the Probe-rs debugger executable.",
-                                "default": "probe-rs-debugger"
+                                "default": "probe-rs"
                             },
                             "runtimeArgs": {
                                 "type": "array",
@@ -331,8 +330,7 @@
                                 },
                                 "description": "String array of arguments to provide the startup arguments for the Probe-rs debugger executable.",
                                 "default": [
-                                    "debug",
-                                    "--dap"
+                                    "dap-server"
                                 ]
                             },
                             "env": {
