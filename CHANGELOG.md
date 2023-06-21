@@ -1,5 +1,5 @@
-## 0.18.0 Support the new binary names for probe-rs 0.18.0
-- The probe-rs 0.18.0 release has changed the names of the binaries - [PR #1637](https://github.com/probe-rs/probe-rs/pull/1637). This release supports the new names. 
+## 0.19.0 Support the new binary names for probe-rs 0.19.0
+- The probe-rs 0.19.0 release has changed the names of the binaries - [PR #1637](https://github.com/probe-rs/probe-rs/pull/1637) and [PR #1643](https://github.com/probe-rs/probe-rs/pull/1643). This release supports the new names. 
 
 ## 0.17.0 The first stable release of the extension. 
 - The majority of the functionality is implemented in the [probe-rs-debugger](https://github.com/probe-rs/probe-rs/tree/master/debugger).
