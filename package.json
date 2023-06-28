@@ -206,11 +206,6 @@
                                     "description": "Flash the target before debugging.",
                                     "default": true
                                 },
-                                "resetAfterFlashing": {
-                                    "type": "boolean",
-                                    "description": "Reset all cores on the target after flashing.",
-                                    "default": true
-                                },
                                 "haltAfterReset": {
                                     "type": "boolean",
                                     "description": "Halt all cores on the target after reset.",
@@ -239,7 +234,7 @@
                                                 "idf"
                                             ],
                                             "enumDescriptions": [
-                                                "The target binary file contains the contents of the flash 1:1",
+                                                "The target binary file contains the contents of the flash 1:1.",
                                                 "The target binary file conforms with the [Intel HEX](https://en.wikipedia.org/wiki/Intel_HEX) format.",
                                                 "The target binary file conforms with the [ELF](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format) format.",
                                                 "The target binary file conforms with the [ESP-IDF bootloader](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/app_image_format.html#app-image-structures) format"
@@ -494,7 +489,6 @@
                         "chip": "STM32H745ZITx",
                         "flashingConfig": {
                             "flashingEnabled": true,
-                            "resetAfterFlashing": true,
                             "haltAfterReset": true
                         },
                         "coreConfigs": [
@@ -518,7 +512,6 @@
                             "chip": "STM32H745ZITx",
                             "flashingConfig": {
                                 "flashingEnabled": true,
-                                "resetAfterFlashing": true,
                                 "haltAfterReset": true
                             },
                             "coreConfigs": [
