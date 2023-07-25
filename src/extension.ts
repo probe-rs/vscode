@@ -50,7 +50,7 @@ var consoleLogLevel = ConsoleLogSources.console;
 // Common handler for error/exit codes
 function handleExit(code: number | null, signal: string | null) {
     var actionHint: string =
-        '\tPlease report this issue at https://github.com/probe-rs/probe-rs/issues/new';
+        '\tPlease review all the error messages, including those in the "Debug Console" window.';
     if (code) {
         vscode.window.showErrorMessage(
             `${
@@ -400,9 +400,17 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             // Capture stderr to ensure OS and RUST_LOG error messages can be brought to the user's attention.
             launchedDebugAdapter.stderr?.on('data', (data: string) => {
                 if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
-                    logToConsole(data, true);
+                    logToConsole(data.toString(), true);
                 } else {
-                    vscode.window.showErrorMessage(data);
+                    // Any STDERR messages during startup, or on process error, need special consideration, otherwise they will be lost.
+                    debuggerStatus = DebuggerStatus.failed;
+                    logToConsole(
+                        `${JSON.stringify(ConsoleLogSources.error)}: ${JSON.stringify(
+                            data.toString(),
+                        )} `,
+                        true,
+                    );
+                    launchedDebugAdapter.kill();
                 }
             });
             launchedDebugAdapter.on('close', (code: number | null, signal: string | null) => {
@@ -413,8 +421,13 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             launchedDebugAdapter.on('error', (err: Error) => {
                 if (debuggerStatus !== (DebuggerStatus.failed as DebuggerStatus)) {
                     debuggerStatus = DebuggerStatus.failed;
-                    vscode.window.showErrorMessage(
-                        `probe-rs dap-server process encountered an error: ${JSON.stringify(err)}`,
+                    logToConsole(
+                        `${JSON.stringify(
+                            ConsoleLogSources.error,
+                        )}: probe-rs dap-server process encountered an error: ${JSON.stringify(
+                            err,
+                        )} `,
+                        true,
                     );
                     launchedDebugAdapter.kill();
                 }
@@ -423,9 +436,9 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             // Wait to make sure probe-rs dap-server startup completed, and is ready to accept connections.
             var msRetrySleep = 250;
             var numRetries = 5000 / msRetrySleep;
-            while (debuggerStatus === DebuggerStatus.starting) {
+            while (debuggerStatus !== DebuggerStatus.running && numRetries > 0) {
                 await new Promise<void>((resolve) => setTimeout(resolve, msRetrySleep));
-                if (numRetries > 0) {
+                if (debuggerStatus === DebuggerStatus.starting) {
                     // Test to confirm probe-rs dap-server is ready to accept requests on the specified port.
                     try {
                         var testPort: number = await getPort({
@@ -451,6 +464,9 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                         );
                         return undefined;
                     }
+                } else if (debuggerStatus === DebuggerStatus.failed) {
+                    // We would have already reported this, so just get out of the loop.
+                    break;
                 } else {
                     debuggerStatus = DebuggerStatus.failed;
                     logToConsole(
@@ -468,12 +484,11 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             }
         }
 
-        // make VS Code connect to debug server
+        // make VS Code connect to debug server.
         if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
             return new vscode.DebugAdapterServer(+debugServer[1], debugServer[0]);
-        } else {
-            return undefined;
         }
+        // If we reach here, VSCode will report the failure to start the debug adapter.
     }
 
     dispose() {
