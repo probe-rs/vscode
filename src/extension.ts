@@ -399,10 +399,15 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 
             // Capture stderr to ensure OS and RUST_LOG error messages can be brought to the user's attention.
             launchedDebugAdapter.stderr?.on('data', (data: string) => {
-                if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
+                if (
+                    debuggerStatus === (DebuggerStatus.running as DebuggerStatus) ||
+                    data.toString().startsWith(ConsoleLogSources.console)
+                ) {
                     logToConsole(data.toString(), true);
                 } else {
-                    // Any STDERR messages during startup, or on process error, need special consideration, otherwise they will be lost.
+                    // Any STDERR messages during startup, or on process error, that
+                    // are not DebuggerStatus.console types, need special consideration,
+                    // otherwise they will be lost.
                     debuggerStatus = DebuggerStatus.failed;
                     logToConsole(
                         `${JSON.stringify(ConsoleLogSources.error)}: ${JSON.stringify(
