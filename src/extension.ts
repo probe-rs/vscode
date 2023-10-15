@@ -80,36 +80,36 @@ function toCamelCase(str: string) {
 // Any local (generated directly by this extension) messages MUST start with ConsoleLogLevels.error, or ConsoleLogSources.console.toLowerCase(), or `DEBUG`.
 // Any messages that start with ConsoleLogLevels.error or ConsoleLogSources.console.toLowerCase() will always be logged.
 // Any messages that come from the ConsoleLogSources.console.toLowerCase() STDERR will always be logged.
-function logToConsole(consoleMesssage: string, fromDebugger: boolean = false) {
-    console.log(consoleMesssage); // During VSCode extension development, this will also log to the local debug console
+function logToConsole(consoleMessage: string, fromDebugger: boolean = false) {
+    console.log(consoleMessage); // During VSCode extension development, this will also log to the local debug console
     if (fromDebugger) {
         // STDERR messages of the `error` variant. These deserve to be shown as an error message in the UI also.
         // This filter might capture more than expected, but since RUST_LOG messages can take many formats, it seems that this is the safest/most inclusive.
-        if (consoleMesssage.includes(ConsoleLogSources.error)) {
-            vscode.window.showErrorMessage(consoleMesssage);
+        if (consoleMessage.includes(ConsoleLogSources.error)) {
+            vscode.window.showErrorMessage(consoleMessage);
         } else {
             // Any other messages that come directly from the debugger, are assumed to be relevant and should be logged to the console.
-            vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+            vscode.debug.activeDebugConsole.appendLine(consoleMessage);
         }
-    } else if (consoleMesssage.includes(ConsoleLogSources.console.toLowerCase())) {
-        vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+    } else if (consoleMessage.includes(ConsoleLogSources.console.toLowerCase())) {
+        vscode.debug.activeDebugConsole.appendLine(consoleMessage);
     } else {
         switch (consoleLogLevel) {
             case ConsoleLogSources.debug: //  Log Info, Error AND Debug
                 if (
-                    consoleMesssage.includes(ConsoleLogSources.console.toLowerCase()) ||
-                    consoleMesssage.includes(ConsoleLogSources.error) ||
-                    consoleMesssage.includes(ConsoleLogSources.debug)
+                    consoleMessage.includes(ConsoleLogSources.console.toLowerCase()) ||
+                    consoleMessage.includes(ConsoleLogSources.error) ||
+                    consoleMessage.includes(ConsoleLogSources.debug)
                 ) {
-                    vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+                    vscode.debug.activeDebugConsole.appendLine(consoleMessage);
                 }
                 break;
             default: // ONLY log console and error messages
                 if (
-                    consoleMesssage.includes(ConsoleLogSources.console.toLowerCase()) ||
-                    consoleMesssage.includes(ConsoleLogSources.error)
+                    consoleMessage.includes(ConsoleLogSources.console.toLowerCase()) ||
+                    consoleMessage.includes(ConsoleLogSources.error)
                 ) {
-                    vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+                    vscode.debug.activeDebugConsole.appendLine(consoleMessage);
                 }
                 break;
         }
