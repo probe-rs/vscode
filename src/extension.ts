@@ -22,7 +22,7 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.debug.onDidTerminateDebugSession(descriptorFactory.dispose.bind(descriptorFactory)),
     );
 
-    // I cannot find a way to programmatically test for when VSCode is debugging the extension, versus when a user is using the extension to debug their own code, but the following code is usefull in the former situation, so I will leave it here to be commented out by extension developers when needed.
+    // I cannot find a way to programmatically test for when VSCode is debugging the extension, versus when a user is using the extension to debug their own code, but the following code is useful in the former situation, so I will leave it here to be commented out by extension developers when needed.
     // const trackerFactory = new ProbeRsDebugAdapterTrackerFactory();
     // context.subscriptions.push(
     // 	vscode.debug.registerDebugAdapterTrackerFactory('probe-rs-debug', trackerFactory),
@@ -33,7 +33,7 @@ export function deactivate(context: vscode.ExtensionContext) {
     return undefined;
 }
 
-// Cleanup inconsitent line breaks in String data
+// Cleanup inconsistent line breaks in String data
 const formatText = (text: string) => `\r${text.split(/(\r?\n)/g).join('\r')}\r`;
 
 // Constant for handling/filtering  console log messages.
@@ -516,7 +516,7 @@ function startDebugServer(
         }
 
         launchedDebugAdapter.on('spawn', () => {
-            // The error listenere here is only used for failed spawn,
+            // The error listener here is only used for failed spawn,
             // so has to be removed afterwards.
             launchedDebugAdapter.removeListener('error', errorListener);
 
