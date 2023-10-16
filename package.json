@@ -253,9 +253,9 @@
                                             "type": "string",
                                             "description": "The path (relative to `cwd` or absolute) to the ESP-IDF bootloader."
                                         },
-                                        "idf_partion_table": {
+                                        "idf_partition_table": {
                                             "type": "string",
-                                            "description": "The path (relative to `cwd` or absolute) to the ESP-IDF partion table."
+                                            "description": "The path (relative to `cwd` or absolute) to the ESP-IDF partition table."
                                         }
                                     }
                                 }

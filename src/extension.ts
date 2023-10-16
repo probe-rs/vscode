@@ -22,7 +22,7 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.debug.onDidTerminateDebugSession(descriptorFactory.dispose.bind(descriptorFactory)),
     );
 
-    // I cannot find a way to programmatically test for when VSCode is debugging the extension, versus when a user is using the extension to debug their own code, but the following code is usefull in the former situation, so I will leave it here to be commented out by extension developers when needed.
+    // I cannot find a way to programmatically test for when VSCode is debugging the extension, versus when a user is using the extension to debug their own code, but the following code is useful in the former situation, so I will leave it here to be commented out by extension developers when needed.
     // const trackerFactory = new ProbeRsDebugAdapterTrackerFactory();
     // context.subscriptions.push(
     // 	vscode.debug.registerDebugAdapterTrackerFactory('probe-rs-debug', trackerFactory),
@@ -33,7 +33,7 @@ export function deactivate(context: vscode.ExtensionContext) {
     return undefined;
 }
 
-// Cleanup inconsitent line breaks in String data
+// Cleanup inconsistent line breaks in String data
 const formatText = (text: string) => `\r${text.split(/(\r?\n)/g).join('\r')}\r`;
 
 // Constant for handling/filtering  console log messages.
@@ -80,36 +80,36 @@ function toCamelCase(str: string) {
 // Any local (generated directly by this extension) messages MUST start with ConsoleLogLevels.error, or ConsoleLogSources.console.toLowerCase(), or `DEBUG`.
 // Any messages that start with ConsoleLogLevels.error or ConsoleLogSources.console.toLowerCase() will always be logged.
 // Any messages that come from the ConsoleLogSources.console.toLowerCase() STDERR will always be logged.
-function logToConsole(consoleMesssage: string, fromDebugger: boolean = false) {
-    console.log(consoleMesssage); // During VSCode extension development, this will also log to the local debug console
+function logToConsole(consoleMessage: string, fromDebugger: boolean = false) {
+    console.log(consoleMessage); // During VSCode extension development, this will also log to the local debug console
     if (fromDebugger) {
         // STDERR messages of the `error` variant. These deserve to be shown as an error message in the UI also.
         // This filter might capture more than expected, but since RUST_LOG messages can take many formats, it seems that this is the safest/most inclusive.
-        if (consoleMesssage.includes(ConsoleLogSources.error)) {
-            vscode.window.showErrorMessage(consoleMesssage);
+        if (consoleMessage.includes(ConsoleLogSources.error)) {
+            vscode.window.showErrorMessage(consoleMessage);
         } else {
             // Any other messages that come directly from the debugger, are assumed to be relevant and should be logged to the console.
-            vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+            vscode.debug.activeDebugConsole.appendLine(consoleMessage);
         }
-    } else if (consoleMesssage.includes(ConsoleLogSources.console.toLowerCase())) {
-        vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+    } else if (consoleMessage.includes(ConsoleLogSources.console.toLowerCase())) {
+        vscode.debug.activeDebugConsole.appendLine(consoleMessage);
     } else {
         switch (consoleLogLevel) {
             case ConsoleLogSources.debug: //  Log Info, Error AND Debug
                 if (
-                    consoleMesssage.includes(ConsoleLogSources.console.toLowerCase()) ||
-                    consoleMesssage.includes(ConsoleLogSources.error) ||
-                    consoleMesssage.includes(ConsoleLogSources.debug)
+                    consoleMessage.includes(ConsoleLogSources.console.toLowerCase()) ||
+                    consoleMessage.includes(ConsoleLogSources.error) ||
+                    consoleMessage.includes(ConsoleLogSources.debug)
                 ) {
-                    vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+                    vscode.debug.activeDebugConsole.appendLine(consoleMessage);
                 }
                 break;
             default: // ONLY log console and error messages
                 if (
-                    consoleMesssage.includes(ConsoleLogSources.console.toLowerCase()) ||
-                    consoleMesssage.includes(ConsoleLogSources.error)
+                    consoleMessage.includes(ConsoleLogSources.console.toLowerCase()) ||
+                    consoleMessage.includes(ConsoleLogSources.error)
                 ) {
-                    vscode.debug.activeDebugConsole.appendLine(consoleMesssage);
+                    vscode.debug.activeDebugConsole.appendLine(consoleMessage);
                 }
                 break;
         }
@@ -516,7 +516,7 @@ function startDebugServer(
         }
 
         launchedDebugAdapter.on('spawn', () => {
-            // The error listenere here is only used for failed spawn,
+            // The error listener here is only used for failed spawn,
             // so has to be removed afterwards.
             launchedDebugAdapter.removeListener('error', errorListener);
 
