@@ -59,7 +59,6 @@
         "build": "esbuild ./src/extension.ts --bundle --tsconfig=./tsconfig.json --external:vscode --format=cjs --platform=node --outfile=dist/extension.js"
     },
     "devDependencies": {
-        "updates": "*",
         "@types/glob": "^8.1.0",
         "@types/mocha": "^10.0.4",
         "@types/node": "^20.9.0",
@@ -78,6 +77,7 @@
         "rimraf": "^5.0.5",
         "ts-loader": "^9.5.0",
         "typescript": "^5.2.2",
+        "updates": "latest",
         "webpack": "^5.89.0",
         "webpack-cli": "^5.1.4"
     },
