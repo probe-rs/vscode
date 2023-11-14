@@ -4,7 +4,7 @@
 
 'use strict';
 
-import * as child_process from 'child_process';
+import * as childProcess from 'child_process';
 import {existsSync} from 'fs';
 import getPort from 'get-port';
 import * as os from 'os';
@@ -506,11 +506,11 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 function startDebugServer(
     command: string,
     args: readonly string[],
-    options: child_process.SpawnOptionsWithoutStdio,
-): Promise<child_process.ChildProcessWithoutNullStreams> {
-    var launchedDebugAdapter = child_process.spawn(command, args, options);
+    options: childProcess.SpawnOptionsWithoutStdio,
+): Promise<childProcess.ChildProcessWithoutNullStreams> {
+    var launchedDebugAdapter = childProcess.spawn(command, args, options);
 
-    return new Promise<child_process.ChildProcessWithoutNullStreams>((resolve, reject) => {
+    return new Promise<childProcess.ChildProcessWithoutNullStreams>((resolve, reject) => {
         function errorListener(error) {
             reject(error);
         }
