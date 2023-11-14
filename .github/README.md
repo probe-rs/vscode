@@ -7,7 +7,7 @@ can be found at [the probe-rs webpage](https://probe.rs/docs/tools/debugger/) an
 under the [visual tour
 heading](https://probe.rs/docs/tools/debugger/#a-visual-guide-of-implemented-features)
 
-<img style="margin-top: 1em; margin-bottom: 1em; max-width:100%; max-height:100%; width: auto; height: auto;" src="https://probe.rs/img/vscode/probe-rs-debugger.gif" />
+<img style="margin-top: 1em; margin-bottom: 1em; max-width:100%; max-height:100%; width: auto; height: auto;" src="https://probe.rs/images/probe-rs-debugger.gif" />
 
 ## Development Setup - only applies if you want to contribute to the extension
 
