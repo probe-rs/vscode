@@ -2,10 +2,10 @@
 
 ## Documentation
 
-Full documentation on [Installation](https://probe.rs/docs/tools/vscode/#installation), [Configuration](https://probe.rs/docs/tools/vscode/#usage-and-configuration) and [supported functionality](https://probe.rs/docs/tools/vscode/#current-working-functionality-and-known-limitations)
-can be found at [the probe-rs webpage](https://probe.rs/docs/tools/vscode/) and
+Full documentation on [Installation](https://probe.rs/docs/tools/debugger/#installation), [Configuration](https://probe.rs/docs/tools/debugger/#usage-and-configuration) and [supported functionality](https://probe.rs/docs/tools/debugger/#current-working-functionality-and-known-limitations)
+can be found at [the probe-rs webpage](https://probe.rs/docs/tools/debugger/) and
 under the [visual tour
-heading](https://probe.rs/docs/tools/vscode/#a-visual-guide-of-implemented-features)
+heading](https://probe.rs/docs/tools/debugger/#a-visual-guide-of-implemented-features)
 
 <img style="margin-top: 1em; margin-bottom: 1em; max-width:100%; max-height:100%; width: auto; height: auto;" src="https://probe.rs/img/vscode/probe-rs-debugger.gif" />
 
@@ -37,7 +37,7 @@ Afterwards, follow the following steps:
   open another VS Code window, titled __[Extension Development Host]__.
 * In this new VSCode window,
   * Open an existing project, or create a new one.
-  * In your project, configure the `launch.json` in your project, as per [the minimum configuration](https://probe.rs/docs/tools/vscode/#start-a-debug-session-with-minimum-configuration) example.
+  * In your project, configure the `launch.json` in your project, as per [the minimum configuration](https://probe.rs/docs/tools/debugger/#start-a-debug-session-with-minimum-configuration) example.
   * Select the debug environment you just created.
     * Press `F5` to start debugging.
 
@@ -51,7 +51,7 @@ Afterwards, follow the following steps:
 * Switch to the VSCode instance of the probe-rs `vscode` repository.
 * In this new VSCode window,
   * Open an existing project, or create a new one.
-  * In your project, configure the `launch.json` in your project, as per [the standalong debugger server](https://probe.rs/docs/tools/vscode/#connecting-to-a-standalone-probe-rs-dap-server-server) example.
+  * In your project, configure the `launch.json` in your project, as per [the standalong debugger server](https://probe.rs/docs/tools/debugger/#connecting-to-a-standalone-probe-rs-dap-server-server) example.
   * Select the debug environment you just created.
     * Press `F5` to start debugging.
 
