@@ -1,7 +1,7 @@
 {
     "name": "probe-rs-debugger",
     "displayName": "Debugger for probe-rs",
-    "version": "0.20.0",
+    "version": "0.21.1",
     "publisher": "probe-rs",
     "description": "probe-rs Debug Adapter for VS Code.",
     "author": {
@@ -23,7 +23,7 @@
         "SVD"
     ],
     "engines": {
-        "vscode": ">=1.80.0"
+        "vscode": ">=1.84.0"
     },
     "icon": "images/probe-rs-debugger.png",
     "categories": [
@@ -45,7 +45,7 @@
     },
     "scripts": {
         "probe-rs:getDebugProtocolLatest": "curl -LJs https://microsoft.github.io/debug-adapter-protocol/debugAdapterProtocol.json -o dap/debugProtocol.json",
-        "probe-rs:Update Dev Dependencies": "npm update",
+        "probe-rs:Update Dev Dependencies": "updates --update ./",
         "package": "vsce package --no-yarn",
         "vscode:prepublish": "rimraf dist && npm run -S build -- --minify",
         "publish": "vsce publish --no-yarn --skip-duplicate",
@@ -59,26 +59,27 @@
         "build": "esbuild ./src/extension.ts --bundle --tsconfig=./tsconfig.json --external:vscode --format=cjs --platform=node --outfile=dist/extension.js"
     },
     "devDependencies": {
-        "@types/glob": "^8.0.0",
-        "@types/mocha": "^10.0.1",
-        "@types/node": "^18.11.18",
-        "@types/vscode": "^1.74.0",
-        "@typescript-eslint/eslint-plugin": "^5.48.1",
-        "@typescript-eslint/parser": "^5.48.1",
-        "@vscode/debugadapter": "^1.61.0",
-        "@vscode/debugprotocol": "^1.61.0",
-        "@vscode/vsce": "^2.17.0",
-        "esbuild": "^0.17.8",
-        "eslint": "^8.31.0",
-        "get-port": "^6.1.2",
-        "glob": "^8.0.3",
+        "@types/glob": "^8.1.0",
+        "@types/mocha": "^10.0.4",
+        "@types/node": "^20.9.0",
+        "@types/vscode": "^1.84.1",
+        "@typescript-eslint/eslint-plugin": "^6.11.0",
+        "@typescript-eslint/parser": "^6.11.0",
+        "@vscode/debugadapter": "^1.64.0",
+        "@vscode/debugprotocol": "^1.64.0",
+        "@vscode/vsce": "^2.22.0",
+        "esbuild": "^0.19.5",
+        "eslint": "^8.53.0",
+        "get-port": "^7.0.0",
+        "glob": "^10.3.10",
         "mocha": "^10.2.0",
-        "prettier": "^2.8.1",
-        "rimraf": "^4.1.2",
-        "ts-loader": "^9.4.2",
-        "typescript": "^4.9.4",
-        "webpack": "^5.75.0",
-        "webpack-cli": "^5.0.1"
+        "prettier": "^3.1.0",
+        "rimraf": "^5.0.5",
+        "ts-loader": "^9.5.0",
+        "typescript": "^5.2.2",
+        "updates": "latest",
+        "webpack": "^5.89.0",
+        "webpack-cli": "^5.1.4"
     },
     "main": "./dist/extension.js",
     "activationEvents": [
