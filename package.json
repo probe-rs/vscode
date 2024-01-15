@@ -1,7 +1,7 @@
 {
     "name": "probe-rs-debugger",
     "displayName": "Debugger for probe-rs",
-    "version": "0.21.2",
+    "version": "0.21.3",
     "publisher": "probe-rs",
     "description": "probe-rs Debug Adapter for VS Code.",
     "author": {
@@ -18,12 +18,12 @@
         "Arm",
         "ARM Cortex-M",
         "ARM Cortex-A",
-        "Riscv-v",
+        "Risc-v",
         "RTT",
         "SVD"
     ],
     "engines": {
-        "vscode": ">=1.84.0"
+        "vscode": ">=1.85.0"
     },
     "icon": "images/probe-rs-debugger.png",
     "categories": [
@@ -59,24 +59,23 @@
         "build": "esbuild ./src/extension.ts --bundle --tsconfig=./tsconfig.json --external:vscode --format=cjs --platform=node --outfile=dist/extension.js"
     },
     "devDependencies": {
-        "@types/glob": "^8.1.0",
-        "@types/mocha": "^10.0.4",
-        "@types/node": "^20.9.0",
-        "@types/vscode": "^1.84.1",
-        "@typescript-eslint/eslint-plugin": "^6.11.0",
-        "@typescript-eslint/parser": "^6.11.0",
+        "@types/mocha": "^10.0.6",
+        "@types/node": "^20.11.2",
+        "@types/vscode": "^1.85.0",
+        "@typescript-eslint/eslint-plugin": "^6.18.1",
+        "@typescript-eslint/parser": "^6.18.1",
         "@vscode/debugadapter": "^1.64.0",
         "@vscode/debugprotocol": "^1.64.0",
         "@vscode/vsce": "^2.22.0",
-        "esbuild": "^0.19.5",
-        "eslint": "^8.53.0",
+        "esbuild": "^0.19.11",
+        "eslint": "^8.56.0",
         "get-port": "^7.0.0",
         "glob": "^10.3.10",
         "mocha": "^10.2.0",
-        "prettier": "^3.1.0",
+        "prettier": "^3.2.2",
         "rimraf": "^5.0.5",
-        "ts-loader": "^9.5.0",
-        "typescript": "^5.2.2",
+        "ts-loader": "^9.5.1",
+        "typescript": "^5.3.3",
         "updates": "latest",
         "webpack": "^5.89.0",
         "webpack-cli": "^5.1.4"
@@ -119,7 +118,7 @@
                         "properties": {
                             "server": {
                                 "type": "string",
-                                "description": "Optionally connect to an existing `probe-rs-debugger` session on IP and Port, e.g. '127.0.0.1:50000'",
+                                "description": "Optionally connect to an existing `probe-rs dap-server` session on IP and Port, e.g. '127.0.0.1:50000'",
                                 "default": "127.0.0.1:50000"
                             },
                             "consoleLogLevel": {
@@ -171,7 +170,7 @@
                             },
                             "chip": {
                                 "type": "string",
-                                "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs-debugger list-chips`."
+                                "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs chip list`."
                             },
                             "connectUnderReset": {
                                 "type": "boolean",
@@ -201,7 +200,7 @@
                             },
                             "flashingConfig": {
                                 "type": "object",
-                                "description": "These flashing options are applied when flashing one or more core `program_binary` files to the target memory.",
+                                "description": "These options are applied when flashing one or more `program_binary` files to the target memory.",
                                 "flashingEnabled": {
                                     "type": "boolean",
                                     "description": "Flash the target before debugging.",
@@ -235,7 +234,7 @@
                                                 "idf"
                                             ],
                                             "enumDescriptions": [
-                                                "The target binary file contains the contents of the flash 1:1.",
+                                                "The target binary file contains the verbatim contents of the flash.",
                                                 "The target binary file conforms with the [Intel HEX](https://en.wikipedia.org/wiki/Intel_HEX) format.",
                                                 "The target binary file conforms with the [ELF](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format) format.",
                                                 "The target binary file conforms with the [ESP-IDF bootloader](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/app_image_format.html#app-image-structures) format"
@@ -334,7 +333,7 @@
                         "properties": {
                             "server": {
                                 "type": "string",
-                                "description": "Optionally onnect to an existing `probe-rs-debugger` session on IP and Port, e.g. '127.0.0.1:50000'",
+                                "description": "Optionally connect to an existing `probe-rs dap-server` session on IP and Port, e.g. '127.0.0.1:50000'",
                                 "default": "127.0.0.1:50000"
                             },
                             "consoleLogLevel": {
@@ -386,7 +385,7 @@
                             },
                             "chip": {
                                 "type": "string",
-                                "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs-debugger list-chips`."
+                                "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs chip list`."
                             },
                             "connectUnderReset": {
                                 "type": "boolean",
@@ -532,7 +531,7 @@
                 "properties": {
                     "probe-rs-debugger.debuggerExecutable": {
                         "type": "string",
-                        "markdownDescription": "Path to the `probe-rs-debugger` executable. If this is not set, the extension requires that `probe-rs-debugger` (or `probe-rs-debugger.exe`) is available on the system `PATH`.\n\nNote: Settings in 'launch.json' take precedence over this setting.",
+                        "markdownDescription": "Path to the `probe-rs` executable. If this is not set, the extension requires that `probe-rs` (or `probe-rs.exe`) is available on the system `PATH`.\n\nNote: Setting `runtimeExecutable` in 'launch.json' take precedence over this setting.",
                         "scope": "machine-overridable"
                     }
                 }
