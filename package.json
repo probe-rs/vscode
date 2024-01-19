@@ -264,11 +264,10 @@
                             },
                             "coreConfigs": {
                                 "type": "array",
-                                "description": "Each MCU core has a mandatory `coreIndex` and `programBinary` as well as several other optional properties.",
+                                "description": "Each MCU core has a mandatory `programBinary` as well as several other optional properties.",
                                 "items": {
                                     "type": "object",
                                     "required": [
-                                        "coreIndex",
                                         "programBinary"
                                     ],
                                     "properties": {
@@ -422,12 +421,11 @@
                             },
                             "coreConfigs": {
                                 "type": "array",
-                                "description": "Each MCU core has a mandatory `coreIndex` and `programBinary` as well as several other optional properties.",
+                                "description": "Each MCU core has a mandatory `programBinary` as well as several other optional properties.",
                                 "items": {
                                     "type": "object",
                                     "properties": {
                                         "required": [
-                                            "coreIndex",
                                             "programBinary"
                                         ],
                                         "coreIndex": {
