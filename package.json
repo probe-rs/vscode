@@ -183,7 +183,7 @@
                             },
                             "wireProtocol": {
                                 "type": "string",
-                                "description": "The correct wire Protocol to use.",
+                                "description": "The correct wire protocol to use.",
                                 "enum": [
                                     "Swd",
                                     "Jtag"
@@ -196,7 +196,7 @@
                             "allowEraseAll": {
                                 "type": "boolean",
                                 "description": "Allow the session to erase all memory of the chip or reset it to factory default.",
-                                "default": true
+                                "default": false
                             },
                             "flashingConfig": {
                                 "type": "object",
@@ -205,12 +205,12 @@
                                     "flashingEnabled": {
                                         "type": "boolean",
                                         "description": "Flash the target before debugging.",
-                                        "default": true
+                                        "default": false
                                     },
                                     "haltAfterReset": {
                                         "type": "boolean",
                                         "description": "Halt all cores on the target after reset.",
-                                        "default": true
+                                        "default": false
                                     },
                                     "fullChipErase": {
                                         "type": "boolean",
@@ -264,10 +264,11 @@
                             },
                             "coreConfigs": {
                                 "type": "array",
-                                "description": "Each MCU core will have a mandatory `coreIndex`, `programBinary`, and `chip` as well as several other optional properties.",
+                                "description": "Each MCU core has a mandatory `coreIndex` and `programBinary` as well as several other optional properties.",
                                 "items": {
                                     "type": "object",
                                     "required": [
+                                        "coreIndex",
                                         "programBinary"
                                     ],
                                     "properties": {
@@ -278,13 +279,11 @@
                                         },
                                         "programBinary": {
                                             "type": "string",
-                                            "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware",
-                                            "default": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}"
+                                            "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware"
                                         },
                                         "svdFile": {
                                             "type": "string",
-                                            "description": "The path (relative to `cwd` or absolute) to the CMCIS-SVD file for your target core",
-                                            "default": "./CMSIS.SVD"
+                                            "description": "The path (relative to `cwd` or absolute) to the CMCIS-SVD file for your target core"
                                         },
                                         "rttEnabled": {
                                             "type": "boolean",
@@ -406,7 +405,7 @@
                             },
                             "wireProtocol": {
                                 "type": "string",
-                                "description": "The correct wire Protocol to use.",
+                                "description": "The correct wire protocol to use.",
                                 "enum": [
                                     "Swd",
                                     "Jtag"
@@ -419,15 +418,16 @@
                             "allowEraseAll": {
                                 "type": "boolean",
                                 "description": "Allow the session to erase all memory of the chip or reset it to factory default.",
-                                "default": true
+                                "default": false
                             },
                             "coreConfigs": {
                                 "type": "array",
-                                "description": "Each MCU core will have a mandatory `coreIndex`, `programBinary`, and `chip` as well as several other optional properties.",
+                                "description": "Each MCU core has a mandatory `coreIndex` and `programBinary` as well as several other optional properties.",
                                 "items": {
                                     "type": "object",
                                     "properties": {
                                         "required": [
+                                            "coreIndex",
                                             "programBinary"
                                         ],
                                         "coreIndex": {
@@ -437,13 +437,11 @@
                                         },
                                         "programBinary": {
                                             "type": "string",
-                                            "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware",
-                                            "default": "./target/thumbv7em-none-eabihf/debug/${workspaceFolderBasename}"
+                                            "description": "The path (relative to `cwd` or absolute) to the binary for your target firmware"
                                         },
                                         "svdFile": {
                                             "type": "string",
-                                            "description": "The path (relative to `cwd` or absolute) to the CMCIS-SVD file for your target core",
-                                            "default": "./CMSIS.SVD"
+                                            "description": "The path (relative to `cwd` or absolute) to the CMCIS-SVD file for your target core"
                                         },
                                         "rttEnabled": {
                                             "type": "boolean",
