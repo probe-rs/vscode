@@ -10,10 +10,9 @@ on:
   pull_request:
     types:
       - closed
+
 jobs:
-  if_merged:
-    name: Publish the VS Code Extension
-    if: github.event.pull_request.merged == true
+    name: Publish the VS Code Extension to Open VSX
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,4 +25,4 @@ jobs:
       - run: npm install -g vsce
       - run: npm run pretest
       - name: Finally, publish to the marketplace.
-        run: npm run publish --pat ${{ secrets.VS_MARKETPLACE_TOKEN }}
+        run: npm run publish --registry=https://open-vsx.org/ --pat ${{ secrets.OPEN_VSX_MARKETPLACE_TOKEN }}
