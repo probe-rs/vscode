@@ -1,7 +1,7 @@
 {
     "name": "probe-rs-debugger",
     "displayName": "Debugger for probe-rs",
-    "version": "0.22.0",
+    "version": "0.22.1",
     "publisher": "probe-rs",
     "description": "probe-rs Debug Adapter for VS Code.",
     "author": {
@@ -51,6 +51,7 @@
         "publish": "vsce publish --no-yarn --skip-duplicate",
         "un-publish": "vsce unpublish",
         "login": "vsce login probe-rs",
+        "run-prettier": "prettier --write .",
         "pretest": "npm run compile && npm run lint && npm run typecheck && prettier --check .",
         "compile": "tsc -p ./",
         "lint": "eslint src --ext ts",
