@@ -27,4 +27,6 @@ jobs:
       - run: npm install -g vsce
       - run: npm run pretest
       - name: Finally, publish to the marketplace.
-        run: npm run publish --registry=https://open-vsx.org/ --pat ${{ secrets.OPEN_VSX_MARKETPLACE_TOKEN }}
+        run: npm run publish --registry=https://open-vsx.org/
+        env:
+          VSCE_PAT: ${{ secrets.OPEN_VSX_MARKETPLACE_TOKEN }}
