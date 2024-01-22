@@ -51,6 +51,7 @@
         "publish": "vsce publish --no-yarn --skip-duplicate",
         "un-publish": "vsce unpublish",
         "login": "vsce login probe-rs",
+        "run-prettier": "prettier --write .",
         "pretest": "npm run compile && npm run lint && npm run typecheck && prettier --check .",
         "compile": "tsc -p ./",
         "lint": "eslint src --ext ts",
