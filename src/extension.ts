@@ -361,6 +361,9 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                 windowsHide: true,
             };
 
+            // Force the debugger to generate
+            options.env.CLICOLOR_FORCE = '1';
+
             var command = '';
             if (!executable) {
                 if (session.configuration.hasOwnProperty('runtimeExecutable')) {
