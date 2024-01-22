@@ -26,4 +26,6 @@ jobs:
       - run: npm install -g vsce
       - run: npm run pretest
       - name: Finally, publish to the marketplace.
-        run: npm run publish --pat ${{ secrets.VS_MARKETPLACE_TOKEN }}
+        run: npm run publish
+        env:
+          VSCE_PAT: ${{ secrets.VS_MARKETPLACE_TOKEN }}
