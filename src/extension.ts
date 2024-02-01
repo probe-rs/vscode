@@ -534,7 +534,7 @@ function startDebugServer(
 // This takes the value from configuration, if set, or
 // falls back to the default name.
 function debuggerExecutablePath(): string {
-    let configuration = vscode.workspace.getConfiguration('probe-rs');
+    let configuration = vscode.workspace.getConfiguration('probe-rs-debugger');
 
     let configuredPath: string = configuration.get('debuggerExecutable') || defaultExecutable();
 
