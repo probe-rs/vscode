@@ -309,27 +309,30 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             );
             debuggerStatus = DebuggerStatus.running; // If this is not true as expected, then the user will be notified later.
         } else {
+            // Assign the default `cwd` for the project.
+            if (!session.configuration.hasOwnProperty('cwd')) {
+                session.configuration.cwd = session.workspaceFolder?.uri.fsPath;
+            }
+
             // Validate that the `cwd` folder exists.
-            if (session.configuration.hasOwnProperty('cwd')) {
-                if (!existsSync(session.configuration.cwd)) {
-                    logToConsole(
-                        `${
-                            ConsoleLogSources.error
-                        }: ${ConsoleLogSources.console.toLowerCase()}: The 'cwd' folder does not exist: ${JSON.stringify(
-                            session.configuration.cwd,
-                            null,
-                            2,
-                        )}`,
-                    );
-                    vscode.window.showErrorMessage(
-                        `The 'cwd' folder does not exist: ${JSON.stringify(
-                            session.configuration.cwd,
-                            null,
-                            2,
-                        )}`,
-                    );
-                    return undefined;
-                }
+            if (!existsSync(session.configuration.cwd)) {
+                logToConsole(
+                    `${
+                        ConsoleLogSources.error
+                    }: ${ConsoleLogSources.console.toLowerCase()}: The 'cwd' folder does not exist: ${JSON.stringify(
+                        session.configuration.cwd,
+                        null,
+                        2,
+                    )}`,
+                );
+                vscode.window.showErrorMessage(
+                    `The 'cwd' folder does not exist: ${JSON.stringify(
+                        session.configuration.cwd,
+                        null,
+                        2,
+                    )}`,
+                );
+                return undefined;
             }
             // Find and use the first available port and spawn a new probe-rs dap-server process
             try {
