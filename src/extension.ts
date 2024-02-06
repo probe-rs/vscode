@@ -9,13 +9,23 @@ import {existsSync} from 'fs';
 import getPort from 'get-port';
 import * as os from 'os';
 import * as vscode from 'vscode';
-import {DebugAdapterTracker, DebugAdapterTrackerFactory} from 'vscode';
+import {
+    CancellationToken,
+    DebugAdapterTracker,
+    DebugAdapterTrackerFactory,
+    DebugConfiguration,
+    DebugConfigurationProvider,
+    ProviderResult,
+    WorkspaceFolder,
+} from 'vscode';
 
 export async function activate(context: vscode.ExtensionContext) {
     const descriptorFactory = new ProbeRSDebugAdapterServerDescriptorFactory();
+    const configProvider = new ProbeRSConfigurationProvider();
 
     context.subscriptions.push(
         vscode.debug.registerDebugAdapterDescriptorFactory('probe-rs-debug', descriptorFactory),
+        vscode.debug.registerDebugConfigurationProvider('probe-rs-debug', configProvider),
         vscode.debug.onDidReceiveDebugSessionCustomEvent(
             descriptorFactory.receivedCustomEvent.bind(descriptorFactory),
         ),
@@ -296,7 +306,26 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
         }
         var debuggerStatus: DebuggerStatus = DebuggerStatus.starting;
 
-        var debugServer = new String('127.0.0.1:50000').split(':', 2); // ... provide default server host and port for "launch" configurations, where this is NOT a mandatory config
+        //Provide default server host and port for "launch" configurations, where this is NOT a mandatory config
+        var debugServer = new String('127.0.0.1:50000').split(':', 2);
+
+        // Validate that the `cwd` folder exists.
+        if (!existsSync(session.configuration.cwd)) {
+            logToConsole(
+                `${
+                    ConsoleLogSources.error
+                }: ${ConsoleLogSources.console.toLowerCase()}: The 'cwd' folder does not exist: ${JSON.stringify(
+                    session.configuration.cwd,
+                    null,
+                    2,
+                )}`,
+            );
+            vscode.window.showErrorMessage(
+                `The 'cwd' folder does not exist: ${JSON.stringify(session.configuration.cwd, null, 2)}`,
+            );
+            return undefined;
+        }
+
         if (session.configuration.hasOwnProperty('server')) {
             debugServer = new String(session.configuration.server).split(':', 2);
             logToConsole(
@@ -309,31 +338,6 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             );
             debuggerStatus = DebuggerStatus.running; // If this is not true as expected, then the user will be notified later.
         } else {
-            // Assign the default `cwd` for the project.
-            if (!session.configuration.hasOwnProperty('cwd')) {
-                session.configuration.cwd = session.workspaceFolder?.uri.fsPath;
-            }
-
-            // Validate that the `cwd` folder exists.
-            if (!existsSync(session.configuration.cwd)) {
-                logToConsole(
-                    `${
-                        ConsoleLogSources.error
-                    }: ${ConsoleLogSources.console.toLowerCase()}: The 'cwd' folder does not exist: ${JSON.stringify(
-                        session.configuration.cwd,
-                        null,
-                        2,
-                    )}`,
-                );
-                vscode.window.showErrorMessage(
-                    `The 'cwd' folder does not exist: ${JSON.stringify(
-                        session.configuration.cwd,
-                        null,
-                        2,
-                    )}`,
-                );
-                return undefined;
-            }
             // Find and use the first available port and spawn a new probe-rs dap-server process
             try {
                 var port: number = await getPort();
@@ -562,6 +566,38 @@ class ProbeRsDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory {
         const tracker = new ProbeRsDebugAdapterTracker();
 
         return tracker;
+    }
+}
+
+class ProbeRSConfigurationProvider implements DebugConfigurationProvider {
+    /**
+     * Ensure the provided configuration has the essential defaults applied.
+     */
+    resolveDebugConfiguration(
+        folder: WorkspaceFolder | undefined,
+        config: DebugConfiguration,
+        token?: CancellationToken,
+    ): ProviderResult<DebugConfiguration> {
+        // TODO: Once we can detect the chip, we can probably provide a working config from defauts.
+        // if launch.json is missing or empty
+        // if (!config.type && !config.request && !config.name) {
+        // const editor = vscode.window.activeTextEditor;
+        // if (editor && editor.document.languageId === 'rust') {
+        //     config.type = 'probe-rs-debug';
+        //     config.name = 'Launch';
+        //     config.request = 'launch';
+        //     ...
+        // }
+        // }
+
+        // Assign the default `cwd` for the project.
+        // TODO: We can update probe-rs dap-server to provide defaults that we can fill in here,
+        // and ensure the extension defaults are consistent with those of the server.
+        if (!config.cwd) {
+            config.cwd = '${workspaceFolder}';
+        }
+
+        return config;
     }
 }
 
