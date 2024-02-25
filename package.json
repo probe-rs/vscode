@@ -1,7 +1,7 @@
 {
     "name": "probe-rs-debugger",
     "displayName": "Debugger for probe-rs",
-    "version": "0.22.4",
+    "version": "0.23.0",
     "publisher": "probe-rs",
     "description": "probe-rs Debug Adapter for VS Code.",
     "author": {
@@ -172,6 +172,10 @@
                             "chip": {
                                 "type": "string",
                                 "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs chip list`."
+                            },
+                            "chipDescriptionPath": {
+                                "type": "string",
+                                "description": "Use this option to add custom target chips from a file."
                             },
                             "connectUnderReset": {
                                 "type": "boolean",
@@ -393,6 +397,10 @@
                             "chip": {
                                 "type": "string",
                                 "description": "Please specify the appropriate chip from the list of supported chips reported by running `probe-rs chip list`."
+                            },
+                            "chipDescriptionPath": {
+                                "type": "string",
+                                "description": "Use this option to add custom target chips from a file."
                             },
                             "connectUnderReset": {
                                 "type": "boolean",
