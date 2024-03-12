@@ -197,7 +197,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                     name: channelName,
                     pty: channelPty,
                 };
-                for (let index in this.rttTerminals) {
+                for (let index = 0; index < this.rttTerminals.length; index++) {
                     var [formerChannelNumber, , ,] = this.rttTerminals[index];
                     if (formerChannelNumber === channelNumber) {
                         this.rttTerminals.splice(+index, 1);
