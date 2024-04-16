@@ -327,6 +327,20 @@
                                                         ],
                                                         "default": "String"
                                                     },
+                                                    "mode": {
+                                                        "type": "string",
+                                                        "description": "RTT operating mode.",
+                                                        "enum": [
+                                                            "NoBlockSkip",
+                                                            "NoBlockTrim",
+                                                            "BlockIfFull"
+                                                        ],
+                                                        "enumDescriptions": [
+                                                            "The target will add data to the channel only if it fits completely, otherwise it will skip the data.",
+                                                            "The target will add as much data to the channel as possible, without blocking.",
+                                                            "The target will block until there is enough space in the channel to add the data."
+                                                        ]
+                                                    },
                                                     "showTimestamps": {
                                                         "type": "boolean",
                                                         "default": false,
@@ -336,6 +350,10 @@
                                                         "type": "boolean",
                                                         "default": true,
                                                         "description": "Enable the inclusion of Defmt location information in the RTT output for `dataFormat=Defmt`."
+                                                    },
+                                                    "defmtLogFormat": {
+                                                        "type": "string",
+                                                        "description": "The default format string to use for decoding defmt logs."
                                                     }
                                                 }
                                             }
@@ -496,6 +514,20 @@
                                                         ],
                                                         "default": "String"
                                                     },
+                                                    "mode": {
+                                                        "type": "string",
+                                                        "description": "RTT operating mode.",
+                                                        "enum": [
+                                                            "NoBlockSkip",
+                                                            "NoBlockTrim",
+                                                            "BlockIfFull"
+                                                        ],
+                                                        "enumDescriptions": [
+                                                            "The target will add data to the channel only if it fits completely, otherwise it will skip the data.",
+                                                            "The target will add as much data to the channel as possible, without blocking.",
+                                                            "The target will block until there is enough space in the channel to add the data."
+                                                        ]
+                                                    },
                                                     "showTimestamps": {
                                                         "type": "boolean",
                                                         "default": false,
@@ -505,6 +537,10 @@
                                                         "type": "boolean",
                                                         "default": true,
                                                         "description": "Enable the inclusion of Defmt location information in the RTT output for `dataFormat=Defmt`."
+                                                    },
+                                                    "defmtLogFormat": {
+                                                        "type": "string",
+                                                        "description": "The default format string to use for decoding defmt logs."
                                                     }
                                                 }
                                             }
