@@ -361,6 +361,13 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             }
             args.push('--port');
             args.push(debugServer[1]);
+            if (session.configuration.hasOwnProperty('logFile')) {
+                args.push('--log-file');
+                args.push(session.configuration.logFile);
+            } else if (session.configuration.hasOwnProperty('logDir')) {
+                args.push('--log-dir');
+                args.push(session.configuration.logDir);
+            }
 
             var options = {
                 cwd: session.configuration.cwd,

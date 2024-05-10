@@ -122,6 +122,14 @@
                                 "description": "Optionally connect to an existing `probe-rs dap-server` session on IP and Port, e.g. '127.0.0.1:50000'",
                                 "default": "127.0.0.1:50000"
                             },
+                            "logFile": {
+                                "type": "string",
+                                "description": "The path to the log file. This option is ignored if either the `server` or `runtimeArgs` is specified. If no location is specified, the behaviour depends on `--log-to-folder"
+                            },
+                            "logDir": {
+                                "type": "string",
+                                "description": "Enable logging to the default folder. This option is ignored if either the `logFile` or `runtimeArgs` is specified.`"
+                            },
                             "consoleLogLevel": {
                                 "type": "string",
                                 "description": "The level of log info printed to the console. This does NOT affect the RUST_LOG defined in the `env` property.",
@@ -346,6 +354,14 @@
                                 "type": "string",
                                 "description": "Optionally connect to an existing `probe-rs dap-server` session on IP and Port, e.g. '127.0.0.1:50000'",
                                 "default": "127.0.0.1:50000"
+                            },
+                            "logFile": {
+                                "type": "string",
+                                "description": "The path to the log file. This option is ignored if either the `server` or `runtimeArgs` is specified. If no location is specified, the behaviour depends on `--log-to-folder"
+                            },
+                            "logDir": {
+                                "type": "string",
+                                "description": "Enable logging to the default folder. This option is ignored if either the `logFile` or `runtimeArgs` is specified.`"
                             },
                             "consoleLogLevel": {
                                 "type": "string",
