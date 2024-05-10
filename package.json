@@ -305,12 +305,16 @@
                                         },
                                         "rttChannelFormats": {
                                             "type": "array",
+                                            "description": "RTT channel configuration. Unlisted active channels will be configured with `dataFormat=String', and 'showTimestamps=true'.",
                                             "items": {
                                                 "type": "object",
+                                                "required": [
+                                                    "channelNumber"
+                                                ],
                                                 "properties": {
                                                     "channelNumber": {
                                                         "type": "number",
-                                                        "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `dataFormat=String', and 'showTimestamps=false'."
+                                                        "description": "The channel number to which this data format applies."
                                                     },
                                                     "dataFormat": {
                                                         "type": "string",
@@ -343,12 +347,10 @@
                                                     },
                                                     "showTimestamps": {
                                                         "type": "boolean",
-                                                        "default": false,
                                                         "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
                                                     },
                                                     "showLocation": {
                                                         "type": "boolean",
-                                                        "default": true,
                                                         "description": "Enable the inclusion of Defmt location information in the RTT output for `dataFormat=Defmt`."
                                                     },
                                                     "defmtLogFormat": {
@@ -492,12 +494,16 @@
                                         },
                                         "rttChannelFormats": {
                                             "type": "array",
+                                            "description": "RTT channel configuration. Unlisted active channels will be configured with `dataFormat=String', and 'showTimestamps=true'.",
                                             "items": {
                                                 "type": "object",
+                                                "required": [
+                                                    "channelNumber"
+                                                ],
                                                 "properties": {
                                                     "channelNumber": {
                                                         "type": "number",
-                                                        "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `dataFormat=String', and 'showTimestamps=false'."
+                                                        "description": "The channel number to which this data format applies."
                                                     },
                                                     "dataFormat": {
                                                         "type": "string",
@@ -530,12 +536,10 @@
                                                     },
                                                     "showTimestamps": {
                                                         "type": "boolean",
-                                                        "default": false,
                                                         "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
                                                     },
                                                     "showLocation": {
                                                         "type": "boolean",
-                                                        "default": true,
                                                         "description": "Enable the inclusion of Defmt location information in the RTT output for `dataFormat=Defmt`."
                                                     },
                                                     "defmtLogFormat": {
