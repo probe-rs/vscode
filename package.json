@@ -296,7 +296,7 @@
                                         },
                                         "svdFile": {
                                             "type": "string",
-                                            "description": "The path (relative to `cwd` or absolute) to the CMCIS-SVD file for your target core"
+                                            "description": "The path (relative to `cwd` or absolute) to the CMSIS-SVD file for your target core"
                                         },
                                         "rttEnabled": {
                                             "type": "boolean",
@@ -327,7 +327,7 @@
                                                         "enumDescriptions": [
                                                             "String (text) format.",
                                                             "Binary Little Endian format.",
-                                                            "Deferred formatting (see: https://defmt.ferrous-systems.com)."
+                                                            "defmt (see: https://defmt.ferrous-systems.com)."
                                                         ],
                                                         "default": "String"
                                                     },
@@ -351,7 +351,7 @@
                                                     },
                                                     "showLocation": {
                                                         "type": "boolean",
-                                                        "description": "Enable the inclusion of Defmt location information in the RTT output for `dataFormat=Defmt`."
+                                                        "description": "Enable the inclusion of defmt location information in the RTT output for `dataFormat=Defmt`."
                                                     },
                                                     "defmtLogFormat": {
                                                         "type": "string",
@@ -485,7 +485,7 @@
                                         },
                                         "svdFile": {
                                             "type": "string",
-                                            "description": "The path (relative to `cwd` or absolute) to the CMCIS-SVD file for your target core"
+                                            "description": "The path (relative to `cwd` or absolute) to the CMSIS-SVD file for your target core"
                                         },
                                         "rttEnabled": {
                                             "type": "boolean",
@@ -516,7 +516,7 @@
                                                         "enumDescriptions": [
                                                             "String (text) format.",
                                                             "Binary Little Endian format.",
-                                                            "Deferred formatting (see: https://defmt.ferrous-systems.com)."
+                                                            "defmt (see: https://defmt.ferrous-systems.com)."
                                                         ],
                                                         "default": "String"
                                                     },
@@ -540,7 +540,7 @@
                                                     },
                                                     "showLocation": {
                                                         "type": "boolean",
-                                                        "description": "Enable the inclusion of Defmt location information in the RTT output for `dataFormat=Defmt`."
+                                                        "description": "Enable the inclusion of defmt location information in the RTT output for `dataFormat=Defmt`."
                                                     },
                                                     "defmtLogFormat": {
                                                         "type": "string",
