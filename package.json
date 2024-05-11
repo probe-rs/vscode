@@ -107,9 +107,10 @@
         "debuggers": [
             {
                 "type": "probe-rs-debug",
-                "label": "Debug adapter on top of probe-rs",
+                "label": "probe-rs Debugger",
                 "languages": [
-                    "rust"
+                    "rust",
+                    "c"
                 ],
                 "configurationAttributes": {
                     "launch": {
