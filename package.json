@@ -215,6 +215,7 @@
                             },
                             "flashingConfig": {
                                 "type": "object",
+                                "additionalProperties": false,
                                 "description": "These options are applied when flashing one or more `program_binary` files to the target memory.",
                                 "properties": {
                                     "flashingEnabled": {
@@ -239,6 +240,7 @@
                                     },
                                     "formatOptions": {
                                         "type": "object",
+                                        "additionalProperties": false,
                                         "properties": {
                                             "format": {
                                                 "type": "string",
@@ -282,6 +284,7 @@
                                 "description": "Each MCU core has a mandatory `programBinary` as well as several other optional properties.",
                                 "items": {
                                     "type": "object",
+                                    "additionalProperties": false,
                                     "required": [
                                         "programBinary"
                                     ],
@@ -471,6 +474,7 @@
                                 "description": "Each MCU core has a mandatory `programBinary` as well as several other optional properties.",
                                 "items": {
                                     "type": "object",
+                                    "additionalProperties": false,
                                     "properties": {
                                         "required": [
                                             "programBinary"
@@ -498,6 +502,7 @@
                                             "description": "RTT channel configuration. Unlisted active channels will be configured with `dataFormat=String', and 'showTimestamps=true'.",
                                             "items": {
                                                 "type": "object",
+                                                "additionalProperties": false,
                                                 "required": [
                                                     "channelNumber"
                                                 ],
