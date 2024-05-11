@@ -353,7 +353,7 @@
                                                         "type": "boolean",
                                                         "description": "Enable the inclusion of defmt location information in the RTT output for `dataFormat=Defmt`."
                                                     },
-                                                    "defmtLogFormat": {
+                                                    "logFormat": {
                                                         "type": "string",
                                                         "description": "The default format string to use for decoding defmt logs."
                                                     }
@@ -542,7 +542,7 @@
                                                         "type": "boolean",
                                                         "description": "Enable the inclusion of defmt location information in the RTT output for `dataFormat=Defmt`."
                                                     },
-                                                    "defmtLogFormat": {
+                                                    "logFormat": {
                                                         "type": "string",
                                                         "description": "The default format string to use for decoding defmt logs."
                                                     }
