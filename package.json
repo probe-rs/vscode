@@ -83,7 +83,8 @@
     },
     "main": "./dist/extension.js",
     "activationEvents": [
-        "onDebug"
+        "onDebug",
+        "onStartupFinished"
     ],
     "workspaceTrust": {
         "request": "never"
