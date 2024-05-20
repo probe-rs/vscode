@@ -22,21 +22,17 @@ import {
 export async function activate(context: vscode.ExtensionContext) {
     const descriptorFactory = new ProbeRSDebugAdapterServerDescriptorFactory();
     const configProvider = new ProbeRSConfigurationProvider();
+    const trackerFactory = new ProbeRsDebugAdapterTrackerFactory();
 
     context.subscriptions.push(
         vscode.debug.registerDebugAdapterDescriptorFactory('probe-rs-debug', descriptorFactory),
         vscode.debug.registerDebugConfigurationProvider('probe-rs-debug', configProvider),
+        vscode.debug.registerDebugAdapterTrackerFactory('probe-rs-debug', trackerFactory),
         vscode.debug.onDidReceiveDebugSessionCustomEvent(
             descriptorFactory.receivedCustomEvent.bind(descriptorFactory),
         ),
         vscode.debug.onDidTerminateDebugSession(descriptorFactory.dispose.bind(descriptorFactory)),
     );
-
-    // I cannot find a way to programmatically test for when VSCode is debugging the extension, versus when a user is using the extension to debug their own code, but the following code is useful in the former situation, so I will leave it here to be commented out by extension developers when needed.
-    // const trackerFactory = new ProbeRsDebugAdapterTrackerFactory();
-    // context.subscriptions.push(
-    // 	vscode.debug.registerDebugAdapterTrackerFactory('probe-rs-debug', trackerFactory),
-    // );
 }
 
 export function deactivate(context: vscode.ExtensionContext) {
@@ -48,10 +44,11 @@ const formatText = (text: string) => `\r${text.split(/(\r?\n)/g).join('\r')}\r`;
 
 // Constant for handling/filtering  console log messages.
 const enum ConsoleLogSources {
-    console = 'probe-rs-debug', // Identifies messages from the extension or debug adapter that must be sent to the Debug Console.
-    debug = 'DEBUG', // Identifies messages that contain detailed level debug information.
-    info = 'INFO', // Identifies messages that contain summary level of debug information.
     error = 'ERROR', // Identifies messages that contain error information.
+    warn = `WARN`, // Identifies messages that contain warning information.
+    info = 'INFO', // Identifies messages that contain summary level of debug information.
+    debug = 'DEBUG', // Identifies messages that contain detailed level debug information.
+    console = 'probe-rs-debug', // Identifies messages from the extension or debug adapter that must be sent to the Debug Console.
 }
 
 // This is just the default. It will be updated after the configuration has been resolved.
@@ -95,29 +92,30 @@ function logToConsole(consoleMessage: string, fromDebugger: boolean = false) {
     if (fromDebugger) {
         // STDERR messages of the `error` variant. These deserve to be shown as an error message in the UI also.
         // This filter might capture more than expected, but since RUST_LOG messages can take many formats, it seems that this is the safest/most inclusive.
-        if (consoleMessage.includes(ConsoleLogSources.error)) {
+        if (consoleMessage.startsWith(ConsoleLogSources.error)) {
+            vscode.debug.activeDebugConsole.appendLine(consoleMessage);
             vscode.window.showErrorMessage(consoleMessage);
         } else {
             // Any other messages that come directly from the debugger, are assumed to be relevant and should be logged to the console.
             vscode.debug.activeDebugConsole.appendLine(consoleMessage);
         }
-    } else if (consoleMessage.includes(ConsoleLogSources.console.toLowerCase())) {
+    } else if (consoleMessage.startsWith(ConsoleLogSources.console.toLowerCase())) {
         vscode.debug.activeDebugConsole.appendLine(consoleMessage);
     } else {
         switch (consoleLogLevel) {
             case ConsoleLogSources.debug: //  Log Info, Error AND Debug
                 if (
-                    consoleMessage.includes(ConsoleLogSources.console.toLowerCase()) ||
-                    consoleMessage.includes(ConsoleLogSources.error) ||
-                    consoleMessage.includes(ConsoleLogSources.debug)
+                    consoleMessage.startsWith(ConsoleLogSources.console.toLowerCase()) ||
+                    consoleMessage.startsWith(ConsoleLogSources.error) ||
+                    consoleMessage.startsWith(ConsoleLogSources.debug)
                 ) {
                     vscode.debug.activeDebugConsole.appendLine(consoleMessage);
                 }
                 break;
             default: // ONLY log console and error messages
                 if (
-                    consoleMessage.includes(ConsoleLogSources.console.toLowerCase()) ||
-                    consoleMessage.includes(ConsoleLogSources.error)
+                    consoleMessage.startsWith(ConsoleLogSources.console.toLowerCase()) ||
+                    consoleMessage.startsWith(ConsoleLogSources.error)
                 ) {
                     vscode.debug.activeDebugConsole.appendLine(consoleMessage);
                 }
@@ -240,7 +238,6 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                                 break;
                             default: //Replace newline characters with platform appropriate newline/carriage-return combinations
                                 channelWriteEmitter.fire(formatText(customEvent.body?.data));
-                                console.log(customEvent.body?.data);
                         }
                         break;
                     }
@@ -249,20 +246,28 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             case 'probe-rs-show-message':
                 switch (customEvent.body?.severity) {
                     case 'information':
+                        logToConsole(
+                            `${ConsoleLogSources.info}: ${ConsoleLogSources.console.toLowerCase()}: ${JSON.stringify(customEvent.body?.message, null, 2)}`,
+                            true,
+                        );
                         vscode.window.showInformationMessage(customEvent.body?.message);
                         break;
                     case 'warning':
-                        vscode.debug.activeDebugConsole.appendLine(customEvent.body?.message);
+                        logToConsole(
+                            `${ConsoleLogSources.warn}: ${ConsoleLogSources.console.toLowerCase()}: ${JSON.stringify(customEvent.body?.message, null, 2)}`,
+                            true,
+                        );
                         vscode.window.showWarningMessage(customEvent.body?.message);
                         break;
                     case 'error':
-                        vscode.debug.activeDebugConsole.appendLine(customEvent.body?.message);
+                        logToConsole(
+                            `${ConsoleLogSources.error}: ${ConsoleLogSources.console.toLowerCase()}: ${JSON.stringify(customEvent.body?.message, null, 2)}`,
+                            true,
+                        );
                         vscode.window.showErrorMessage(customEvent.body?.message);
                         break;
                     default:
-                        logToConsole(`${
-                            ConsoleLogSources.error
-                        }: ${ConsoleLogSources.console.toLowerCase()}: Received custom event with unknown message severity:
+                        logToConsole(`${ConsoleLogSources.error}: ${ConsoleLogSources.console.toLowerCase()}: Received custom event with unknown message severity:
 						${JSON.stringify(customEvent.body?.severity, null, 2)}`);
                 }
                 break;
@@ -288,15 +293,6 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
         if (session.configuration.hasOwnProperty('consoleLogLevel')) {
             consoleLogLevel = session.configuration.consoleLogLevel.toLowerCase();
         }
-
-        // Initiate either the 'attach' or 'launch' request.
-        logToConsole(
-            `${ConsoleLogSources.console.toLowerCase()}: Session: ${JSON.stringify(
-                session,
-                null,
-                2,
-            )}`,
-        );
 
         // When starting the debugger process, we have to wait for debuggerStatus to be set to `DebuggerStatus.running` before we continue
         enum DebuggerStatus {
@@ -333,9 +329,6 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                     debugServer[0],
                 )} on port ${JSON.stringify(debugServer[1])}`,
             );
-            logToConsole(
-                `${ConsoleLogSources.console.toLowerCase()}: Please note that debug server error messages will only be reported by the existing server console.`,
-            );
             debuggerStatus = DebuggerStatus.running; // If this is not true as expected, then the user will be notified later.
         } else {
             // Find and use the first available port and spawn a new probe-rs dap-server process
@@ -366,7 +359,6 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                 args.push(session.configuration.logFile);
             } else if (session.configuration.hasOwnProperty('logToFolder')) {
                 args.push('--log-to-folder');
-                args.push(session.configuration.logDir);
             }
 
             var options = {
@@ -392,11 +384,14 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             // The debug adapter process was launched by VSCode, and should terminate itself at the end of every debug session (when receiving `Disconnect` or `Terminate` Request from VSCode). The "false"(default) state of this option implies that the process was launched (and will be managed) by the user.
             args.push('--vscode');
 
-            // Launch the debugger ... launch errors will be reported in `onClose event`
+            // Launch the debugger ...
             logToConsole(
                 `${ConsoleLogSources.console.toLowerCase()}: Launching new server ${JSON.stringify(
                     command,
-                )} ${JSON.stringify(args)} ${JSON.stringify(options)}`,
+                )}`,
+            );
+            logToConsole(
+                `${ConsoleLogSources.debug.toLowerCase()}: Launch environment variables: ${JSON.stringify(args)} ${JSON.stringify(options)}`,
             );
 
             try {
@@ -426,12 +421,8 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                     // are not DebuggerStatus.console types, need special consideration,
                     // otherwise they will be lost.
                     debuggerStatus = DebuggerStatus.failed;
-                    logToConsole(
-                        `${JSON.stringify(ConsoleLogSources.error)}: ${JSON.stringify(
-                            data.toString(),
-                        )} `,
-                        true,
-                    );
+                    vscode.window.showErrorMessage(data.toString());
+                    logToConsole(data.toString(), true);
                     launchedDebugAdapter.kill();
                 }
             });
@@ -514,9 +505,8 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
     }
 
     dispose() {
-        logToConsole(
-            `${ConsoleLogSources.console.toLowerCase()}: Closing probe-rs debug extension`,
-        );
+        // Attempting to write to the console here will loose messages, as the debug session has already been terminated.
+        // Instead we use the `onWillEndSession` event of the `DebugAdapterTracker` to handle this.
     }
 }
 
@@ -528,7 +518,7 @@ function startDebugServer(
     var launchedDebugAdapter = childProcess.spawn(command, args, options);
 
     return new Promise<childProcess.ChildProcessWithoutNullStreams>((resolve, reject) => {
-        function errorListener(error) {
+        function errorListener(error: any) {
             reject(error);
         }
 
@@ -564,14 +554,11 @@ function defaultExecutable(): string {
     }
 }
 
-// @ts-ignore
 class ProbeRsDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory {
     createDebugAdapterTracker(
         session: vscode.DebugSession,
     ): vscode.ProviderResult<vscode.DebugAdapterTracker> {
-        logToConsole(`${ConsoleLogSources.debug}: Creating new debug adapter tracker`);
         const tracker = new ProbeRsDebugAdapterTracker();
-
         return tracker;
     }
 }
@@ -609,19 +596,23 @@ class ProbeRSConfigurationProvider implements DebugConfigurationProvider {
 }
 
 class ProbeRsDebugAdapterTracker implements DebugAdapterTracker {
-    onWillReceiveMessage(message: any) {
-        if (consoleLogLevel === toCamelCase(ConsoleLogSources.debug)) {
-            logToConsole(`${ConsoleLogSources.debug}: Received message from debug adapter:
-			${JSON.stringify(message, null, 2)}`);
-        }
+    onWillStopSession(): void {
+        logToConsole(`${ConsoleLogSources.console.toLowerCase()}: Closing probe-rs debug session`);
     }
 
-    onDidSendMessage(message: any) {
-        if (consoleLogLevel === toCamelCase(ConsoleLogSources.debug)) {
-            logToConsole(`${ConsoleLogSources.debug}: Sending message to debug adapter:
-			${JSON.stringify(message, null, 2)}`);
-        }
-    }
+    // Code to help debugging the connection between the extension and the probe-rs debug adapter.
+    // onWillReceiveMessage(message: any) {
+    //     if (consoleLogLevel === toCamelCase(ConsoleLogSources.debug)) {
+    //         logToConsole(`${ConsoleLogSources.debug}: Received message from debug adapter:
+    // 		${JSON.stringify(message, null, 2)}`);
+    //     }
+    // }
+    // onDidSendMessage(message: any) {
+    //     if (consoleLogLevel === toCamelCase(ConsoleLogSources.debug)) {
+    //         logToConsole(`${ConsoleLogSources.debug}: Sending message to debug adapter:
+    // 		${JSON.stringify(message, null, 2)}`);
+    //     }
+    // }
 
     onError(error: Error) {
         if (consoleLogLevel === toCamelCase(ConsoleLogSources.debug)) {
