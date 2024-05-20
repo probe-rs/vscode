@@ -18,6 +18,7 @@ import {
     ProviderResult,
     WorkspaceFolder,
 } from 'vscode';
+import {probeRsInstalled} from './utils';
 
 export async function activate(context: vscode.ExtensionContext) {
     const descriptorFactory = new ProbeRSDebugAdapterServerDescriptorFactory();
@@ -31,8 +32,21 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.debug.onDidReceiveDebugSessionCustomEvent(
             descriptorFactory.receivedCustomEvent.bind(descriptorFactory),
         ),
-        vscode.debug.onDidTerminateDebugSession(descriptorFactory.dispose.bind(descriptorFactory)),
     );
+
+    (async () => {
+        if (!(await probeRsInstalled())) {
+            const resp = await vscode.window.showInformationMessage(
+                "probe-rs doesn't seem to be installed. Do you want to install it automatically now?",
+                'Install',
+            );
+
+            if (resp === 'Install') {
+                await installProbeRs();
+            }
+        }
+    })();
+
 }
 
 export function deactivate(context: vscode.ExtensionContext) {
@@ -531,6 +545,78 @@ function startDebugServer(
         });
         launchedDebugAdapter.on('error', errorListener);
     });
+}
+
+/// Installs probe-rs if it is not present.
+function installProbeRs() {
+    let windows = process.platform === 'win32';
+    let done = false;
+
+    vscode.window.withProgress(
+        {
+            location: vscode.ProgressLocation.Window,
+            cancellable: false,
+            title: 'Installing probe-rs ...',
+        },
+        async (progress) => {
+            progress.report({increment: 0});
+
+            const launchedDebugAdapter = childProcess.exec(
+                windows
+                    ? `powershell.exe -encodedCommand ${Buffer.from(
+                          'irm https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-installer.ps1 | iex',
+                          'utf16le',
+                      ).toString('base64')}`
+                    : "curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-installer.sh | sh",
+                (error, stdout, stderr) => {
+                    if (error) {
+                        console.error(`exec error: ${error}`);
+                        done = true;
+                        return;
+                    }
+                    console.log(`stdout: ${stdout}`);
+                    console.log(`stderr: ${stderr}`);
+                },
+            );
+
+            const errorListener = (error: Error) => {
+                vscode.window.showInformationMessage(
+                    'Installation failed: ${err.message}. Check the logs for more info.',
+                    'Ok',
+                );
+                console.error(error);
+                done = true;
+            };
+
+            const exitListener = (code: number | null, signal: NodeJS.Signals | null) => {
+                let message;
+                if (code === 0) {
+                    message = 'Installation successful.';
+                } else if (signal) {
+                    message = 'Installation aborted.';
+                } else {
+                    message =
+                        'Installation failed. Go to https://probe.rs to check out the setup and troubleshooting instructions.';
+                }
+                console.error(message);
+                vscode.window.showInformationMessage(message, 'Ok');
+                done = true;
+            };
+
+            launchedDebugAdapter.on('error', errorListener);
+            launchedDebugAdapter.on('exit', exitListener);
+
+            const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+            while (!done) {
+                await delay(100);
+            }
+
+            launchedDebugAdapter.removeListener('error', errorListener);
+            launchedDebugAdapter.removeListener('exit', exitListener);
+
+            progress.report({increment: 100});
+        },
+    );
 }
 
 // Get the name of the debugger executable
