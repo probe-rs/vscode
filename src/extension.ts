@@ -73,15 +73,11 @@ function handleExit(code: number | null, signal: string | null) {
         '\tPlease review all the error messages, including those in the "Debug Console" window.';
     if (code) {
         vscode.window.showErrorMessage(
-            `${
-                ConsoleLogSources.error
-            }: ${ConsoleLogSources.console.toLowerCase()} exited with an unexpected code: ${code} ${actionHint}`,
+            `${ConsoleLogSources.error}: ${ConsoleLogSources.console} exited with an unexpected code: ${code} ${actionHint}`,
         );
     } else if (signal) {
         vscode.window.showErrorMessage(
-            `${
-                ConsoleLogSources.error
-            }: ${ConsoleLogSources.console.toLowerCase()} exited with signal: ${signal} ${actionHint}`,
+            `${ConsoleLogSources.error}: ${ConsoleLogSources.console} exited with signal: ${signal} ${actionHint}`,
         );
     }
 }
@@ -97,9 +93,9 @@ function toCamelCase(str: string) {
 }
 
 // Messages to be sent to the debug session's console.
-// Any local (generated directly by this extension) messages MUST start with ConsoleLogLevels.error, or ConsoleLogSources.console.toLowerCase(), or `DEBUG`.
-// Any messages that start with ConsoleLogLevels.error or ConsoleLogSources.console.toLowerCase() will always be logged.
-// Any messages that come from the ConsoleLogSources.console.toLowerCase() STDERR will always be logged.
+// Any local (generated directly by this extension) messages MUST start with ConsoleLogLevels.error, or ConsoleLogSources.console, or `DEBUG`.
+// Any messages that start with ConsoleLogLevels.error or ConsoleLogSources.console will always be logged.
+// Any messages that come from the ConsoleLogSources.console STDERR will always be logged.
 function logToConsole(consoleMessage: string, fromDebugger: boolean = false) {
     console.log(consoleMessage); // During VSCode extension development, this will also log to the local debug console
     if (fromDebugger) {
@@ -112,13 +108,13 @@ function logToConsole(consoleMessage: string, fromDebugger: boolean = false) {
             // Any other messages that come directly from the debugger, are assumed to be relevant and should be logged to the console.
             vscode.debug.activeDebugConsole.appendLine(consoleMessage);
         }
-    } else if (consoleMessage.startsWith(ConsoleLogSources.console.toLowerCase())) {
+    } else if (consoleMessage.startsWith(ConsoleLogSources.console)) {
         vscode.debug.activeDebugConsole.appendLine(consoleMessage);
     } else {
         switch (consoleLogLevel) {
             case ConsoleLogSources.debug: //  Log Info, Error AND Debug
                 if (
-                    consoleMessage.startsWith(ConsoleLogSources.console.toLowerCase()) ||
+                    consoleMessage.startsWith(ConsoleLogSources.console) ||
                     consoleMessage.startsWith(ConsoleLogSources.error) ||
                     consoleMessage.startsWith(ConsoleLogSources.debug)
                 ) {
@@ -127,7 +123,7 @@ function logToConsole(consoleMessage: string, fromDebugger: boolean = false) {
                 break;
             default: // ONLY log console and error messages
                 if (
-                    consoleMessage.startsWith(ConsoleLogSources.console.toLowerCase()) ||
+                    consoleMessage.startsWith(ConsoleLogSources.console) ||
                     consoleMessage.startsWith(ConsoleLogSources.error)
                 ) {
                     vscode.debug.activeDebugConsole.appendLine(consoleMessage);
@@ -158,7 +154,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                         .customRequest('rttWindowOpened', {channelNumber, windowIsOpen})
                         .then((response) => {
                             logToConsole(
-                                `${ConsoleLogSources.console.toLowerCase()}: RTT Window opened, and ready to receive RTT data on channel ${JSON.stringify(
+                                `${ConsoleLogSources.console}: RTT Window opened, and ready to receive RTT data on channel ${JSON.stringify(
                                     channelNumber,
                                     null,
                                     2,
@@ -172,7 +168,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                         .customRequest('rttWindowOpened', {channelNumber, windowIsOpen})
                         .then((response) => {
                             logToConsole(
-                                `${ConsoleLogSources.console.toLowerCase()}: RTT Window closed, and can no longer receive RTT data on channel ${JSON.stringify(
+                                `${ConsoleLogSources.console}: RTT Window closed, and can no longer receive RTT data on channel ${JSON.stringify(
                                     channelNumber,
                                     null,
                                     2,
@@ -193,7 +189,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                         .customRequest('rttWindowOpened', {channelNumber, windowIsOpen})
                         .then((response) => {
                             logToConsole(
-                                `${ConsoleLogSources.console.toLowerCase()}: RTT Window reused, and ready to receive RTT data on channel ${JSON.stringify(
+                                `${ConsoleLogSources.console}: RTT Window reused, and ready to receive RTT data on channel ${JSON.stringify(
                                     channelNumber,
                                     null,
                                     2,
@@ -217,7 +213,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                 }
                 channelTerminal = vscode.window.createTerminal(channelTerminalConfig);
                 vscode.debug.activeDebugConsole.appendLine(
-                    `${ConsoleLogSources.console.toLowerCase()}: Opened a new RTT Terminal window named: ${channelName}`,
+                    `${ConsoleLogSources.console}: Opened a new RTT Terminal window named: ${channelName}`,
                 );
                 this.rttTerminals.push([
                     +channelNumber,
@@ -260,27 +256,27 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                 switch (customEvent.body?.severity) {
                     case 'information':
                         logToConsole(
-                            `${ConsoleLogSources.info}: ${ConsoleLogSources.console.toLowerCase()}: ${JSON.stringify(customEvent.body?.message, null, 2)}`,
+                            `${ConsoleLogSources.info}: ${ConsoleLogSources.console}: ${JSON.stringify(customEvent.body?.message, null, 2)}`,
                             true,
                         );
                         vscode.window.showInformationMessage(customEvent.body?.message);
                         break;
                     case 'warning':
                         logToConsole(
-                            `${ConsoleLogSources.warn}: ${ConsoleLogSources.console.toLowerCase()}: ${JSON.stringify(customEvent.body?.message, null, 2)}`,
+                            `${ConsoleLogSources.warn}: ${ConsoleLogSources.console}: ${JSON.stringify(customEvent.body?.message, null, 2)}`,
                             true,
                         );
                         vscode.window.showWarningMessage(customEvent.body?.message);
                         break;
                     case 'error':
                         logToConsole(
-                            `${ConsoleLogSources.error}: ${ConsoleLogSources.console.toLowerCase()}: ${JSON.stringify(customEvent.body?.message, null, 2)}`,
+                            `${ConsoleLogSources.error}: ${ConsoleLogSources.console}: ${JSON.stringify(customEvent.body?.message, null, 2)}`,
                             true,
                         );
                         vscode.window.showErrorMessage(customEvent.body?.message);
                         break;
                     default:
-                        logToConsole(`${ConsoleLogSources.error}: ${ConsoleLogSources.console.toLowerCase()}: Received custom event with unknown message severity:
+                        logToConsole(`${ConsoleLogSources.error}: ${ConsoleLogSources.console}: Received custom event with unknown message severity:
 						${JSON.stringify(customEvent.body?.severity, null, 2)}`);
                 }
                 break;
@@ -290,7 +286,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             default:
                 logToConsole(`${
                     ConsoleLogSources.error
-                }: ${ConsoleLogSources.console.toLowerCase()}: Received unknown custom event:
+                }: ${ConsoleLogSources.console}: Received unknown custom event:
 				${JSON.stringify(customEvent, null, 2)}`);
                 break;
         }
@@ -323,7 +319,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             logToConsole(
                 `${
                     ConsoleLogSources.error
-                }: ${ConsoleLogSources.console.toLowerCase()}: The 'cwd' folder does not exist: ${JSON.stringify(
+                }: ${ConsoleLogSources.console}: The 'cwd' folder does not exist: ${JSON.stringify(
                     session.configuration.cwd,
                     null,
                     2,
@@ -338,7 +334,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
         if (session.configuration.hasOwnProperty('server')) {
             debugServer = new String(session.configuration.server).split(':', 2);
             logToConsole(
-                `${ConsoleLogSources.console.toLowerCase()}: Debug using existing server" ${JSON.stringify(
+                `${ConsoleLogSources.console}: Debug using existing server" ${JSON.stringify(
                     debugServer[0],
                 )} on port ${JSON.stringify(debugServer[1])}`,
             );
@@ -399,9 +395,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 
             // Launch the debugger ...
             logToConsole(
-                `${ConsoleLogSources.console.toLowerCase()}: Launching new server ${JSON.stringify(
-                    command,
-                )}`,
+                `${ConsoleLogSources.console}: Launching new server ${JSON.stringify(command)}`,
             );
             logToConsole(
                 `${ConsoleLogSources.debug.toLowerCase()}: Launch environment variables: ${JSON.stringify(args)} ${JSON.stringify(options)}`,
@@ -682,7 +676,7 @@ class ProbeRSConfigurationProvider implements DebugConfigurationProvider {
 
 class ProbeRsDebugAdapterTracker implements DebugAdapterTracker {
     onWillStopSession(): void {
-        logToConsole(`${ConsoleLogSources.console.toLowerCase()}: Closing probe-rs debug session`);
+        logToConsole(`${ConsoleLogSources.console}: Closing probe-rs debug session`);
     }
 
     // Code to help debugging the connection between the extension and the probe-rs debug adapter.
