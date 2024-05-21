@@ -128,7 +128,7 @@
                                 "description": "The path to the log file. This option is ignored if either the `server` or `runtimeArgs` is specified. If no location is specified, the behaviour depends on `--log-to-folder"
                             },
                             "logToFolder": {
-                                "type": "string",
+                                "type": "boolean",
                                 "description": "Enable logging to the default folder. This option is ignored if either the `logFile` or `runtimeArgs` is specified.`"
                             },
                             "consoleLogLevel": {
@@ -361,7 +361,7 @@
                                 "description": "The path to the log file. This option is ignored if either the `server` or `runtimeArgs` is specified. If no location is specified, the behaviour depends on `--log-to-folder"
                             },
                             "logToFolder": {
-                                "type": "string",
+                                "type": "boolean",
                                 "description": "Enable logging to the default folder. This option is ignored if either the `logFile` or `runtimeArgs` is specified.`"
                             },
                             "consoleLogLevel": {
