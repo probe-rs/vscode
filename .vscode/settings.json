@@ -11,5 +11,8 @@
     // Enable prettier format on save
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
-    "editor.formatOnPaste": false
+    "editor.formatOnPaste": false,
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    }
 }

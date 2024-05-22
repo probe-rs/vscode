@@ -107,9 +107,10 @@
         "debuggers": [
             {
                 "type": "probe-rs-debug",
-                "label": "Debug adapter on top of probe-rs",
+                "label": "probe-rs Debugger",
                 "languages": [
-                    "rust"
+                    "rust",
+                    "c"
                 ],
                 "configurationAttributes": {
                     "launch": {
@@ -214,6 +215,7 @@
                             },
                             "flashingConfig": {
                                 "type": "object",
+                                "additionalProperties": false,
                                 "description": "These options are applied when flashing one or more `program_binary` files to the target memory.",
                                 "properties": {
                                     "flashingEnabled": {
@@ -238,6 +240,7 @@
                                     },
                                     "formatOptions": {
                                         "type": "object",
+                                        "additionalProperties": false,
                                         "properties": {
                                             "binaryFormat": {
                                                 "type": "string",
@@ -281,6 +284,7 @@
                                 "description": "Each MCU core has a mandatory `programBinary` as well as several other optional properties.",
                                 "items": {
                                     "type": "object",
+                                    "additionalProperties": false,
                                     "required": [
                                         "programBinary"
                                     ],
@@ -296,7 +300,7 @@
                                         },
                                         "svdFile": {
                                             "type": "string",
-                                            "description": "The path (relative to `cwd` or absolute) to the CMCIS-SVD file for your target core"
+                                            "description": "The path (relative to `cwd` or absolute) to the CMSIS-SVD file for your target core"
                                         },
                                         "rttEnabled": {
                                             "type": "boolean",
@@ -305,12 +309,16 @@
                                         },
                                         "rttChannelFormats": {
                                             "type": "array",
+                                            "description": "RTT channel configuration. Unlisted active channels will be configured with `dataFormat=String', and 'showTimestamps=true'.",
                                             "items": {
                                                 "type": "object",
+                                                "required": [
+                                                    "channelNumber"
+                                                ],
                                                 "properties": {
                                                     "channelNumber": {
                                                         "type": "number",
-                                                        "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `dataFormat=String', and 'showTimestamps=false'."
+                                                        "description": "The channel number to which this data format applies."
                                                     },
                                                     "dataFormat": {
                                                         "type": "string",
@@ -323,19 +331,35 @@
                                                         "enumDescriptions": [
                                                             "String (text) format.",
                                                             "Binary Little Endian format.",
-                                                            "Deferred formatting (see: https://defmt.ferrous-systems.com)."
+                                                            "defmt (see: https://defmt.ferrous-systems.com)."
                                                         ],
                                                         "default": "String"
                                                     },
+                                                    "mode": {
+                                                        "type": "string",
+                                                        "description": "RTT operating mode.",
+                                                        "enum": [
+                                                            "NoBlockSkip",
+                                                            "NoBlockTrim",
+                                                            "BlockIfFull"
+                                                        ],
+                                                        "enumDescriptions": [
+                                                            "The target will add data to the channel only if it fits completely, otherwise it will skip the data.",
+                                                            "The target will add as much data to the channel as possible, without blocking.",
+                                                            "The target will block until there is enough space in the channel to add the data."
+                                                        ]
+                                                    },
                                                     "showTimestamps": {
                                                         "type": "boolean",
-                                                        "default": false,
                                                         "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
                                                     },
                                                     "showLocation": {
                                                         "type": "boolean",
-                                                        "default": true,
-                                                        "description": "Enable the inclusion of Defmt location information in the RTT output for `dataFormat=Defmt`."
+                                                        "description": "Enable the inclusion of defmt location information in the RTT output for `dataFormat=Defmt`."
+                                                    },
+                                                    "logFormat": {
+                                                        "type": "string",
+                                                        "description": "The default format string to use for decoding defmt logs."
                                                     }
                                                 }
                                             }
@@ -450,6 +474,7 @@
                                 "description": "Each MCU core has a mandatory `programBinary` as well as several other optional properties.",
                                 "items": {
                                     "type": "object",
+                                    "additionalProperties": false,
                                     "properties": {
                                         "required": [
                                             "programBinary"
@@ -465,7 +490,7 @@
                                         },
                                         "svdFile": {
                                             "type": "string",
-                                            "description": "The path (relative to `cwd` or absolute) to the CMCIS-SVD file for your target core"
+                                            "description": "The path (relative to `cwd` or absolute) to the CMSIS-SVD file for your target core"
                                         },
                                         "rttEnabled": {
                                             "type": "boolean",
@@ -474,12 +499,17 @@
                                         },
                                         "rttChannelFormats": {
                                             "type": "array",
+                                            "description": "RTT channel configuration. Unlisted active channels will be configured with `dataFormat=String', and 'showTimestamps=true'.",
                                             "items": {
                                                 "type": "object",
+                                                "additionalProperties": false,
+                                                "required": [
+                                                    "channelNumber"
+                                                ],
                                                 "properties": {
                                                     "channelNumber": {
                                                         "type": "number",
-                                                        "description": "The channel number to which this data format applies. If any active channel numbers are omitted, we will assume the default will be `dataFormat=String', and 'showTimestamps=false'."
+                                                        "description": "The channel number to which this data format applies."
                                                     },
                                                     "dataFormat": {
                                                         "type": "string",
@@ -492,19 +522,35 @@
                                                         "enumDescriptions": [
                                                             "String (text) format.",
                                                             "Binary Little Endian format.",
-                                                            "Deferred formatting (see: https://defmt.ferrous-systems.com)."
+                                                            "defmt (see: https://defmt.ferrous-systems.com)."
                                                         ],
                                                         "default": "String"
                                                     },
+                                                    "mode": {
+                                                        "type": "string",
+                                                        "description": "RTT operating mode.",
+                                                        "enum": [
+                                                            "NoBlockSkip",
+                                                            "NoBlockTrim",
+                                                            "BlockIfFull"
+                                                        ],
+                                                        "enumDescriptions": [
+                                                            "The target will add data to the channel only if it fits completely, otherwise it will skip the data.",
+                                                            "The target will add as much data to the channel as possible, without blocking.",
+                                                            "The target will block until there is enough space in the channel to add the data."
+                                                        ]
+                                                    },
                                                     "showTimestamps": {
                                                         "type": "boolean",
-                                                        "default": false,
                                                         "description": "Enable the inclusion of timestamps in the RTT output for `dataFormat=String`."
                                                     },
                                                     "showLocation": {
                                                         "type": "boolean",
-                                                        "default": true,
-                                                        "description": "Enable the inclusion of Defmt location information in the RTT output for `dataFormat=Defmt`."
+                                                        "description": "Enable the inclusion of defmt location information in the RTT output for `dataFormat=Defmt`."
+                                                    },
+                                                    "logFormat": {
+                                                        "type": "string",
+                                                        "description": "The default format string to use for decoding defmt logs."
                                                     }
                                                 }
                                             }
