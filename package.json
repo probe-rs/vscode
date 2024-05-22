@@ -242,7 +242,7 @@
                                         "type": "object",
                                         "additionalProperties": false,
                                         "properties": {
-                                            "format": {
+                                            "binaryFormat": {
                                                 "type": "string",
                                                 "description": "One of the supported binary formats probe-rs uses for flashing the target binary.",
                                                 "enum": [
