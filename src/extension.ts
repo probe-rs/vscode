@@ -557,10 +557,10 @@ function installProbeRs() {
             const launchedDebugAdapter = childProcess.exec(
                 windows
                     ? `powershell.exe -encodedCommand ${Buffer.from(
-                          'irm https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-installer.ps1 | iex',
+                          'irm https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.ps1 | iex',
                           'utf16le',
                       ).toString('base64')}`
-                    : "curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-installer.sh | sh",
+                    : "curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh",
                 (error, stdout, stderr) => {
                     if (error) {
                         console.error(`exec error: ${error}`);
