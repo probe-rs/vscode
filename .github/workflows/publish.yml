@@ -23,9 +23,11 @@ jobs:
         with:
           node-version: '18'
       - run: npm install  --frozen-lockfile
-      - run: npm install -g vsce
+      - run: npm install -g vsce ovsx
       - run: npm run pretest
       - name: Finally, publish to the marketplace.
         run: npm run publish
         env:
           VSCE_PAT: ${{ secrets.VS_MARKETPLACE_TOKEN }}
+      - name: Finally, publish to the OpenVSX marketplace.
+        run: ovsx publish --pat ${{ secrets.OPEN_VSX_MARKETPLACE_TOKEN }}
