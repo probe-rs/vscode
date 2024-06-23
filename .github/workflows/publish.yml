@@ -6,10 +6,15 @@
 # else it will complete this job, and silently fail to publish an update on the marketplace.
 
 name: Publish the VS Code Extension
+#on:
+#  pull_request:
+#    types:
+#      - closed
+# for testing only
 on:
+  push:
+    branches: [master, staging, trying]
   pull_request:
-    types:
-      - closed
 
 jobs:
   if_merged:
