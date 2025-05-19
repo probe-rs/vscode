@@ -363,6 +363,16 @@
                                                     }
                                                 }
                                             }
+                                        },
+                                        "catchReset": {
+                                            "type": "boolean",
+                                            "description": "If true and supported by the target, the debugger will stop when the target resets.",
+                                            "default": false
+                                        },
+                                        "catchHardfault": {
+                                            "type": "boolean",
+                                            "description": "If true and supported by the target, the debugger will stop when the target generates a hard fault.",
+                                            "default": false
                                         }
                                     }
                                 }
@@ -554,6 +564,16 @@
                                                     }
                                                 }
                                             }
+                                        },
+                                        "catchReset": {
+                                            "type": "boolean",
+                                            "description": "If true and supported by the target, the debugger will stop when the target resets.",
+                                            "default": false
+                                        },
+                                        "catchHardfault": {
+                                            "type": "boolean",
+                                            "description": "If true and supported by the target, the debugger will stop when the target generates a hard fault.",
+                                            "default": false
                                         }
                                     }
                                 }
