@@ -1,7 +1,7 @@
 {
     "name": "probe-rs-debugger",
     "displayName": "Debugger for probe-rs",
-    "version": "0.24.2",
+    "version": "0.25.0",
     "publisher": "probe-rs",
     "description": "probe-rs Debug Adapter for VS Code.",
     "author": {
@@ -226,6 +226,16 @@
                                     "haltAfterReset": {
                                         "type": "boolean",
                                         "description": "Halt all cores on the target after reset.",
+                                        "default": false
+                                    },
+                                    "verifyBeforeFlashing": {
+                                        "type": "boolean",
+                                        "description": "Verify chip contents before erasing, to prevent unnecessary reprogramming.",
+                                        "default": false
+                                    },
+                                    "verifyAfterFlashing": {
+                                        "type": "boolean",
+                                        "description": "Verify chip contents after flashing.",
                                         "default": false
                                     },
                                     "fullChipErase": {
@@ -591,6 +601,8 @@
                         "chip": "STM32H745ZITx",
                         "flashingConfig": {
                             "flashingEnabled": true,
+                            "verifyBeforeFlashing": true,
+                            "verifyAfterFlashing": true,
                             "haltAfterReset": true
                         },
                         "coreConfigs": [
@@ -614,6 +626,8 @@
                             "chip": "STM32H745ZITx",
                             "flashingConfig": {
                                 "flashingEnabled": true,
+                                "verifyBeforeFlashing": true,
+                                "verifyAfterFlashing": true,
                                 "haltAfterReset": true
                             },
                             "coreConfigs": [
