@@ -84,12 +84,183 @@
     "main": "./dist/extension.js",
     "activationEvents": [
         "onDebug",
-        "onStartupFinished"
+        "onStartupFinished",
+        "onView:probe-rs.liveWatch"
     ],
     "workspaceTrust": {
         "request": "never"
     },
     "contributes": {
+        "views": {
+            "debug": [
+                {
+                    "id": "probe-rs.liveWatch",
+                    "name": "Live Watch",
+                    "when": "debugSessionType == 'probe-rs-debug'"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "probe-rs.liveWatch.addVariable",
+                "title": "Add Variable",
+                "icon": "$(add)"
+            },
+            {
+                "command": "probe-rs.liveWatch.removeVariable",
+                "title": "Remove Variable",
+                "icon": "$(remove)"
+            },
+            {
+                "command": "probe-rs.liveWatch.updateNow",
+                "title": "Update Values Now",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "probe-rs.liveWatch.editVariableValue",
+                "title": "Edit Value",
+                "icon": "$(edit)"
+            },
+            {
+                "command": "probe-rs.liveWatch.addToGroup",
+                "title": "Add to Group",
+                "icon": "$(folder)"
+            },
+            {
+                "command": "probe-rs.liveWatch.createGroup",
+                "title": "Create Group",
+                "icon": "$(new-folder)"
+            },
+            {
+                "command": "probe-rs.liveWatch.showHistory",
+                "title": "Show History",
+                "icon": "$(history)"
+            },
+            {
+                "command": "probe-rs.liveWatch.addConditionalWatch",
+                "title": "Add Conditional Watch",
+                "icon": "$(watch)"
+            },
+            {
+                "command": "probe-rs.liveWatch.removeConditionalWatch",
+                "title": "Remove Conditional Watch",
+                "icon": "$(close)"
+            },
+            {
+                "command": "probe-rs.liveWatch.editConditionalWatch",
+                "title": "Edit Conditional Watch",
+                "icon": "$(edit)"
+            },
+            {
+                "command": "probe-rs.liveWatch.changeDisplayFormat",
+                "title": "Change Display Format",
+                "icon": "$(symbol-numeric)"
+            },
+            {
+                "command": "probe-rs.liveWatch.quickEdit",
+                "title": "Quick Edit Value",
+                "icon": "$(edit)"
+            },
+            {
+                "command": "probe-rs.liveWatch.saveVariables",
+                "title": "Save Variables",
+                "icon": "$(save)"
+            },
+            {
+                "command": "probe-rs.liveWatch.loadVariables",
+                "title": "Load Variables",
+                "icon": "$(open-preview)"
+            },
+            {
+                "command": "probe-rs.liveWatch.clearSavedVariables",
+                "title": "Clear Saved Variables",
+                "icon": "$(clear-all)"
+            },
+            {
+                "command": "probe-rs.liveWatch.showChart",
+                "title": "Show Chart",
+                "icon": "$(graph)"
+            }
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "probe-rs.liveWatch.addVariable",
+                    "when": "view == probe-rs.liveWatch",
+                    "group": "navigation"
+                },
+                {
+                    "command": "probe-rs.liveWatch.updateNow",
+                    "when": "view == probe-rs.liveWatch",
+                    "group": "navigation"
+                },
+                {
+                    "command": "probe-rs.liveWatch.createGroup",
+                    "when": "view == probe-rs.liveWatch",
+                    "group": "navigation"
+                },
+                {
+                    "command": "probe-rs.liveWatch.loadVariables",
+                    "when": "view == probe-rs.liveWatch",
+                    "group": "navigation"
+                },
+                {
+                    "command": "probe-rs.liveWatch.saveVariables",
+                    "when": "view == probe-rs.liveWatch",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "probe-rs.liveWatch.removeVariable",
+                    "when": "view == probe-rs.liveWatch && viewItem == liveWatchVariable",
+                    "group": "inline"
+                },
+                {
+                    "command": "probe-rs.liveWatch.editVariableValue",
+                    "when": "view == probe-rs.liveWatch && viewItem == liveWatchVariable",
+                    "group": "inline"
+                },
+                {
+                    "command": "probe-rs.liveWatch.addToGroup",
+                    "when": "view == probe-rs.liveWatch && viewItem == liveWatchVariable",
+                    "group": "inline"
+                },
+                {
+                    "command": "probe-rs.liveWatch.showHistory",
+                    "when": "view == probe-rs.liveWatch && viewItem == liveWatchVariable",
+                    "group": "inline"
+                },
+                {
+                    "command": "probe-rs.liveWatch.addConditionalWatch",
+                    "when": "view == probe-rs.liveWatch && viewItem == liveWatchVariable",
+                    "group": "inline"
+                },
+                {
+                    "command": "probe-rs.liveWatch.changeDisplayFormat",
+                    "when": "view == probe-rs.liveWatch && viewItem == liveWatchVariable",
+                    "group": "inline"
+                },
+                {
+                    "command": "probe-rs.liveWatch.showChart",
+                    "when": "view == probe-rs.liveWatch && viewItem == liveWatchVariable",
+                    "group": "inline"
+                }
+            ],
+            "commandPalette": [
+                {
+                    "command": "probe-rs.liveWatch.quickEdit",
+                    "when": "false"
+                }
+            ]
+        },
+        "keybindings": [
+            {
+                "command": "probe-rs.liveWatch.quickEdit",
+                "key": "F2",
+                "when": "view == probe-rs.liveWatch && focusedView == probe-rs.liveWatch"
+            }
+        ],
         "breakpoints": [
             {
                 "language": "rust"
@@ -649,6 +820,39 @@
                         "type": "string",
                         "markdownDescription": "Path to the `probe-rs` executable. If this is not set, the extension requires that `probe-rs` (or `probe-rs.exe`) is available on the system `PATH`.\n\nNote: Setting `runtimeExecutable` in 'launch.json' take precedence over this setting.",
                         "scope": "machine-overridable"
+                    },
+                    "probe-rs-debugger.liveWatchUpdateInterval": {
+                        "type": "number",
+                        "default": 1000,
+                        "minimum": 100,
+                        "maximum": 10000,
+                        "description": "Update interval (in milliseconds) for Live Watch variables. Minimum 100ms, maximum 10000ms."
+                    },
+                    "probe-rs-debugger.liveWatchKeybindings": {
+                        "type": "object",
+                        "default": {
+                            "quickEdit": "F2",
+                            "showChart": "Ctrl+Shift+H",
+                            "showHistory": "Ctrl+Shift+Y"
+                        },
+                        "description": "Custom keyboard shortcuts for Live Watch functionality.",
+                        "properties": {
+                            "quickEdit": {
+                                "type": "string",
+                                "default": "F2",
+                                "description": "Keybinding for quick editing a variable value."
+                            },
+                            "showChart": {
+                                "type": "string",
+                                "default": "Ctrl+Shift+H",
+                                "description": "Keybinding for showing variable chart."
+                            },
+                            "showHistory": {
+                                "type": "string",
+                                "default": "Ctrl+Shift+Y",
+                                "description": "Keybinding for showing variable history."
+                            }
+                        }
                     }
                 }
             }

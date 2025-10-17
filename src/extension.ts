@@ -19,11 +19,18 @@ import {
     WorkspaceFolder,
 } from 'vscode';
 import {probeRsInstalled} from './utils';
+import { LiveWatchProvider } from './treeViews/liveWatchProvider';
+import { LiveWatchManager } from './treeViews/liveWatchManager';
+import { PersistenceManager } from './treeViews/persistenceManager';
 
 export async function activate(context: vscode.ExtensionContext) {
     const descriptorFactory = new ProbeRSDebugAdapterServerDescriptorFactory();
     const configProvider = new ProbeRSConfigurationProvider();
     const trackerFactory = new ProbeRsDebugAdapterTrackerFactory();
+    
+    // Initialize Live Watch functionality
+    const liveWatchProvider = new LiveWatchProvider();
+    const liveWatchManager = new LiveWatchManager(context, liveWatchProvider);
 
     context.subscriptions.push(
         vscode.debug.registerDebugAdapterDescriptorFactory('probe-rs-debug', descriptorFactory),
@@ -32,7 +39,11 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.debug.onDidReceiveDebugSessionCustomEvent(
             descriptorFactory.receivedCustomEvent.bind(descriptorFactory),
         ),
+        liveWatchManager
     );
+
+    // Load saved variables when extension starts
+    await PersistenceManager.loadVariables(liveWatchProvider, context);
 
     (async () => {
         if (!(await probeRsInstalled())) {
@@ -48,8 +59,8 @@ export async function activate(context: vscode.ExtensionContext) {
     })();
 }
 
-export function deactivate(context: vscode.ExtensionContext) {
-    return undefined;
+export function deactivate() {
+    // Nothing to clean up for now
 }
 
 // Cleanup inconsistent line breaks in String data
