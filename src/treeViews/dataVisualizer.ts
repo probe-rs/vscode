@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LiveWatchVariable } from './liveWatchProvider';
+import {LiveWatchVariable} from './liveWatchProvider';
 
 export class DataVisualizer {
     static showChart(variable: LiveWatchVariable) {
@@ -14,14 +14,14 @@ export class DataVisualizer {
             vscode.ViewColumn.One,
             {
                 enableScripts: true,
-                retainContextWhenHidden: true
-            }
+                retainContextWhenHidden: true,
+            },
         );
 
         const history = variable.getHistory();
         const labels = history.map((_, index) => index.toString());
-        const values = history.map(entry => parseFloat(entry.value) || 0);
-        
+        const values = history.map((entry) => parseFloat(entry.value) || 0);
+
         // Create HTML for chart visualization
         panel.webview.html = this.getWebviewContent(variable.label, labels, values);
     }
@@ -71,7 +71,7 @@ export class DataVisualizer {
                     const chart = new Chart(ctx, {
                         type: 'line',
                         data: {
-                            labels: [${labels.map(l => `"${l}"`).join(',')}],
+                            labels: [${labels.map((l) => `"${l}"`).join(',')}],
                             datasets: [{
                                 label: 'Value',
                                 data: [${values.join(',')}],
@@ -130,17 +130,17 @@ export class DataVisualizer {
             </html>
         `;
     }
-    
+
     static async updateChart(panel: vscode.WebviewPanel, variable: LiveWatchVariable) {
         const history = variable.getHistory();
         const labels = history.map((_, index) => index.toString());
-        const values = history.map(entry => parseFloat(entry.value) || 0);
-        
+        const values = history.map((entry) => parseFloat(entry.value) || 0);
+
         // Send update message to webview
         panel.webview.postMessage({
             command: 'updateData',
             labels: labels,
-            values: values
+            values: values,
         });
     }
 }

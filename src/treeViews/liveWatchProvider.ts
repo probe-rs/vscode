@@ -1,12 +1,18 @@
 import * as vscode from 'vscode';
-import { VariableGroup, VariableHistory } from './liveWatchModels';
-import { ConditionalWatch } from './conditionalWatch';
-import { DataTypeFormatter } from './dataTypeFormatter';
-import { PerformanceOptimizer } from './performanceOptimizer';
+import {VariableGroup, VariableHistory} from './liveWatchModels';
+import {ConditionalWatch} from './conditionalWatch';
+import {DataTypeFormatter} from './dataTypeFormatter';
+import {PerformanceOptimizer} from './performanceOptimizer';
 
-export class LiveWatchProvider implements vscode.TreeDataProvider<vscode.TreeItem>, vscode.TreeDragAndDropController<vscode.TreeItem> {
-    private _onDidChangeTreeData: vscode.EventEmitter<vscode.TreeItem | undefined | void> = new vscode.EventEmitter<vscode.TreeItem | undefined | void>();
-    readonly onDidChangeTreeData: vscode.Event<vscode.TreeItem | undefined | void> = this._onDidChangeTreeData.event;
+export class LiveWatchProvider
+    implements
+        vscode.TreeDataProvider<vscode.TreeItem>,
+        vscode.TreeDragAndDropController<vscode.TreeItem>
+{
+    private _onDidChangeTreeData: vscode.EventEmitter<vscode.TreeItem | undefined | void> =
+        new vscode.EventEmitter<vscode.TreeItem | undefined | void>();
+    readonly onDidChangeTreeData: vscode.Event<vscode.TreeItem | undefined | void> =
+        this._onDidChangeTreeData.event;
 
     // Drag and drop properties
     readonly dragMimeTypes: string[] = ['application/vnd.code.tree.liveWatchVariable'];
@@ -23,7 +29,7 @@ export class LiveWatchProvider implements vscode.TreeDataProvider<vscode.TreeIte
         return element;
     }
 
-    async getChildren(element?: vscode.TreeItem): Promise<vscode.TreeItem[]> {
+    async getChildren(element?: any): Promise<vscode.TreeItem[]> {
         if (element instanceof VariableGroup) {
             // Return children of the group
             return element.getChildren();
@@ -34,14 +40,15 @@ export class LiveWatchProvider implements vscode.TreeDataProvider<vscode.TreeIte
             // Root level - return all top-level elements (variables and groups)
             return this.rootElements;
         }
+        return []; // Explicit return to fix "Not all code paths return a value" error
     }
 
     addVariableToGroup(expression: string, groupName: string) {
         const group = this.getOrCreateGroup(groupName);
         const newVariable = new LiveWatchVariable(
-            expression, 
-            expression, 
-            vscode.TreeItemCollapsibleState.None
+            expression,
+            expression,
+            vscode.TreeItemCollapsibleState.None,
         );
         group.addChild(newVariable);
         this.refresh();
@@ -49,7 +56,11 @@ export class LiveWatchProvider implements vscode.TreeDataProvider<vscode.TreeIte
     }
 
     addVariable(expression: string) {
-        const newVariable = new LiveWatchVariable(expression, expression, vscode.TreeItemCollapsibleState.None);
+        const newVariable = new LiveWatchVariable(
+            expression,
+            expression,
+            vscode.TreeItemCollapsibleState.None,
+        );
         this.rootElements.push(newVariable);
         this.refresh();
         return newVariable;
@@ -62,7 +73,7 @@ export class LiveWatchProvider implements vscode.TreeDataProvider<vscode.TreeIte
             this.refresh();
             return;
         }
-        
+
         // Also check in groups
         for (const group of this.groups) {
             group.removeChild(variable);
@@ -71,7 +82,7 @@ export class LiveWatchProvider implements vscode.TreeDataProvider<vscode.TreeIte
     }
 
     getOrCreateGroup(name: string): VariableGroup {
-        let group = this.groups.find(g => g.label === name);
+        let group = this.groups.find((g) => g.label === name);
         if (!group) {
             group = new VariableGroup(name, vscode.TreeItemCollapsibleState.Expanded);
             this.groups.push(group);
@@ -98,39 +109,45 @@ export class LiveWatchProvider implements vscode.TreeDataProvider<vscode.TreeIte
             this._onDidChangeTreeData.fire();
         });
     }
-    
+
     // Drag and drop implementation
     handleDrag(
         source: readonly vscode.TreeItem[],
         dataTransfer: vscode.DataTransfer,
-        token: vscode.CancellationToken
+        _token: vscode.CancellationToken,
     ): void | Thenable<void> {
         // Add the dragged items to the data transfer
         if (source && source.length > 0) {
-            const draggedItems = source.filter(item => 
-                item instanceof LiveWatchVariable || item instanceof VariableGroup
+            const draggedItems = source.filter(
+                (item) => item instanceof LiveWatchVariable || item instanceof VariableGroup,
             );
-            
+
             if (draggedItems.length > 0) {
                 // Serialize the dragged items for transfer
-                const serializedItems = draggedItems.map(item => {
-                    if (item instanceof LiveWatchVariable) {
-                        return {
-                            type: 'variable',
-                            expression: item.expression,
-                            label: item.label
-                        };
-                    } else if (item instanceof VariableGroup) {
-                        return {
-                            type: 'group',
-                            label: item.label
-                        };
-                    }
-                }).filter(Boolean); // Remove undefined values
-                
+                const serializedItems = draggedItems
+                    .map((item) => {
+                        if (item instanceof LiveWatchVariable) {
+                            return {
+                                type: 'variable',
+                                expression: item.expression,
+                                label: item.label,
+                            };
+                        } else if (item instanceof VariableGroup) {
+                            return {
+                                type: 'group',
+                                label: item.label,
+                            };
+                        }
+                        return null; // Ensure all code paths return a value
+                    })
+                    .filter(
+                        (item): item is {type: string; expression?: string; label: string} =>
+                            item !== undefined && item !== null,
+                    ); // Remove undefined and null values
+
                 dataTransfer.set(
                     'application/vnd.code.tree.liveWatchVariable',
-                    new vscode.DataTransferItem(JSON.stringify(serializedItems))
+                    new vscode.DataTransferItem(JSON.stringify(serializedItems)),
                 );
             }
         }
@@ -139,41 +156,47 @@ export class LiveWatchProvider implements vscode.TreeDataProvider<vscode.TreeIte
     handleDrop(
         target: vscode.TreeItem | undefined,
         dataTransfer: vscode.DataTransfer,
-        token: vscode.CancellationToken
+        _token: vscode.CancellationToken,
     ): void | Thenable<void> {
         // Get the data being dropped
         const dataItem = dataTransfer.get('application/vnd.code.tree.liveWatchVariable');
-        
+
         if (dataItem) {
             try {
                 const droppedData = JSON.parse(dataItem.value as string);
-                
+
                 for (const item of droppedData) {
                     if (item.type === 'variable') {
                         // If target is a group, add the variable to the group
                         if (target instanceof VariableGroup) {
-                            target.addChild(new LiveWatchVariable(
-                                item.label,
-                                item.expression,
-                                vscode.TreeItemCollapsibleState.None
-                            ));
-                        } else {
-                            // Otherwise add to root if not already there
-                            const existingVarIndex = this.rootElements.findIndex(e => 
-                                e instanceof LiveWatchVariable && e.expression === item.expression
-                            );
-                            if (existingVarIndex === -1) {
-                                this.rootElements.push(new LiveWatchVariable(
+                            target.addChild(
+                                new LiveWatchVariable(
                                     item.label,
                                     item.expression,
-                                    vscode.TreeItemCollapsibleState.None
-                                ));
+                                    vscode.TreeItemCollapsibleState.None,
+                                ),
+                            );
+                        } else {
+                            // Otherwise add to root if not already there
+                            const existingVarIndex = this.rootElements.findIndex(
+                                (e) =>
+                                    e instanceof LiveWatchVariable &&
+                                    e.expression === item.expression,
+                            );
+                            if (existingVarIndex === -1) {
+                                this.rootElements.push(
+                                    new LiveWatchVariable(
+                                        item.label,
+                                        item.expression,
+                                        vscode.TreeItemCollapsibleState.None,
+                                    ),
+                                );
                             }
                         }
                     }
                     // Add handling for group drops if needed
                 }
-                
+
                 this.refresh();
             } catch (error) {
                 console.error('Error handling drop:', error);
@@ -186,7 +209,7 @@ export class LiveWatchProvider implements vscode.TreeDataProvider<vscode.TreeIte
         if (vscode.debug.activeDebugSession) {
             // Enable batching to reduce UI updates
             PerformanceOptimizer.enableBatchUpdates();
-            
+
             try {
                 // Process all root-level variables
                 for (const element of this.rootElements) {
@@ -205,7 +228,7 @@ export class LiveWatchProvider implements vscode.TreeDataProvider<vscode.TreeIte
                 // Flush all pending updates and disable batching
                 PerformanceOptimizer.flushPendingUpdates();
                 PerformanceOptimizer.disableBatchUpdates();
-                
+
                 // Refresh the UI once after all updates are complete
                 this.refresh();
             }
@@ -224,7 +247,7 @@ export class LiveWatchProvider implements vscode.TreeDataProvider<vscode.TreeIte
         // Handle the Thenable returned by customRequest
         const requestPromise = vscode.debug.activeDebugSession!.customRequest('evaluate', {
             expression: variable.expression,
-            context: 'watch'
+            context: 'watch',
         });
 
         // Get the previous value to check for changes
@@ -232,36 +255,38 @@ export class LiveWatchProvider implements vscode.TreeDataProvider<vscode.TreeIte
 
         // Convert to proper Promise for .catch() and .then() usage
         Promise.resolve(requestPromise)
-        .then(response => {
-            if (response && response.result !== undefined) {
-                variable.updateValue(
-                    response.result,
-                    response.type,
-                    response.variablesReference,
-                    response.namedVariables,
-                    response.indexedVariables
-                );
+            .then((response) => {
+                if (response && response.result !== undefined) {
+                    variable.updateValue(
+                        response.result,
+                        response.type,
+                        response.variablesReference,
+                        response.namedVariables,
+                        response.indexedVariables,
+                    );
 
-                // Add to history if value changed
-                if (previousValue !== response.result) {
-                    variable.addToHistory(response.result);
+                    // Add to history if value changed
+                    if (previousValue !== response.result) {
+                        variable.addToHistory(response.result);
+                    }
+                } else {
+                    // If the response is empty, keep the previous value but show it's stale
+                    variable.updateValue('<no value>');
                 }
-            } else {
-                // If the response is empty, keep the previous value but show it's stale
-                variable.updateValue('<no value>');
-            }
-        })
-        .catch(error => {
-            // It's possible the expression evaluation fails (e.g., variable not in scope)
-            // In that case, we might want to show an error value without breaking the whole view
-            variable.updateValue(`<error: ${error.message || 'evaluation failed'}>`);
-            // Only log to console for actual errors, not for variables going out of scope
-            if (error.message && 
-                !error.message?.includes('not in scope') && 
-                !error.message?.includes('undefined')) {
-                console.error(`Error evaluating expression ${variable.expression}:`, error);
-            }
-        });
+            })
+            .catch((error) => {
+                // It's possible the expression evaluation fails (e.g., variable not in scope)
+                // In that case, we might want to show an error value without breaking the whole view
+                variable.updateValue(`<error: ${error.message || 'evaluation failed'}>`);
+                // Only log to console for actual errors, not for variables going out of scope
+                if (
+                    error.message &&
+                    !error.message?.includes('not in scope') &&
+                    !error.message?.includes('undefined')
+                ) {
+                    console.error(`Error evaluating expression ${variable.expression}:`, error);
+                }
+            });
     }
 }
 
@@ -282,36 +307,50 @@ export class LiveWatchVariable extends vscode.TreeItem {
         public readonly label: string,
         public readonly expr: string,
         initialCollapsibleState: vscode.TreeItemCollapsibleState,
-        public readonly parent?: LiveWatchVariable
+        public readonly parent?: LiveWatchVariable,
     ) {
         super(label, initialCollapsibleState);
         this.expression = expr;
         this.tooltip = `Watching: ${expr}`;
         this.description = this.value;
-        
+
         // Set context value for command contributions
         if (initialCollapsibleState === vscode.TreeItemCollapsibleState.None) {
             this.contextValue = 'liveWatchVariable';
         } else {
             this.contextValue = 'liveWatchVariableParent';
         }
-        
+
         // Set icon based on type if needed
         this.iconPath = new vscode.ThemeIcon('symbol-variable');
     }
 
-    updateValue(newValue: string, newType?: string, variableRef?: number, namedVars?: number, indexedVars?: number) {
+    updateValue(
+        newValue: string,
+        newType?: string,
+        variableRef?: number,
+        namedVars?: number,
+        indexedVars?: number,
+    ) {
         this.value = newValue;
-        
+
         // Format the value based on the display format setting
         this.formattedValue = DataTypeFormatter.formatValue(newValue, newType, this.displayFormat);
-        
+
         this.description = `${this.formattedValue}${newType ? `: ${newType}` : ''}`;
-        if (newType) { this.type = newType; }
-        if (variableRef !== undefined) { this.variableReference = variableRef; }
-        if (namedVars !== undefined) { this.namedVariables = namedVars; }
-        if (indexedVars !== undefined) { this.indexedVariables = indexedVars; }
-        
+        if (newType) {
+            this.type = newType;
+        }
+        if (variableRef !== undefined) {
+            this.variableReference = variableRef;
+        }
+        if (namedVars !== undefined) {
+            this.namedVariables = namedVars;
+        }
+        if (indexedVars !== undefined) {
+            this.indexedVariables = indexedVars;
+        }
+
         // Update context value based on whether we have children
         if ((this.namedVariables > 0 || this.indexedVariables > 0) && this.variableReference > 0) {
             this.contextValue = 'liveWatchVariableParent';
@@ -319,79 +358,83 @@ export class LiveWatchVariable extends vscode.TreeItem {
             this.contextValue = 'liveWatchVariable';
         }
     }
-    
+
     // Note: We can't override the collapsibleState property directly since it's readonly
     // Instead, we update the contextValue to indicate whether the item can have children
     // The TreeView will handle expansion based on getChildren implementation
-    
+
     addToHistory(value: string) {
         this.history.addValue(value);
     }
-    
+
     getHistory() {
         return this.history.getHistory();
     }
-    
+
     getLatestValue() {
         return this.history.getLatestValue();
     }
-    
+
     clearHistory() {
         this.history.clear();
     }
-    
+
     setConditionalWatch(condition: string) {
         this.conditionalWatch = new ConditionalWatch(condition);
     }
-    
+
     removeConditionalWatch() {
         this.conditionalWatch = null;
     }
-    
+
     getConditionalWatch(): ConditionalWatch | null {
         return this.conditionalWatch;
     }
-    
+
     setDisplayFormat(format: 'auto' | 'decimal' | 'hex' | 'binary' | 'float') {
         this.displayFormat = format;
         // Update the display with the new format
-        this.formattedValue = DataTypeFormatter.formatValue(this.value, this.type, this.displayFormat);
+        this.formattedValue = DataTypeFormatter.formatValue(
+            this.value,
+            this.type,
+            this.displayFormat,
+        );
         this.description = `${this.formattedValue}${this.type ? `: ${this.type}` : ''}`;
     }
-    
+
     getDisplayFormat() {
         return this.displayFormat;
     }
-    
-    async getChildren(provider: LiveWatchProvider): Promise<LiveWatchVariable[]> {
+
+    async getChildren(_provider: any): Promise<LiveWatchVariable[]> {
         if (this.variableReference > 0) {
             // Get children from the debugger session
             if (vscode.debug.activeDebugSession) {
                 try {
                     // Convert Thenable to Promise to handle errors properly
-                    const response = await Promise.resolve(
+                    const response: any = await Promise.resolve(
                         vscode.debug.activeDebugSession.customRequest('variables', {
-                            variablesReference: this.variableReference
-                        })
+                            variablesReference: this.variableReference,
+                        }),
                     );
-                    
+
                     if (response && response.variables) {
                         const children: LiveWatchVariable[] = [];
                         for (const variable of response.variables) {
                             const child = new LiveWatchVariable(
-                                variable.name, 
-                                variable.evaluateName || variable.name, 
-                                variable.variablesReference > 0 
-                                    ? vscode.TreeItemCollapsibleState.Collapsed 
+                                variable.name,
+                                variable.evaluateName || variable.name,
+                                variable.variablesReference > 0
+                                    ? vscode.TreeItemCollapsibleState.Collapsed
                                     : vscode.TreeItemCollapsibleState.None,
-                                this
+                                this,
                             );
                             child.updateValue(
-                                variable.value, 
-                                variable.type, 
-                                variable.variablesReference, 
-                                variable.namedVariables, 
-                                variable.indexedVariables
+                                variable.value,
+                                variable.type,
+                                variable.variablesReference,
+                                variable.namedVariables,
+                                variable.indexedVariables,
                             );
                             children.push(child);
                         }
@@ -404,30 +447,30 @@ export class LiveWatchVariable extends vscode.TreeItem {
         }
         return [];
     }
-    
+
     async setVariableValue(newValue: string): Promise<boolean> {
         if (vscode.debug.activeDebugSession && this.expression) {
             try {
                 // Use setVariable or setExpression if supported by the debugger
                 // First try the setExpression request
-                let response;
+                let response: any;
                 try {
                     response = await Promise.resolve(
                         vscode.debug.activeDebugSession.customRequest('setExpression', {
                             expression: this.expression,
-                            value: newValue
-                        })
+                            value: newValue,
+                        }),
                     );
                 } catch {
                     // If setExpression fails, try using evaluate with context 'repl' to potentially assign
                     response = await Promise.resolve(
                         vscode.debug.activeDebugSession.customRequest('evaluate', {
                             expression: `${this.expression} = ${newValue}`,
-                            context: 'repl'
-                        })
+                            context: 'repl',
+                        }),
                     );
                 }
-                
+
                 if (response) {
                     // Update the local value
                     this.updateValue(newValue);

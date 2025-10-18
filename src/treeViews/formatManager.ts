@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LiveWatchVariable } from './liveWatchProvider';
+import {LiveWatchVariable} from './liveWatchProvider';
 
 export class FormatManager {
     static async changeDisplayFormat(variable: LiveWatchVariable) {
@@ -9,15 +9,15 @@ export class FormatManager {
         }
 
         const formatOptions = [
-            { label: 'Auto', description: 'Automatic format detection' },
-            { label: 'Decimal', description: 'Decimal number format' },
-            { label: 'Hexadecimal', description: 'Hexadecimal format (0x...)' },
-            { label: 'Binary', description: 'Binary format (0b...)' },
-            { label: 'Float', description: 'Float format' }
+            {label: 'Auto', description: 'Automatic format detection'},
+            {label: 'Decimal', description: 'Decimal number format'},
+            {label: 'Hexadecimal', description: 'Hexadecimal format (0x...)'},
+            {label: 'Binary', description: 'Binary format (0b...)'},
+            {label: 'Float', description: 'Float format'},
         ];
 
         const selectedFormat = await vscode.window.showQuickPick(formatOptions, {
-            placeHolder: 'Select display format for ' + variable.label
+            placeHolder: 'Select display format for ' + variable.label,
         });
 
         if (selectedFormat) {
@@ -40,9 +40,11 @@ export class FormatManager {
                     format = 'auto';
                     break;
             }
-            
+
             variable.setDisplayFormat(format);
-            vscode.window.showInformationMessage(`Display format for ${variable.label} changed to ${selectedFormat.label}`);
+            vscode.window.showInformationMessage(
+                `Display format for ${variable.label} changed to ${selectedFormat.label}`,
+            );
         }
     }
 }

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LiveWatchVariable } from './liveWatchProvider';
+import {LiveWatchVariable} from './liveWatchProvider';
 
 export class VariableGroup extends vscode.TreeItem {
     children: (LiveWatchVariable | VariableGroup)[] = [];
@@ -7,7 +7,7 @@ export class VariableGroup extends vscode.TreeItem {
     constructor(
         public readonly label: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-        public readonly parent?: VariableGroup
+        public readonly parent?: VariableGroup,
     ) {
         super(label, collapsibleState);
         this.tooltip = `Variable Group: ${label}`;
@@ -28,26 +28,26 @@ export class VariableGroup extends vscode.TreeItem {
             this.description = `${this.children.length} items`;
         }
     }
-    
+
     getChildren(): (LiveWatchVariable | VariableGroup)[] {
         return this.children;
     }
 }
 
 export class VariableHistory {
-    private _history: { value: string; timestamp: Date }[] = [];
+    private _history: {value: string; timestamp: Date}[] = [];
     private _maxHistorySize: number = 50; // Keep last 50 values
 
     addValue(value: string) {
-        this._history.push({ value, timestamp: new Date() });
-        
+        this._history.push({value, timestamp: new Date()});
+
         // Keep only the last N values
         if (this._history.length > this._maxHistorySize) {
             this._history = this._history.slice(-this._maxHistorySize);
         }
     }
 
-    getHistory(): { value: string; timestamp: Date }[] {
+    getHistory(): {value: string; timestamp: Date}[] {
         return [...this._history]; // Return a copy
     }
 
