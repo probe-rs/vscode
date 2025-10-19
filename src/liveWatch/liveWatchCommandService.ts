@@ -1,5 +1,13 @@
 import * as vscode from 'vscode';
-import {LiveWatchProvider} from '../treeViews/liveWatchProvider';
+import {
+    LiveWatchProvider,
+    HistoryViewer,
+    DataVisualizer,
+    LiveWatchValueEditor,
+    ConditionalWatchManager,
+    FormatManager,
+    PersistenceManager,
+} from '../treeViews';
 
 export class LiveWatchCommandService {
     constructor(private provider: LiveWatchProvider) {}
@@ -27,8 +35,7 @@ export class LiveWatchCommandService {
 
     editVariableValue(variable: any) {
         if (variable) {
-            // Import this properly when we refactor LiveWatchValueEditor
-            // LiveWatchValueEditor.editVariableValue(variable);
+            LiveWatchValueEditor.editVariableValue(variable);
         }
     }
 
@@ -68,68 +75,55 @@ export class LiveWatchCommandService {
 
     showHistory(variable: any) {
         if (variable) {
-            // Import this properly when we refactor HistoryViewer
-            // HistoryViewer.showHistory(variable);
+            HistoryViewer.showHistory(variable);
         }
     }
 
     addConditionalWatch(variable: any) {
         if (variable) {
-            // Import this properly when we refactor ConditionalWatchManager
-            // ConditionalWatchManager.addConditionalWatch(variable);
+            ConditionalWatchManager.addConditionalWatch(variable);
         }
     }
 
     removeConditionalWatch(variable: any) {
         if (variable) {
-            // Import this properly when we refactor ConditionalWatchManager
-            // ConditionalWatchManager.removeConditionalWatch(variable);
+            ConditionalWatchManager.removeConditionalWatch(variable);
         }
     }
 
     editConditionalWatch(variable: any) {
         if (variable) {
-            // Import this properly when we refactor ConditionalWatchManager
-            // ConditionalWatchManager.editConditionalWatch(variable);
+            ConditionalWatchManager.editConditionalWatch(variable);
         }
     }
 
     changeDisplayFormat(variable: any) {
         if (variable) {
-            // Import this properly when we refactor FormatManager
-            // FormatManager.changeDisplayFormat(variable);
+            FormatManager.changeDisplayFormat(variable);
         }
     }
 
     quickEdit(variable: any) {
         if (variable) {
-            // Import this properly when we refactor LiveWatchValueEditor
-            // LiveWatchValueEditor.editVariableValue(variable);
+            LiveWatchValueEditor.editVariableValue(variable);
         }
     }
 
-    async saveVariables(_context: vscode.ExtensionContext) {
-        // Import this properly when we refactor PersistenceManager
-        // await PersistenceManager.saveVariables(this.provider, context);
-        vscode.window.showInformationMessage('Live Watch variables saved successfully!');
+    async saveVariables(context: vscode.ExtensionContext) {
+        await PersistenceManager.saveVariables(this.provider, context);
     }
 
-    async loadVariables(_context: vscode.ExtensionContext) {
-        // Import this properly when we refactor PersistenceManager
-        // await PersistenceManager.loadVariables(this.provider, context);
-        vscode.window.showInformationMessage('Live Watch variables loaded successfully!');
+    async loadVariables(context: vscode.ExtensionContext) {
+        await PersistenceManager.loadVariables(this.provider, context);
     }
 
-    async clearSavedVariables(_context: vscode.ExtensionContext) {
-        // Import this properly when we refactor PersistenceManager
-        // await PersistenceManager.clearSavedVariables(context);
-        vscode.window.showInformationMessage('Saved Live Watch variables cleared!');
+    async clearSavedVariables(context: vscode.ExtensionContext) {
+        await PersistenceManager.clearSavedVariables(context);
     }
 
     showChart(variable: any) {
         if (variable) {
-            // Import this properly when we refactor DataVisualizer
-            // DataVisualizer.showChart(variable);
+            DataVisualizer.showChart(variable);
         } else {
             vscode.window.showErrorMessage('Please select a variable to visualize');
         }

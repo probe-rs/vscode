@@ -1,19 +1,16 @@
 import * as vscode from 'vscode';
-import {LiveWatchProvider} from './liveWatchProvider';
-import {LiveWatchCommandService} from '../liveWatch/liveWatchCommandService';
+import {LiveWatchProvider} from './providers';
 
 export class LiveWatchManager {
     private provider: LiveWatchProvider;
     private updateInterval: NodeJS.Timeout | undefined;
     private updateIntervalMs: number = 1000; // Update every 1 second by default
     private treeView: vscode.TreeView<vscode.TreeItem> | undefined;
-    private context: vscode.ExtensionContext;
-    private commandService: LiveWatchCommandService;
+    private readonly context: vscode.ExtensionContext;
 
     constructor(context: vscode.ExtensionContext, provider: LiveWatchProvider) {
         this.context = context;
         this.provider = provider;
-        this.commandService = new LiveWatchCommandService(provider);
 
         // Get the update interval from configuration
         const config = vscode.workspace.getConfiguration('probe-rs-debugger');
@@ -26,9 +23,6 @@ export class LiveWatchManager {
         });
 
         context.subscriptions.push(this.treeView);
-
-        // Register commands
-        this.registerCommands(context);
 
         // Set up the update interval when debugging starts
         this.setupDebugEventHandlers();
@@ -49,132 +43,6 @@ export class LiveWatchManager {
         });
     }
 
-    private registerCommands(context: vscode.ExtensionContext) {
-        // Command to add a new variable to watch
-        context.subscriptions.push(
-            vscode.commands.registerCommand('probe-rs.liveWatch.addVariable', async () => {
-                await this.commandService.addVariable();
-            }),
-        );
-
-        // Command to remove a variable from watch
-        context.subscriptions.push(
-            vscode.commands.registerCommand('probe-rs.liveWatch.removeVariable', (variable) => {
-                this.commandService.removeVariable(variable);
-            }),
-        );
-
-        // Command to update variables immediately
-        context.subscriptions.push(
-            vscode.commands.registerCommand('probe-rs.liveWatch.updateNow', () => {
-                this.commandService.updateNow();
-            }),
-        );
-
-        // Command to edit a variable's value
-        context.subscriptions.push(
-            vscode.commands.registerCommand('probe-rs.liveWatch.editVariableValue', (variable) => {
-                this.commandService.editVariableValue(variable);
-            }),
-        );
-
-        // Command to add a variable to a group
-        context.subscriptions.push(
-            vscode.commands.registerCommand('probe-rs.liveWatch.addToGroup', async (variable) => {
-                await this.commandService.addToGroup(variable);
-            }),
-        );
-
-        // Command to create a new group
-        context.subscriptions.push(
-            vscode.commands.registerCommand('probe-rs.liveWatch.createGroup', async () => {
-                await this.commandService.createGroup();
-            }),
-        );
-
-        // Command to show history of a variable
-        context.subscriptions.push(
-            vscode.commands.registerCommand('probe-rs.liveWatch.showHistory', (variable) => {
-                this.commandService.showHistory(variable);
-            }),
-        );
-
-        // Command to add conditional watch to a variable
-        context.subscriptions.push(
-            vscode.commands.registerCommand(
-                'probe-rs.liveWatch.addConditionalWatch',
-                (variable) => {
-                    this.commandService.addConditionalWatch(variable);
-                },
-            ),
-        );
-
-        // Command to remove conditional watch from a variable
-        context.subscriptions.push(
-            vscode.commands.registerCommand(
-                'probe-rs.liveWatch.removeConditionalWatch',
-                (variable) => {
-                    this.commandService.removeConditionalWatch(variable);
-                },
-            ),
-        );
-
-        // Command to edit conditional watch of a variable
-        context.subscriptions.push(
-            vscode.commands.registerCommand(
-                'probe-rs.liveWatch.editConditionalWatch',
-                (variable) => {
-                    this.commandService.editConditionalWatch(variable);
-                },
-            ),
-        );
-
-        // Command to change display format of a variable
-        context.subscriptions.push(
-            vscode.commands.registerCommand(
-                'probe-rs.liveWatch.changeDisplayFormat',
-                (variable) => {
-                    this.commandService.changeDisplayFormat(variable);
-                },
-            ),
-        );
-
-        // Quick edit command (for keyboard shortcuts like F2)
-        context.subscriptions.push(
-            vscode.commands.registerCommand('probe-rs.liveWatch.quickEdit', (variable) => {
-                this.commandService.quickEdit(variable);
-            }),
-        );
-
-        // Command to save variables between sessions
-        context.subscriptions.push(
-            vscode.commands.registerCommand('probe-rs.liveWatch.saveVariables', async () => {
-                await this.commandService.saveVariables(this.context);
-            }),
-        );
-
-        // Command to load variables from previous sessions
-        context.subscriptions.push(
-            vscode.commands.registerCommand('probe-rs.liveWatch.loadVariables', async () => {
-                await this.commandService.loadVariables(this.context);
-            }),
-        );
-
-        // Command to clear saved variables
-        context.subscriptions.push(
-            vscode.commands.registerCommand('probe-rs.liveWatch.clearSavedVariables', async () => {
-                await this.commandService.clearSavedVariables(this.context);
-            }),
-        );
-
-        // Command to show variable chart
-        context.subscriptions.push(
-            vscode.commands.registerCommand('probe-rs.liveWatch.showChart', (variable) => {
-                this.commandService.showChart(variable);
-            }),
-        );
-    }
-
     private setupDebugEventHandlers() {
         // Start polling when debug session starts
         vscode.debug.onDidStartDebugSession((session) => {
@@ -188,9 +56,6 @@ export class LiveWatchManager {
             if (session.type === 'probe-rs-debug') {
                 this.stopPolling();
                 // Save the current state when debug session ends
-                // Using the command service's method
-                // In a real implementation, you'd call the persistence manager directly
-                // or use a dedicated persistence service
             }
         });
     }
@@ -220,6 +85,11 @@ export class LiveWatchManager {
             this.treeView.dispose();
         }
         // Save variables when the manager is disposed
-        await this.commandService.saveVariables(this.context);
+        // We would need to call the command service's save method here
+    }
+
+    // Getter for context to make it accessible if needed elsewhere
+    public getContext(): vscode.ExtensionContext {
+        return this.context;
     }
 }
