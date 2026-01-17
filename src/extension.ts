@@ -141,10 +141,14 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
         channelWriteEmitter: vscode.EventEmitter<string>,
     ][] = [];
 
-    createRttTerminal(channelNumber: number, dataFormat: string, channelName: string) {
+    createRttTerminal(
+        session: vscode.DebugSession | undefined,
+        channelNumber: number,
+        dataFormat: string,
+        channelName: string,
+    ) {
         // Make sure we have a terminal window per channel, for RTT Logging
-        if (vscode.debug.activeDebugSession) {
-            let session = vscode.debug.activeDebugSession;
+        if (session) {
             let channelWriteEmitter = new vscode.EventEmitter<string>();
             let channelPty: vscode.Pseudoterminal = {
                 onDidWrite: channelWriteEmitter.event,
@@ -163,6 +167,10 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
                         });
                 },
                 close: () => {
+                    let session = vscode.debug.activeDebugSession;
+                    if (!session) {
+                        return;
+                    }
                     let windowIsOpen = false;
                     session
                         .customRequest('rttWindowOpened', {channelNumber, windowIsOpen})
@@ -232,6 +240,7 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
         switch (customEvent.event) {
             case 'probe-rs-rtt-channel-config':
                 this.createRttTerminal(
+                    customEvent.session,
                     +customEvent.body?.channelNumber,
                     customEvent.body?.dataFormat,
                     customEvent.body?.channelName,
