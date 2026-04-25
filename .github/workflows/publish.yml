@@ -1,33 +1,49 @@
-# This Action is triggered when a new release tag is created in the repository.
-# Based on: https://code.visualstudio.com/api/working-with-extensions/continuous-integration#github-actions
-# It packages and publishes the extension to the VSCode marketplace.
-
-# The publish will only have an effect if the version number was bumped in the `package.json`,
-# else it will complete this job, and silently fail to publish an update on the marketplace.
+# Triggered when a GitHub Release is published.
+# The publish jobs run inside the `marketplace` environment, which gates them
+# behind required reviewers and branch policy. See PUBLISH.md for full setup.
 
 name: Publish the VS Code Extension
+
 on:
-  pull_request:
-    types:
-      - closed
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
 jobs:
-  if_merged:
-    name: Publish the VS Code Extension
-    if: github.event.pull_request.merged == true
+  publish-vsce:
+    name: Publish to VS Code Marketplace
     runs-on: ubuntu-latest
+    environment: marketplace
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-      - name: Install Node.js
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
       - run: npm ci
-      - run: npm install -g vsce ovsx
       - run: npm run pretest
-      - name: Finally, publish to the marketplace.
-        run: npm run publish
-        env:
-          VSCE_PAT: ${{ secrets.VS_MARKETPLACE_TOKEN }}
-      - name: Finally, publish to the OpenVSX marketplace.
-        run: ovsx publish --pat ${{ secrets.OPEN_VSX_MARKETPLACE_TOKEN }}
+      - uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+      - run: npm run publish -- --azure-credential
+
+  publish-ovsx:
+    name: Publish to Open VSX
+    runs-on: ubuntu-latest
+    environment: marketplace
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm run pretest
+      - run: npx ovsx publish --pat ${{ secrets.OPEN_VSX_MARKETPLACE_TOKEN }}
