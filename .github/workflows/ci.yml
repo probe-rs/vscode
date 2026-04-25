@@ -17,6 +17,6 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '24'
-      - run: npm install  --frozen-lockfile
+          node-version: '22'
+      - run: npm ci
       - run: npm run pretest

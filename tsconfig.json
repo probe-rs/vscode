@@ -1,9 +1,12 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
-        "target": "es6",
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "target": "es2022",
         "outDir": "out",
-        "lib": ["es2021"],
+        "lib": ["es2022"],
+        "types": ["node", "vscode"],
+        "skipLibCheck": true,
         "sourceMap": true,
         "rootDir": "src",
         "strict": true /* enable all strict type-checking options */,
@@ -19,7 +22,7 @@
         "inlineSourceMap": false,
         "preserveConstEnums": true,
         "strictNullChecks": true,
-        "noUnusedParameters": false,
+        "noUnusedParameters": false
     },
-    "exclude": ["node_modules"],
+    "exclude": ["node_modules"]
 }

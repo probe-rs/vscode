@@ -2,5 +2,6 @@
 /dist/
 /out/
 /dap/
+/.claude/
 /package-lock.json
 **/*.md
