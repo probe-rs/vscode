@@ -19,7 +19,7 @@
         "inlineSourceMap": false,
         "preserveConstEnums": true,
         "strictNullChecks": true,
-        "noUnusedParameters": false
+        "noUnusedParameters": false,
     },
-    "exclude": ["node_modules"]
+    "exclude": ["node_modules"],
 }
