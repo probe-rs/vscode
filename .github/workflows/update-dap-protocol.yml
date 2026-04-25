@@ -3,7 +3,7 @@ name: Update DAP protocol schema
 on:
   schedule:
     # 04:00 UTC on the 1st of every month
-    - cron: "0 4 1 * *"
+    - cron: '0 4 1 * *'
   workflow_dispatch:
 
 permissions:
@@ -66,8 +66,8 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           branch: chore/update-dap-protocol
-          commit-message: "chore(dap): update debugAdapterProtocol.json"
-          title: "chore(dap): update debugAdapterProtocol.json"
+          commit-message: 'chore(dap): update debugAdapterProtocol.json'
+          title: 'chore(dap): update debugAdapterProtocol.json'
           body-path: pr-body.md
           delete-branch: true
           add-paths: |
