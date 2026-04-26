@@ -23,7 +23,8 @@
         "SVD"
     ],
     "engines": {
-        "vscode": ">=1.85.0"
+        "vscode": ">=1.116.0",
+        "node": ">=22.0.0"
     },
     "icon": "images/probe-rs-debugger.png",
     "categories": [
@@ -45,7 +46,7 @@
     },
     "scripts": {
         "probe-rs:getDebugProtocolLatest": "curl -LJs https://microsoft.github.io/debug-adapter-protocol/debugAdapterProtocol.json -o dap/debugProtocol.json",
-        "probe-rs:Update Dev Dependencies": "updates --update ./",
+        "probe-rs:Update Dev Dependencies": "npx updates -u && npm install",
         "package": "vsce package --no-yarn",
         "vscode:prepublish": "rimraf dist && npm run -S build -- --minify",
         "publish": "vsce publish --no-yarn --skip-duplicate",
@@ -54,32 +55,32 @@
         "run-prettier": "prettier --write .",
         "pretest": "npm run compile && npm run lint && npm run typecheck && prettier --check .",
         "compile": "tsc -p ./",
-        "lint": "eslint src --ext ts",
+        "lint": "eslint \"src/**/*.ts\"",
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "watch": "npm run -S build -- --sourcemap --sources-content=false --watch",
         "build": "esbuild ./src/extension.ts --bundle --tsconfig=./tsconfig.json --external:vscode --format=cjs --platform=node --outfile=dist/extension.js"
     },
     "devDependencies": {
-        "@types/mocha": "^10.0.6",
-        "@types/node": "^20.11.5",
-        "@types/vscode": "^1.85.0",
-        "@typescript-eslint/eslint-plugin": "^6.19.0",
-        "@typescript-eslint/parser": "^6.19.0",
-        "@vscode/debugadapter": "^1.64.0",
-        "@vscode/debugprotocol": "^1.64.0",
-        "@vscode/vsce": "^2.22.0",
-        "esbuild": "^0.19.11",
-        "eslint": "^8.56.0",
-        "get-port": "^7.0.0",
-        "glob": "^10.3.10",
-        "mocha": "^10.2.0",
-        "prettier": "3.2.4",
-        "rimraf": "^5.0.5",
-        "ts-loader": "^9.5.1",
-        "typescript": "^5.3.3",
-        "updates": "latest",
-        "webpack": "^5.89.0",
-        "webpack-cli": "^5.1.4"
+        "@types/mocha": "^10.0.10",
+        "@types/node": "^25.6.0",
+        "@types/vscode": "^1.116.0",
+        "@typescript-eslint/eslint-plugin": "^8.59.0",
+        "@typescript-eslint/parser": "^8.59.0",
+        "@vscode/debugadapter": "^1.68.0",
+        "@vscode/debugprotocol": "^1.68.0",
+        "@vscode/vsce": "^3.9.1",
+        "esbuild": "^0.28.0",
+        "eslint": "^10.2.1",
+        "get-port": "^7.2.0",
+        "glob": "^13.0.6",
+        "mocha": "^11.7.5",
+        "prettier": "3.8.3",
+        "rimraf": "^6.1.3",
+        "ts-loader": "^9.5.7",
+        "typescript": "^6.0.3",
+        "updates": "^17.15.7",
+        "webpack": "^5.106.2",
+        "webpack-cli": "^7.0.2"
     },
     "main": "./dist/extension.js",
     "activationEvents": [
