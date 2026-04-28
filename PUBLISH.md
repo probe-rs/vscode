@@ -83,9 +83,10 @@ On the new app: **Manage → Certificates & secrets → Federated credentials �
 - Scenario: **GitHub Actions deploying Azure resources**
 - Organization: `probe-rs`, Repository: `vscode`
 - Entity type: **Environment**
-- GitHub environment name: `marketplace` (must match exactly — case-sensitive)
+- **GitHub environment name**: `marketplace` (must match exactly — case-sensitive). This value drives the Subject identifier; do not put a credential nickname here.
+- **Name** (further down the form, required, just a human label): something like `github-actions-vscode-publish-marketplace`. This field is cosmetic and does not affect matching.
 - Audience: `api://AzureADTokenExchange` (default)
-- Verify the Subject identifier auto-fills as `repo:probe-rs/vscode:environment:marketplace`.
+- Before saving, verify the Subject identifier preview reads exactly `repo:probe-rs/vscode:environment:marketplace`. If it reads anything else (e.g. ends in your credential nickname), the **GitHub environment name** field is wrong — fix it before saving.
 
 ### 3. Add the service principal to the marketplace publisher
 
