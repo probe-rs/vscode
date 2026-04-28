@@ -10,3 +10,7 @@ under the [visual tour
 heading](https://probe.rs/docs/tools/debugger/#a-visual-guide-of-implemented-features)
 
 <img style="margin-top: 1em; margin-bottom: 1em; max-width:100%; max-height:100%; width: auto; height: auto;" src="https://probe.rs/images/probe-rs-debugger.gif" />
+
+## Releasing
+
+Maintainers cut releases via GitHub Releases; the publish workflow runs gated by required approval. See [PUBLISH.md](PUBLISH.md) for the release procedure and how the publishing pipeline is configured.
