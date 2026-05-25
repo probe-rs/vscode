@@ -19,6 +19,13 @@ import {
     WorkspaceFolder,
 } from 'vscode';
 import {probeRsInstalled} from './utils';
+import {
+    ProbeRsRemoteDebugAdapter,
+    SourceFileMap,
+    buildSourceFileMap,
+    resolveRemoteServerMode,
+    uploadClientFiles,
+} from './remoteServer';
 
 export async function activate(context: vscode.ExtensionContext) {
     const descriptorFactory = new ProbeRSDebugAdapterServerDescriptorFactory();
@@ -515,7 +522,35 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
 
         // make VS Code connect to debug server.
         if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
-            return new vscode.DebugAdapterServer(+debugServer[1], debugServer[0]);
+            // Always interpose our own [`ProbeRsRemoteDebugAdapter`] in front of the TCP
+            // connection so we can apply client-side source-path rewrites in transit.
+            //
+            // The rewrites come from two sources, combined into a single ordered
+            // [`SourceFileMap`]:
+            //   - The user's `sourceFileMap` setting in `launch.json` (language-agnostic;
+            //     useful for C / cross-compile / docker-built artifacts where DWARF
+            //     records build-host paths).
+            //   - For Rust users, an auto-detected entry that maps the synthetic
+            //     `/rustc/<hash>/...` build prefix to the active toolchain's local
+            //     sysroot, so stepping into precompiled rustlib code resolves to a
+            //     viewable file.
+            // Either source may be empty; if both are empty the adapter is a verbatim
+            // byte forwarder.
+            var sourceFileMap: SourceFileMap;
+            try {
+                sourceFileMap = await buildSourceFileMap(
+                    session.configuration.sourceFileMap,
+                    (message) => logToConsole(`${ConsoleLogSources.console}: ${message}`),
+                );
+            } catch (error: any) {
+                logToConsole(
+                    `${ConsoleLogSources.warn}: ${ConsoleLogSources.console}: Failed to build sourceFileMap: ${JSON.stringify(error?.message ?? error, null, 2)}`,
+                );
+                sourceFileMap = {entries: []};
+            }
+            return new vscode.DebugAdapterInlineImplementation(
+                new ProbeRsRemoteDebugAdapter(debugServer[0], +debugServer[1], sourceFileMap),
+            );
         }
         // If we reach here, VSCode will report the failure to start the debug adapter.
     }
@@ -679,6 +714,52 @@ class ProbeRSConfigurationProvider implements DebugConfigurationProvider {
             config.cwd = '${workspaceFolder}';
         }
 
+        return config;
+    }
+
+    /**
+     * Runs after VSCode has substituted variables (e.g. `${workspaceFolder}`) in
+     * the configuration. We do two things here:
+     *
+     *   1) Resolve the effective `remoteServerMode` from the launch configuration.
+     *      If the user set it explicitly we use that; otherwise we infer it from
+     *      whether `server` points at a loopback host. The resolved boolean is
+     *      written back onto the configuration so the dap-server sees a definite
+     *      value.
+     *   2) When `remoteServerMode` is in effect, read the three client-local
+     *      files referenced in the configuration (`programBinary`, `svdFile`,
+     *      `chipDescriptionPath`) and attach their base64-encoded contents to
+     *      the configuration so the server can materialize them into its
+     *      session-scoped temp directory.
+     */
+    async resolveDebugConfigurationWithSubstitutedVariables(
+        folder: WorkspaceFolder | undefined,
+        config: DebugConfiguration,
+        token?: CancellationToken,
+    ): Promise<DebugConfiguration | undefined> {
+        config.remoteServerMode = resolveRemoteServerMode(config);
+        if (config.remoteServerMode) {
+            logToConsole(
+                `${ConsoleLogSources.console}: Running in remoteServerMode; uploading client-local files to ${
+                    config.server ?? '(locally-managed dap-server)'
+                }`,
+            );
+            try {
+                await uploadClientFiles(config, (message) =>
+                    logToConsole(`${ConsoleLogSources.console}: ${message}`),
+                );
+            } catch (error: any) {
+                var message = `Could not upload local files to remote dap-server: ${
+                    error?.message ?? error
+                }`;
+                logToConsole(
+                    `${ConsoleLogSources.error}: ${ConsoleLogSources.console}: ${message}`,
+                );
+                vscode.window.showErrorMessage(message);
+                // Returning `undefined` aborts the launch.
+                return undefined;
+            }
+        }
         return config;
     }
 }
