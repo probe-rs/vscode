@@ -26,6 +26,7 @@ import {
     resolveRemoteServerMode,
     uploadClientFiles,
 } from './remoteServer';
+import {UriLaunchServer} from './externalLaunch';
 
 export async function activate(context: vscode.ExtensionContext) {
     const descriptorFactory = new ProbeRSDebugAdapterServerDescriptorFactory();
@@ -39,6 +40,7 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.debug.onDidReceiveDebugSessionCustomEvent(
             descriptorFactory.receivedCustomEvent.bind(descriptorFactory),
         ),
+        vscode.window.registerUriHandler(new UriLaunchServer()),
     );
 
     (async () => {

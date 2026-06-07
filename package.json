@@ -69,7 +69,7 @@
         "@vscode/debugadapter": "^1.68.0",
         "@vscode/debugprotocol": "^1.68.0",
         "@vscode/vsce": "^3.9.1",
-        "esbuild": "^0.28.0",
+        "esbuild": "0.28.0",
         "eslint": "^10.2.1",
         "get-port": "^7.2.0",
         "glob": "^13.0.6",
@@ -678,5 +678,8 @@
                 }
             }
         ]
+    },
+    "dependencies": {
+        "yaml": "^2.9.0"
     }
 }
