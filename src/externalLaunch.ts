@@ -9,7 +9,7 @@ interface Dict<T> {
 export class UriLaunchServer implements UriHandler {
     async handleUri(uri: Uri) {
         try {
-            if (uri.path == '/launch') {
+            if (uri.path === '/launch') {
                 let params = querystring.parse(uri.query, ',') as Dict<string>;
                 if (params.folder && params.name) {
                     let wsFolder = workspace.getWorkspaceFolder(Uri.file(params.folder));
@@ -18,13 +18,15 @@ export class UriLaunchServer implements UriHandler {
                     if (workspace.workspaceFolders) {
                         // Try all workspace folders
                         for (let wsFolder of workspace.workspaceFolders) {
-                            if (await debug.startDebugging(wsFolder, params.name)) break;
+                            if (await debug.startDebugging(wsFolder, params.name)) {
+                                break;
+                            }
                         }
                     }
                 } else {
                     throw new Error(`Unsupported combination of launch Uri parameters.`);
                 }
-            } else if (uri.path == '/launch/config') {
+            } else if (uri.path === '/launch/config') {
                 let debugConfig: DebugConfiguration = {
                     type: 'probe-rs-debug',
                     request: 'launch',
