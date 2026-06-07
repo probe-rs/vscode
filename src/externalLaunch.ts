@@ -1,6 +1,5 @@
 import * as querystring from 'querystring';
 import {debug, Uri, UriHandler, window, workspace, DebugConfiguration} from 'vscode';
-import YAML from 'yaml';
 
 interface Dict<T> {
     [key: string]: T;
@@ -32,7 +31,7 @@ export class UriLaunchServer implements UriHandler {
                     request: 'launch',
                     name: '',
                 };
-                Object.assign(debugConfig, YAML.parse(uri.query));
+                Object.assign(debugConfig, JSON.parse(uri.query));
                 debugConfig.name = debugConfig.name || debugConfig.program;
                 await debug.startDebugging(undefined, debugConfig);
             } else {
