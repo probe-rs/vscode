@@ -71,7 +71,6 @@
         "@vscode/vsce": "^3.9.1",
         "esbuild": "^0.28.0",
         "eslint": "^10.2.1",
-        "get-port": "^7.2.0",
         "glob": "^13.0.6",
         "mocha": "^11.7.5",
         "prettier": "3.8.3",
@@ -122,7 +121,7 @@
                         "properties": {
                             "server": {
                                 "type": "string",
-                                "description": "Optionally connect to an existing `probe-rs dap-server` session on IP and Port, e.g. '127.0.0.1:50000'",
+                                "description": "Optionally connect to an existing `probe-rs dap-server` session on IP and Port, e.g. '127.0.0.1:50000'. When omitted, the extension launches its own `probe-rs dap-server` and communicates with it over stdin/stdout.",
                                 "default": "127.0.0.1:50000"
                             },
                             "logFile": {
@@ -410,7 +409,7 @@
                         "properties": {
                             "server": {
                                 "type": "string",
-                                "description": "Optionally connect to an existing `probe-rs dap-server` session on IP and Port, e.g. '127.0.0.1:50000'",
+                                "description": "Optionally connect to an existing `probe-rs dap-server` session on IP and Port, e.g. '127.0.0.1:50000'. When omitted, the extension launches its own `probe-rs dap-server` and communicates with it over stdin/stdout.",
                                 "default": "127.0.0.1:50000"
                             },
                             "logFile": {
