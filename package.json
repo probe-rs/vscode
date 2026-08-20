@@ -71,7 +71,6 @@
         "@vscode/vsce": "^3.9.1",
         "esbuild": "^0.28.0",
         "eslint": "^10.2.1",
-        "get-port": "^7.2.0",
         "glob": "^13.0.6",
         "mocha": "^11.7.5",
         "prettier": "3.8.3",
@@ -122,8 +121,12 @@
                         "properties": {
                             "server": {
                                 "type": "string",
-                                "description": "Optionally connect to an existing `probe-rs dap-server` session on IP and Port, e.g. '127.0.0.1:50000'",
+                                "description": "Where the session gets its probes. Omit to launch a local `probe-rs dap-server` and talk to it over stdin/stdout.\n\nAn IP and Port, e.g. '127.0.0.1:50000', connects to an existing `probe-rs dap-server` over TCP.\n\nA URL, e.g. 'ws://192.168.0.10:3000' or 'ssh://user@host', keeps the dap-server local but drives the probes of a remote `probe-rs serve` over RPC. Authenticate with `token`. **Experimental**, and requires a `probe-rs` built with the `remote` feature.",
                                 "default": "127.0.0.1:50000"
+                            },
+                            "token": {
+                                "type": "string",
+                                "description": "Authentication token for a URL `server`; ignored otherwise. For a credential you do not want in source control, set `PROBE_RS_REMOTE_TOKEN` in the environment instead, which probe-rs reads by itself. **Experimental**, and requires a `probe-rs` built with the `remote` feature."
                             },
                             "logFile": {
                                 "type": "string",
@@ -216,7 +219,7 @@
                             },
                             "remoteServerMode": {
                                 "type": "boolean",
-                                "description": "Indicates that the `probe-rs dap-server` is running on a different machine from the VSCode client. When in effect, the extension reads `programBinary`, `svdFile`, and `chipDescriptionPath` on the client side and uploads their contents (base64-encoded) to the server, so the server does not need filesystem access to those files. The server also emits source paths from DWARF debug information verbatim, with path resolution and any source-path rewriting handled by the client via `sourceFileMap`. \n\nWhen this property is omitted, the extension auto-detects remote mode from `server`: a loopback `server` (e.g. `127.0.0.1:50000`, `localhost:50000`, `[::1]:50000`) is treated as local and a non-loopback host is treated as remote. Set this property explicitly to override the heuristic for setups where the loopback detection is misleading (e.g. docker port-forward to host, WSL2 ↔ Windows host, or to force the upload path locally for testing)."
+                                "description": "Indicates that the `probe-rs dap-server` is running on a different machine from the VSCode client. When in effect, the extension reads `programBinary`, `svdFile`, and `chipDescriptionPath` on the client side and uploads their contents (base64-encoded) to the server, so the server does not need filesystem access to those files. The server also emits source paths from DWARF debug information verbatim, with path resolution and any source-path rewriting handled by the client via `sourceFileMap`. \n\nWhen this property is omitted, the extension auto-detects remote mode from `server`: a loopback `server` (e.g. `127.0.0.1:50000`, `localhost:50000`, `[::1]:50000`) is treated as local and a non-loopback host is treated as remote. Set this property explicitly to override the heuristic for setups where the loopback detection is misleading (e.g. docker port-forward to host, WSL2 ↔ Windows host, or to force the upload path locally for testing).\n\nA URL `server` counts as local here: the dap-server runs on this machine and reads your files directly, only the probes are remote."
                             },
                             "sourceFileMap": {
                                 "type": "object",
@@ -410,8 +413,12 @@
                         "properties": {
                             "server": {
                                 "type": "string",
-                                "description": "Optionally connect to an existing `probe-rs dap-server` session on IP and Port, e.g. '127.0.0.1:50000'",
+                                "description": "Where the session gets its probes. Omit to launch a local `probe-rs dap-server` and talk to it over stdin/stdout.\n\nAn IP and Port, e.g. '127.0.0.1:50000', connects to an existing `probe-rs dap-server` over TCP.\n\nA URL, e.g. 'ws://192.168.0.10:3000' or 'ssh://user@host', keeps the dap-server local but drives the probes of a remote `probe-rs serve` over RPC. Authenticate with `token`. **Experimental**, and requires a `probe-rs` built with the `remote` feature.",
                                 "default": "127.0.0.1:50000"
+                            },
+                            "token": {
+                                "type": "string",
+                                "description": "Authentication token for a URL `server`; ignored otherwise. For a credential you do not want in source control, set `PROBE_RS_REMOTE_TOKEN` in the environment instead, which probe-rs reads by itself. **Experimental**, and requires a `probe-rs` built with the `remote` feature."
                             },
                             "logFile": {
                                 "type": "string",
@@ -504,7 +511,7 @@
                             },
                             "remoteServerMode": {
                                 "type": "boolean",
-                                "description": "Indicates that the `probe-rs dap-server` is running on a different machine from the VSCode client. When in effect, the extension reads `programBinary`, `svdFile`, and `chipDescriptionPath` on the client side and uploads their contents (base64-encoded) to the server, so the server does not need filesystem access to those files. The server also emits source paths from DWARF debug information verbatim, with path resolution and any source-path rewriting handled by the client via `sourceFileMap`. \n\nWhen this property is omitted, the extension auto-detects remote mode from `server`: a loopback `server` (e.g. `127.0.0.1:50000`, `localhost:50000`, `[::1]:50000`) is treated as local and a non-loopback host is treated as remote. Set this property explicitly to override the heuristic for setups where the loopback detection is misleading (e.g. docker port-forward to host, WSL2 ↔ Windows host, or to force the upload path locally for testing)."
+                                "description": "Indicates that the `probe-rs dap-server` is running on a different machine from the VSCode client. When in effect, the extension reads `programBinary`, `svdFile`, and `chipDescriptionPath` on the client side and uploads their contents (base64-encoded) to the server, so the server does not need filesystem access to those files. The server also emits source paths from DWARF debug information verbatim, with path resolution and any source-path rewriting handled by the client via `sourceFileMap`. \n\nWhen this property is omitted, the extension auto-detects remote mode from `server`: a loopback `server` (e.g. `127.0.0.1:50000`, `localhost:50000`, `[::1]:50000`) is treated as local and a non-loopback host is treated as remote. Set this property explicitly to override the heuristic for setups where the loopback detection is misleading (e.g. docker port-forward to host, WSL2 ↔ Windows host, or to force the upload path locally for testing).\n\nA URL `server` counts as local here: the dap-server runs on this machine and reads your files directly, only the probes are remote."
                             },
                             "sourceFileMap": {
                                 "type": "object",

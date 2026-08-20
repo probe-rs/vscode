@@ -6,7 +6,6 @@
 
 import * as childProcess from 'child_process';
 import {existsSync} from 'fs';
-import getPort from 'get-port';
 import * as os from 'os';
 import * as vscode from 'vscode';
 import {
@@ -20,12 +19,14 @@ import {
 } from 'vscode';
 import {probeRsInstalled} from './utils';
 import {
-    ProbeRsRemoteDebugAdapter,
+    ProbeRsDebugAdapter,
     SourceFileMap,
     buildSourceFileMap,
+    isRpcServer,
     resolveRemoteServerMode,
     uploadClientFiles,
 } from './remoteServer';
+import {DapTransport, StdioDapTransport, TcpDapTransport} from './transport';
 
 export async function activate(context: vscode.ExtensionContext) {
     const descriptorFactory = new ProbeRSDebugAdapterServerDescriptorFactory();
@@ -308,9 +309,16 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
         }
     }
 
-    // Note. We do NOT use `DebugAdapterExecutable`, but instead use `DebugAdapterServer` in all cases.
-    // - The decision was made during investigation of an [issue](https://github.com/probe-rs/probe-rs/issues/703) ... basically, after the probe-rs API was fixed, the code would work well for TCP connections (`DebugAdapterServer`), but would not work for STDIO connections (`DebugAdapterServer`). After some searches I found other extension developers that also found the TCP based connections to be more stable.
-    //  - Since then, we have taken advantage of the access to stderr that `DebugAdapterServer` offers to route `RUST_LOG` output from the debugger to the user's VSCode Debug Console. This is a very useful capability, and cannot easily be implemented in `DebugAdapterExecutable`, because it does not allow access to `stderr` [See ongoing issue in VScode repo](https://github.com/microsoft/vscode/issues/108145).
+    // Note. We do NOT use `DebugAdapterExecutable`, but always spawn the dap-server ourselves and
+    // hand VSCode a `DebugAdapterInlineImplementation` wrapped around a [`DapTransport`].
+    // - `DebugAdapterExecutable` would let VSCode own the stdio pipes, but it does not give us
+    //   access to `stderr` [see ongoing issue in the VSCode repo](https://github.com/microsoft/vscode/issues/108145),
+    //   and routing the debugger's `RUST_LOG` output to the user's Debug Console is a capability we
+    //   want to keep. Owning the process ourselves also lets us apply client-side source-path
+    //   rewrites in transit (see [`ProbeRsDebugAdapter`]).
+    // - The transport underneath follows from the configuration: stdio for a server we launch
+    //   ourselves, and TCP when the user points us at an existing (possibly remote) server
+    //   with `server`.
     async createDebugAdapterDescriptor(
         session: vscode.DebugSession,
         executable: vscode.DebugAdapterExecutable | undefined,
@@ -318,17 +326,6 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
         if (session.configuration.hasOwnProperty('consoleLogLevel')) {
             consoleLogLevel = session.configuration.consoleLogLevel.toLowerCase();
         }
-
-        // When starting the debugger process, we have to wait for debuggerStatus to be set to `DebuggerStatus.running` before we continue
-        enum DebuggerStatus {
-            starting,
-            running,
-            failed,
-        }
-        var debuggerStatus: DebuggerStatus = DebuggerStatus.starting;
-
-        //Provide default server host and port for "launch" configurations, where this is NOT a mandatory config
-        var debugServer = new String('127.0.0.1:50000').split(':', 2);
 
         // Validate that the `cwd` folder exists.
         if (!existsSync(session.configuration.cwd)) {
@@ -347,218 +344,238 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             return undefined;
         }
 
-        if (session.configuration.hasOwnProperty('server')) {
-            debugServer = new String(session.configuration.server).split(':', 2);
-            logToConsole(
-                `${ConsoleLogSources.console}: Debug using existing server" ${JSON.stringify(
-                    debugServer[0],
-                )} on port ${JSON.stringify(debugServer[1])}`,
+        // `server` names either an existing `probe-rs dap-server` to connect to over TCP
+        // (`host:port`), or a remote probe-rs server whose probes we borrow over RPC
+        // (any URL). Only the former is a server we do not launch ourselves.
+        var existingServer: string | undefined =
+            typeof session.configuration.server === 'string' &&
+            session.configuration.server.length > 0 &&
+            !isRpcServer(session.configuration.server)
+                ? session.configuration.server
+                : undefined;
+
+        var transport: DapTransport = existingServer
+            ? connectToExistingServer(existingServer)
+            : await launchServerOverStdio(session, executable);
+
+        // Always interpose our own [`ProbeRsDebugAdapter`] in front of the transport
+        // so we can apply client-side source-path rewrites in transit.
+        //
+        // The rewrites come from two sources, combined into a single ordered
+        // [`SourceFileMap`]:
+        //   - The user's `sourceFileMap` setting in `launch.json` (language-agnostic;
+        //     useful for C / cross-compile / docker-built artifacts where DWARF
+        //     records build-host paths).
+        //   - For Rust users, an auto-detected entry that maps the synthetic
+        //     `/rustc/<hash>/...` build prefix to the active toolchain's local
+        //     sysroot, so stepping into precompiled rustlib code resolves to a
+        //     viewable file.
+        // Either source may be empty; if both are empty the adapter is a verbatim
+        // byte forwarder.
+        var sourceFileMap: SourceFileMap;
+        try {
+            sourceFileMap = await buildSourceFileMap(
+                session.configuration.sourceFileMap,
+                (message) => logToConsole(`${ConsoleLogSources.console}: ${message}`),
             );
-            debuggerStatus = DebuggerStatus.running; // If this is not true as expected, then the user will be notified later.
-        } else {
-            // Find and use the first available port and spawn a new probe-rs dap-server process
-            try {
-                var port: number = await getPort();
-                debugServer = `127.0.0.1:${port}`.split(':', 2);
-            } catch (err: any) {
-                logToConsole(`${ConsoleLogSources.error}: ${JSON.stringify(err.message, null, 2)}`);
-                vscode.window.showErrorMessage(
-                    `Searching for available port failed with: ${JSON.stringify(
-                        err.message,
-                        null,
-                        2,
-                    )}`,
-                );
-                return undefined;
-            }
-            var args: string[];
-            if (session.configuration.hasOwnProperty('runtimeArgs')) {
-                args = session.configuration.runtimeArgs;
-            } else {
-                args = ['dap-server'];
-            }
-            args.push('--port');
-            args.push(debugServer[1]);
-            if (session.configuration.hasOwnProperty('logFile')) {
-                args.push('--log-file');
-                args.push(session.configuration.logFile);
-            } else if (session.configuration.hasOwnProperty('logToFolder')) {
-                args.push('--log-to-folder');
-            }
-
-            var options = {
-                cwd: session.configuration.cwd,
-                env: {...process.env, ...session.configuration.env},
-                windowsHide: true,
-            };
-
-            // Force the debugger to generate
-            options.env.CLICOLOR_FORCE = '1';
-
-            var command = '';
-            if (!executable) {
-                if (session.configuration.hasOwnProperty('runtimeExecutable')) {
-                    command = session.configuration.runtimeExecutable;
-                } else {
-                    command = debuggerExecutablePath();
-                }
-            } else {
-                command = executable.command;
-            }
-
-            // The debug adapter process was launched by VSCode, and should terminate itself at the end of every debug session (when receiving `Disconnect` or `Terminate` Request from VSCode). The "false"(default) state of this option implies that the process was launched (and will be managed) by the user.
-            args.push('--vscode');
-
-            // Launch the debugger ...
+        } catch (error: any) {
             logToConsole(
-                `${ConsoleLogSources.console}: Launching new server ${JSON.stringify(command)}`,
+                `${ConsoleLogSources.warn}: ${ConsoleLogSources.console}: Failed to build sourceFileMap: ${JSON.stringify(error?.message ?? error, null, 2)}`,
             );
-            logToConsole(
-                `${ConsoleLogSources.debug.toLowerCase()}: Launch environment variables: ${JSON.stringify(args)} ${JSON.stringify(options)}`,
-            );
-
-            try {
-                var launchedDebugAdapter = await startDebugServer(command, args, options);
-            } catch (error: any) {
-                logToConsole(`Failed to launch debug adapter: ${JSON.stringify(error)}`);
-
-                var errorMessage = error;
-
-                // Nicer error message when the executable could not be found.
-                if ('code' in error && error.code === 'ENOENT') {
-                    errorMessage = `Executable '${command}' was not found.`;
-                }
-
-                return Promise.reject(`Failed to launch probe-rs debug adapter: ${errorMessage}`);
-            }
-
-            // Capture stderr to ensure OS and RUST_LOG error messages can be brought to the user's attention.
-            launchedDebugAdapter.stderr?.on('data', (data: string) => {
-                if (
-                    debuggerStatus === (DebuggerStatus.running as DebuggerStatus) ||
-                    data.toString().startsWith(ConsoleLogSources.console)
-                ) {
-                    logToConsole(data.toString(), true);
-                } else {
-                    // Any STDERR messages during startup, or on process error, that
-                    // are not DebuggerStatus.console types, need special consideration,
-                    // otherwise they will be lost.
-                    debuggerStatus = DebuggerStatus.failed;
-                    vscode.window.showErrorMessage(data.toString());
-                    logToConsole(data.toString(), true);
-                    launchedDebugAdapter.kill();
-                }
-            });
-            launchedDebugAdapter.on('close', (code: number | null, signal: string | null) => {
-                if (debuggerStatus !== (DebuggerStatus.failed as DebuggerStatus)) {
-                    handleExit(code, signal);
-                }
-            });
-            launchedDebugAdapter.on('error', (err: Error) => {
-                if (debuggerStatus !== (DebuggerStatus.failed as DebuggerStatus)) {
-                    debuggerStatus = DebuggerStatus.failed;
-                    logToConsole(
-                        `${JSON.stringify(
-                            ConsoleLogSources.error,
-                        )}: probe-rs dap-server process encountered an error: ${JSON.stringify(
-                            err,
-                        )} `,
-                        true,
-                    );
-                    launchedDebugAdapter.kill();
-                }
-            });
-
-            // Wait to make sure probe-rs dap-server startup completed, and is ready to accept connections.
-            var msRetrySleep = 250;
-            var numRetries = 5000 / msRetrySleep;
-            while (debuggerStatus !== DebuggerStatus.running && numRetries > 0) {
-                await new Promise<void>((resolve) => setTimeout(resolve, msRetrySleep));
-                if (debuggerStatus === DebuggerStatus.starting) {
-                    // Test to confirm probe-rs dap-server is ready to accept requests on the specified port.
-                    try {
-                        var testPort: number = await getPort({
-                            port: +debugServer[1],
-                        });
-                        if (testPort === +debugServer[1]) {
-                            // Port is available, so probe-rs dap-server is not yet initialized.
-                            numRetries--;
-                        } else {
-                            // Port is not available, so probe-rs dap-server is initialized.
-                            debuggerStatus = DebuggerStatus.running;
-                        }
-                    } catch (err: any) {
-                        logToConsole(
-                            `${ConsoleLogSources.error}: ${JSON.stringify(err.message, null, 2)}`,
-                        );
-                        vscode.window.showErrorMessage(
-                            `Testing probe-rs dap-server port availability failed with: ${JSON.stringify(
-                                err.message,
-                                null,
-                                2,
-                            )}`,
-                        );
-                        return undefined;
-                    }
-                } else if (debuggerStatus === DebuggerStatus.failed) {
-                    // We would have already reported this, so just get out of the loop.
-                    break;
-                } else {
-                    debuggerStatus = DebuggerStatus.failed;
-                    logToConsole(
-                        `${ConsoleLogSources.error}: Timeout waiting for probe-rs dap-server to launch`,
-                    );
-                    vscode.window.showErrorMessage(
-                        'Timeout waiting for probe-rs dap-server to launch',
-                    );
-                    break;
-                }
-            }
-
-            if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
-                await new Promise<void>((resolve) => setTimeout(resolve, 500)); // Wait for a fraction of a second more, to allow TCP/IP port to initialize in probe-rs dap-server
-            }
+            sourceFileMap = {entries: []};
         }
 
-        // make VS Code connect to debug server.
-        if (debuggerStatus === (DebuggerStatus.running as DebuggerStatus)) {
-            // Always interpose our own [`ProbeRsRemoteDebugAdapter`] in front of the TCP
-            // connection so we can apply client-side source-path rewrites in transit.
-            //
-            // The rewrites come from two sources, combined into a single ordered
-            // [`SourceFileMap`]:
-            //   - The user's `sourceFileMap` setting in `launch.json` (language-agnostic;
-            //     useful for C / cross-compile / docker-built artifacts where DWARF
-            //     records build-host paths).
-            //   - For Rust users, an auto-detected entry that maps the synthetic
-            //     `/rustc/<hash>/...` build prefix to the active toolchain's local
-            //     sysroot, so stepping into precompiled rustlib code resolves to a
-            //     viewable file.
-            // Either source may be empty; if both are empty the adapter is a verbatim
-            // byte forwarder.
-            var sourceFileMap: SourceFileMap;
-            try {
-                sourceFileMap = await buildSourceFileMap(
-                    session.configuration.sourceFileMap,
-                    (message) => logToConsole(`${ConsoleLogSources.console}: ${message}`),
-                );
-            } catch (error: any) {
-                logToConsole(
-                    `${ConsoleLogSources.warn}: ${ConsoleLogSources.console}: Failed to build sourceFileMap: ${JSON.stringify(error?.message ?? error, null, 2)}`,
-                );
-                sourceFileMap = {entries: []};
-            }
-            return new vscode.DebugAdapterInlineImplementation(
-                new ProbeRsRemoteDebugAdapter(debugServer[0], +debugServer[1], sourceFileMap),
-            );
-        }
-        // If we reach here, VSCode will report the failure to start the debug adapter.
+        return new vscode.DebugAdapterInlineImplementation(
+            new ProbeRsDebugAdapter(transport, sourceFileMap),
+        );
     }
 
     dispose() {
         // Attempting to write to the console here will loose messages, as the debug session has already been terminated.
         // Instead we use the `onWillEndSession` event of the `DebugAdapterTracker` to handle this.
     }
+}
+
+/**
+ * Connect to a `probe-rs dap-server` that the user started and manages themselves.
+ * Only TCP can reach such a server, because its stdio belongs to whoever launched it.
+ */
+function connectToExistingServer(server: string): DapTransport {
+    var parts = new String(server).split(':', 2);
+    var host = parts[0];
+    var port = parts.length > 1 && parts[1].length > 0 ? +parts[1] : defaultServerPort;
+    logToConsole(
+        `${ConsoleLogSources.console}: Debug using existing server ${JSON.stringify(
+            host,
+        )} on port ${JSON.stringify(port)}`,
+    );
+    return new TcpDapTransport(host, port);
+}
+
+// Documented default for the `server` configuration property, used when the user gives a
+// host without a port.
+const defaultServerPort = 50000;
+
+/**
+ * Spawn a `probe-rs dap-server` process for this session and talk to it over its pipes.
+ * This is how every session that the extension launches itself is served: no port is
+ * allocated, and the server is not reachable from the network.
+ * Omitting `--port` is what puts the dap-server in stdio mode.
+ *
+ * The probes are local unless `server` names a remote probe-rs server, in which case
+ * `--host` points this process at it. Either way the process itself is local and reads
+ * the configured files off this machine's disk.
+ *
+ * Rejects when the process cannot be spawned at all; a process that spawns but then
+ * fails reports itself through [`superviseLaunchedServer`].
+ */
+async function launchServerOverStdio(
+    session: vscode.DebugSession,
+    executable: vscode.DebugAdapterExecutable | undefined,
+): Promise<DapTransport> {
+    var args: string[];
+    if (session.configuration.hasOwnProperty('runtimeArgs')) {
+        // Copy, so that repeated launches do not accumulate arguments on the configuration.
+        args = [...session.configuration.runtimeArgs];
+    } else {
+        args = ['dap-server'];
+    }
+    args.push(...remoteProbeArgs(session.configuration));
+    if (session.configuration.hasOwnProperty('logFile')) {
+        args.push('--log-file');
+        args.push(session.configuration.logFile);
+    } else if (session.configuration.hasOwnProperty('logToFolder')) {
+        args.push('--log-to-folder');
+    }
+
+    var options = {
+        cwd: session.configuration.cwd,
+        env: {...process.env, ...session.configuration.env},
+        windowsHide: true,
+    };
+
+    // Force the debugger to generate
+    options.env.CLICOLOR_FORCE = '1';
+
+    var command = '';
+    if (!executable) {
+        if (session.configuration.hasOwnProperty('runtimeExecutable')) {
+            command = session.configuration.runtimeExecutable;
+        } else {
+            command = debuggerExecutablePath();
+        }
+    } else {
+        command = executable.command;
+    }
+
+    // The debug adapter process was launched by VSCode, and should terminate itself at the end of every debug session (when receiving `Disconnect` or `Terminate` Request from VSCode). The "false"(default) state of this option implies that the process was launched (and will be managed) by the user.
+    args.push('--vscode');
+
+    // Launch the debugger ...
+    logToConsole(`${ConsoleLogSources.console}: Launching new server ${JSON.stringify(command)}`);
+    logToConsole(
+        `${ConsoleLogSources.debug.toLowerCase()}: Launch environment variables: ${JSON.stringify(withRedactedToken(args))} ${JSON.stringify(options)}`,
+    );
+
+    try {
+        var launchedDebugAdapter = await startDebugServer(command, args, options);
+    } catch (error: any) {
+        logToConsole(`Failed to launch debug adapter: ${JSON.stringify(error)}`);
+
+        var errorMessage = error;
+
+        // Nicer error message when the executable could not be found.
+        if ('code' in error && error.code === 'ENOENT') {
+            errorMessage = `Executable '${command}' was not found.`;
+        }
+
+        return Promise.reject(`Failed to launch probe-rs debug adapter: ${errorMessage}`);
+    }
+
+    superviseLaunchedServer(launchedDebugAdapter);
+    logToConsole(`${ConsoleLogSources.console}: Communicating with new server over stdio`);
+
+    return new StdioDapTransport(launchedDebugAdapter);
+}
+
+/**
+ * The arguments that point a locally launched dap-server at a remote probe-rs server,
+ * derived from `server` and `token`. Empty for a session that drives local probes.
+ *
+ * The `server` value is passed through verbatim, so that schemes probe-rs gains later
+ * work without a change here; it reports an unusable value on stderr.
+ */
+function remoteProbeArgs(config: vscode.DebugConfiguration): string[] {
+    var host: string | undefined =
+        typeof config.server === 'string' && isRpcServer(config.server)
+            ? config.server.trim()
+            : undefined;
+    var token: string | undefined =
+        typeof config.token === 'string' && config.token.length > 0 ? config.token : undefined;
+
+    if (!host) {
+        if (token) {
+            logToConsole(
+                `${ConsoleLogSources.warn}: ${ConsoleLogSources.console}: Ignoring 'token', because 'server' does not name a remote probe-rs server to authenticate against`,
+            );
+        }
+        return [];
+    }
+
+    logToConsole(
+        `${ConsoleLogSources.console}: Using probes from remote probe-rs server ${JSON.stringify(host)}`,
+    );
+
+    var args = ['--host', host];
+    if (token) {
+        args.push('--token', token);
+    }
+    return args;
+}
+
+/**
+ * A copy of the launch arguments with the `--token` value replaced, for logging: the
+ * Debug Console output routinely ends up in bug reports.
+ */
+function withRedactedToken(args: string[]): string[] {
+    var index = args.indexOf('--token');
+    if (index < 0 || index + 1 >= args.length) {
+        return args;
+    }
+    var redacted = [...args];
+    redacted[index + 1] = '<redacted>';
+    return redacted;
+}
+
+/**
+ * Route a launched dap-server's stderr to the Debug Console, and report its unexpected
+ * exits. Nothing needs to be watched for on stdout: that is the DAP channel, owned by
+ * [`StdioDapTransport`].
+ */
+function superviseLaunchedServer(server: childProcess.ChildProcessWithoutNullStreams) {
+    var failed = false;
+
+    // Capture stderr to ensure OS and RUST_LOG error messages can be brought to the user's attention.
+    server.stderr?.on('data', (data: string) => {
+        logToConsole(data.toString(), true);
+    });
+    server.on('close', (code: number | null, signal: string | null) => {
+        if (!failed) {
+            handleExit(code, signal);
+        }
+    });
+    server.on('error', (err: Error) => {
+        if (!failed) {
+            failed = true;
+            logToConsole(
+                `${JSON.stringify(
+                    ConsoleLogSources.error,
+                )}: probe-rs dap-server process encountered an error: ${JSON.stringify(err)} `,
+                true,
+            );
+            server.kill();
+        }
+    });
 }
 
 function startDebugServer(
@@ -723,7 +740,7 @@ class ProbeRSConfigurationProvider implements DebugConfigurationProvider {
      *
      *   1) Resolve the effective `remoteServerMode` from the launch configuration.
      *      If the user set it explicitly we use that; otherwise we infer it from
-     *      whether `server` points at a loopback host. The resolved boolean is
+     *      `server` (see `resolveRemoteServerMode`). The resolved boolean is
      *      written back onto the configuration so the dap-server sees a definite
      *      value.
      *   2) When `remoteServerMode` is in effect, read the three client-local
@@ -739,6 +756,11 @@ class ProbeRSConfigurationProvider implements DebugConfigurationProvider {
     ): Promise<DebugConfiguration | undefined> {
         config.remoteServerMode = resolveRemoteServerMode(config);
         if (config.remoteServerMode) {
+            if (typeof config.server === 'string' && isRpcServer(config.server)) {
+                logToConsole(
+                    `${ConsoleLogSources.warn}: ${ConsoleLogSources.console}: 'remoteServerMode' is not needed when 'server' names a remote probe-rs server: the dap-server runs locally and reads your files directly`,
+                );
+            }
             logToConsole(
                 `${ConsoleLogSources.console}: Running in remoteServerMode; uploading client-local files to ${
                     config.server ?? '(locally-managed dap-server)'

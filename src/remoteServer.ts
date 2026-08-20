@@ -6,15 +6,17 @@
  * Three responsibilities live here:
  *   1) `resolveRemoteServerMode` — derive the boolean `remoteServerMode` flag from
  *      the launch configuration. The user can set it explicitly; otherwise it is
- *      inferred from whether the configured `server` host is loopback or not.
+ *      inferred from the configured `server`: an RPC URL keeps the dap-server
+ *      local (only the probes are remote), and for a `host:port` dap-server the
+ *      answer follows from whether that host is loopback.
  *   2) `uploadClientFiles` — when `remoteServerMode` is in effect, read and
  *      base64-encode the three client-local files referenced in the launch
  *      configuration (`programBinary`, `svdFile`, `chipDescriptionPath`) and
  *      attach them to the configuration as `programBinaryData` / `svdFileData` /
  *      `chipDescriptionData` so the server can materialize them to a temp file.
- *   3) `ProbeRsRemoteDebugAdapter` — wrap the TCP connection to the dap-server
- *      with a `vscode.DebugAdapter` that forwards bytes verbatim except that any
- *      incoming `Source.path` is rewritten using the user's `sourceFileMap`
+ *   3) `ProbeRsDebugAdapter` — wrap a [`DapTransport`] to the dap-server (stdio
+ *      or TCP) with a `vscode.DebugAdapter` that forwards bytes verbatim except
+ *      that any incoming `Source.path` is rewritten using the user's `sourceFileMap`
  *      (plus, for Rust users, an auto-detected entry that maps the synthetic
  *      `/rustc/<hash>/...` build prefix to the active toolchain's local sysroot).
  *      The DAP server itself no longer performs any source-path rewriting; that
@@ -26,10 +28,10 @@
 
 import * as childProcess from 'child_process';
 import {promises as fs, existsSync} from 'fs';
-import * as net from 'net';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import {DapTransport} from './transport';
 
 /**
  * One client-side source-path rewrite. A DAP `Source.path` value that starts
@@ -59,9 +61,11 @@ export interface SourceFileMap {
  *
  * Resolution order:
  *   1) An explicit `remoteServerMode: boolean` in the launch configuration wins.
- *   2) Otherwise, infer from `server`: a loopback host (e.g. `127.0.0.1`,
+ *   2) An RPC URL `server` means `false`: the dap-server runs on this machine
+ *      and reads the client's files directly, only the probes are remote.
+ *   3) Otherwise, infer from `server`: a loopback host (e.g. `127.0.0.1`,
  *      `::1`, `localhost`) means local; anything else means remote.
- *   3) If neither `remoteServerMode` nor `server` is set, the extension is
+ *   4) If neither `remoteServerMode` nor `server` is set, the extension is
  *      managing a locally-spawned dap-server, so the answer is `false`.
  *
  * The resolved boolean is written back onto the configuration so downstream
@@ -72,9 +76,22 @@ export function resolveRemoteServerMode(config: vscode.DebugConfiguration): bool
         return config.remoteServerMode;
     }
     if (typeof config.server === 'string' && config.server.length > 0) {
+        if (isRpcServer(config.server)) {
+            return false;
+        }
         return !isLoopbackServer(config.server);
     }
     return false;
+}
+
+/**
+ * Returns `true` if the `server` configuration string names a remote probe-rs
+ * server to reach over RPC (`ws://`, `ssh://`, ...), rather than the `host:port`
+ * of a `probe-rs dap-server` to connect to over TCP. Requiring the `//` keeps a
+ * bare IPv6 address from being mistaken for a URL.
+ */
+export function isRpcServer(server: string): boolean {
+    return server.trim().includes('://');
 }
 
 /**
@@ -327,65 +344,47 @@ function captureProcessOutput(command: string, args: string[]): Promise<string |
 }
 
 /**
- * Bidirectional proxy between VSCode's DAP client and a TCP `probe-rs dap-server`,
- * used so the extension can transparently rewrite incoming `Source.path` values
- * using the configured `SourceFileMap`. When the map is empty, this adapter is a
- * verbatim byte forwarder.
+ * Bidirectional proxy between VSCode's DAP client and a `probe-rs dap-server`
+ * reached over a [`DapTransport`] (stdio or TCP), used so the extension can
+ * transparently rewrite incoming `Source.path` values using the configured
+ * `SourceFileMap`. When the map is empty, this adapter is a verbatim byte
+ * forwarder.
  *
- * The DAP framing on the wire is the same `Content-Length: <n>\r\n\r\n<json>`
- * envelope used over stdio, so we parse that here in order to surface fully
- * decoded messages to the rewrite step.
+ * The DAP framing is the same `Content-Length: <n>\r\n\r\n<json>` envelope on
+ * both transports, so we parse that here in order to surface fully decoded
+ * messages to the rewrite step.
  */
-export class ProbeRsRemoteDebugAdapter implements vscode.DebugAdapter {
+export class ProbeRsDebugAdapter implements vscode.DebugAdapter {
     private readonly _onDidSendMessage = new vscode.EventEmitter<vscode.DebugProtocolMessage>();
     readonly onDidSendMessage: vscode.Event<vscode.DebugProtocolMessage> =
         this._onDidSendMessage.event;
 
-    private socket: net.Socket | undefined;
-    private connected: boolean = false;
-    private outboundQueue: Buffer[] = [];
     private inboundBuffer: Buffer = Buffer.alloc(0);
+    private disposed: boolean = false;
 
     constructor(
-        host: string,
-        port: number,
+        private readonly transport: DapTransport,
         private readonly sourceFileMap: SourceFileMap,
     ) {
-        this.socket = new net.Socket();
-        this.socket.setNoDelay(true);
-
-        this.socket.on('connect', () => {
-            this.connected = true;
-            for (var data of this.outboundQueue) {
-                this.socket!.write(data);
-            }
-            this.outboundQueue = [];
+        this.transport.start({
+            onData: (chunk: Buffer) => {
+                this.inboundBuffer = Buffer.concat([this.inboundBuffer, chunk]);
+                this.parseInbound();
+            },
+            onClose: () => this.reportTerminated(),
+            onError: (error: Error) => {
+                console.error(
+                    `probe-rs debug adapter ${this.transport.description} error: `,
+                    error,
+                );
+            },
         });
-        this.socket.on('data', (chunk: Buffer) => {
-            this.inboundBuffer = Buffer.concat([this.inboundBuffer, chunk]);
-            this.parseInbound();
-        });
-        this.socket.on('close', () => {
-            // The DAP session ends when the server closes; VSCode handles this via
-            // the DebugAdapterTracker's `onExit` and via the lack of further events.
-            this.connected = false;
-        });
-        this.socket.on('error', (error) => {
-            console.error('probe-rs remote adapter TCP error: ', error);
-        });
-
-        this.socket.connect(port, host);
     }
 
     handleMessage(message: vscode.DebugProtocolMessage): void {
         var json = JSON.stringify(message);
         var encoded = Buffer.byteLength(json, 'utf8');
-        var framed = Buffer.from(`Content-Length: ${encoded}\r\n\r\n${json}`, 'utf8');
-        if (this.connected && this.socket) {
-            this.socket.write(framed);
-        } else {
-            this.outboundQueue.push(framed);
-        }
+        this.transport.write(Buffer.from(`Content-Length: ${encoded}\r\n\r\n${json}`, 'utf8'));
     }
 
     private parseInbound(): void {
@@ -416,7 +415,7 @@ export class ProbeRsRemoteDebugAdapter implements vscode.DebugAdapter {
                 body = JSON.parse(bodyBytes.toString('utf8'));
             } catch (error) {
                 console.error(
-                    'probe-rs remote adapter: failed to parse DAP message from server: ',
+                    'probe-rs debug adapter: failed to parse DAP message from server: ',
                     error,
                 );
                 continue;
@@ -430,11 +429,22 @@ export class ProbeRsRemoteDebugAdapter implements vscode.DebugAdapter {
         }
     }
 
-    dispose(): any {
-        if (this.socket) {
-            this.socket.destroy();
-            this.socket = undefined;
+    /**
+     * Tell VSCode the session is over, because the server is gone. Nothing else will:
+     * an inline implementation gives VSCode no process to watch and no socket to
+     * notice closing, so without this a server that dies leaves the session hanging
+     * on whatever request it last sent.
+     */
+    private reportTerminated(): void {
+        if (this.disposed) {
+            return;
         }
+        this._onDidSendMessage.fire({type: 'event', event: 'terminated', seq: 0} as any);
+    }
+
+    dispose(): any {
+        this.disposed = true;
+        this.transport.dispose();
         this._onDidSendMessage.dispose();
     }
 }
