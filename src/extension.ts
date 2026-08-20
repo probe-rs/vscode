@@ -22,6 +22,7 @@ import {
     ProbeRsDebugAdapter,
     SourceFileMap,
     buildSourceFileMap,
+    isRpcServer,
     resolveRemoteServerMode,
     uploadClientFiles,
 } from './remoteServer';
@@ -343,9 +344,13 @@ class ProbeRSDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterD
             return undefined;
         }
 
+        // `server` names either an existing `probe-rs dap-server` to connect to over TCP
+        // (`host:port`), or a remote probe-rs server whose probes we borrow over RPC
+        // (any URL). Only the former is a server we do not launch ourselves.
         var existingServer: string | undefined =
             typeof session.configuration.server === 'string' &&
-            session.configuration.server.length > 0
+            session.configuration.server.length > 0 &&
+            !isRpcServer(session.configuration.server)
                 ? session.configuration.server
                 : undefined;
 
@@ -417,8 +422,12 @@ const defaultServerPort = 50000;
  * allocated, and the server is not reachable from the network.
  * Omitting `--port` is what puts the dap-server in stdio mode.
  *
+ * The probes are local unless `server` names a remote probe-rs server, in which case
+ * `--host` points this process at it. Either way the process itself is local and reads
+ * the configured files off this machine's disk.
+ *
  * Rejects when the process cannot be spawned at all; a process that spawns but then
- * fails reports itself through [`LaunchedDapServer`].
+ * fails reports itself through [`superviseLaunchedServer`].
  */
 async function launchServerOverStdio(
     session: vscode.DebugSession,
@@ -431,6 +440,7 @@ async function launchServerOverStdio(
     } else {
         args = ['dap-server'];
     }
+    args.push(...remoteProbeArgs(session.configuration));
     if (session.configuration.hasOwnProperty('logFile')) {
         args.push('--log-file');
         args.push(session.configuration.logFile);
@@ -464,7 +474,7 @@ async function launchServerOverStdio(
     // Launch the debugger ...
     logToConsole(`${ConsoleLogSources.console}: Launching new server ${JSON.stringify(command)}`);
     logToConsole(
-        `${ConsoleLogSources.debug.toLowerCase()}: Launch environment variables: ${JSON.stringify(args)} ${JSON.stringify(options)}`,
+        `${ConsoleLogSources.debug.toLowerCase()}: Launch environment variables: ${JSON.stringify(withRedactedToken(args))} ${JSON.stringify(options)}`,
     );
 
     try {
@@ -486,6 +496,55 @@ async function launchServerOverStdio(
     logToConsole(`${ConsoleLogSources.console}: Communicating with new server over stdio`);
 
     return new StdioDapTransport(launchedDebugAdapter);
+}
+
+/**
+ * The arguments that point a locally launched dap-server at a remote probe-rs server,
+ * derived from `server` and `token`. Empty for a session that drives local probes.
+ *
+ * The `server` value is passed through verbatim, so that schemes probe-rs gains later
+ * work without a change here; it reports an unusable value on stderr.
+ */
+function remoteProbeArgs(config: vscode.DebugConfiguration): string[] {
+    var host: string | undefined =
+        typeof config.server === 'string' && isRpcServer(config.server)
+            ? config.server.trim()
+            : undefined;
+    var token: string | undefined =
+        typeof config.token === 'string' && config.token.length > 0 ? config.token : undefined;
+
+    if (!host) {
+        if (token) {
+            logToConsole(
+                `${ConsoleLogSources.warn}: ${ConsoleLogSources.console}: Ignoring 'token', because 'server' does not name a remote probe-rs server to authenticate against`,
+            );
+        }
+        return [];
+    }
+
+    logToConsole(
+        `${ConsoleLogSources.console}: Using probes from remote probe-rs server ${JSON.stringify(host)}`,
+    );
+
+    var args = ['--host', host];
+    if (token) {
+        args.push('--token', token);
+    }
+    return args;
+}
+
+/**
+ * A copy of the launch arguments with the `--token` value replaced, for logging: the
+ * Debug Console output routinely ends up in bug reports.
+ */
+function withRedactedToken(args: string[]): string[] {
+    var index = args.indexOf('--token');
+    if (index < 0 || index + 1 >= args.length) {
+        return args;
+    }
+    var redacted = [...args];
+    redacted[index + 1] = '<redacted>';
+    return redacted;
 }
 
 /**
@@ -681,7 +740,7 @@ class ProbeRSConfigurationProvider implements DebugConfigurationProvider {
      *
      *   1) Resolve the effective `remoteServerMode` from the launch configuration.
      *      If the user set it explicitly we use that; otherwise we infer it from
-     *      whether `server` points at a loopback host. The resolved boolean is
+     *      `server` (see `resolveRemoteServerMode`). The resolved boolean is
      *      written back onto the configuration so the dap-server sees a definite
      *      value.
      *   2) When `remoteServerMode` is in effect, read the three client-local
@@ -697,6 +756,11 @@ class ProbeRSConfigurationProvider implements DebugConfigurationProvider {
     ): Promise<DebugConfiguration | undefined> {
         config.remoteServerMode = resolveRemoteServerMode(config);
         if (config.remoteServerMode) {
+            if (typeof config.server === 'string' && isRpcServer(config.server)) {
+                logToConsole(
+                    `${ConsoleLogSources.warn}: ${ConsoleLogSources.console}: 'remoteServerMode' is not needed when 'server' names a remote probe-rs server: the dap-server runs locally and reads your files directly`,
+                );
+            }
             logToConsole(
                 `${ConsoleLogSources.console}: Running in remoteServerMode; uploading client-local files to ${
                     config.server ?? '(locally-managed dap-server)'

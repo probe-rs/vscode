@@ -6,7 +6,9 @@
  * Three responsibilities live here:
  *   1) `resolveRemoteServerMode` — derive the boolean `remoteServerMode` flag from
  *      the launch configuration. The user can set it explicitly; otherwise it is
- *      inferred from whether the configured `server` host is loopback or not.
+ *      inferred from the configured `server`: an RPC URL keeps the dap-server
+ *      local (only the probes are remote), and for a `host:port` dap-server the
+ *      answer follows from whether that host is loopback.
  *   2) `uploadClientFiles` — when `remoteServerMode` is in effect, read and
  *      base64-encode the three client-local files referenced in the launch
  *      configuration (`programBinary`, `svdFile`, `chipDescriptionPath`) and
@@ -59,9 +61,11 @@ export interface SourceFileMap {
  *
  * Resolution order:
  *   1) An explicit `remoteServerMode: boolean` in the launch configuration wins.
- *   2) Otherwise, infer from `server`: a loopback host (e.g. `127.0.0.1`,
+ *   2) An RPC URL `server` means `false`: the dap-server runs on this machine
+ *      and reads the client's files directly, only the probes are remote.
+ *   3) Otherwise, infer from `server`: a loopback host (e.g. `127.0.0.1`,
  *      `::1`, `localhost`) means local; anything else means remote.
- *   3) If neither `remoteServerMode` nor `server` is set, the extension is
+ *   4) If neither `remoteServerMode` nor `server` is set, the extension is
  *      managing a locally-spawned dap-server, so the answer is `false`.
  *
  * The resolved boolean is written back onto the configuration so downstream
@@ -72,9 +76,22 @@ export function resolveRemoteServerMode(config: vscode.DebugConfiguration): bool
         return config.remoteServerMode;
     }
     if (typeof config.server === 'string' && config.server.length > 0) {
+        if (isRpcServer(config.server)) {
+            return false;
+        }
         return !isLoopbackServer(config.server);
     }
     return false;
+}
+
+/**
+ * Returns `true` if the `server` configuration string names a remote probe-rs
+ * server to reach over RPC (`ws://`, `ssh://`, ...), rather than the `host:port`
+ * of a `probe-rs dap-server` to connect to over TCP. Requiring the `//` keeps a
+ * bare IPv6 address from being mistaken for a URL.
+ */
+export function isRpcServer(server: string): boolean {
+    return server.trim().includes('://');
 }
 
 /**
@@ -343,6 +360,7 @@ export class ProbeRsDebugAdapter implements vscode.DebugAdapter {
         this._onDidSendMessage.event;
 
     private inboundBuffer: Buffer = Buffer.alloc(0);
+    private disposed: boolean = false;
 
     constructor(
         private readonly transport: DapTransport,
@@ -353,9 +371,7 @@ export class ProbeRsDebugAdapter implements vscode.DebugAdapter {
                 this.inboundBuffer = Buffer.concat([this.inboundBuffer, chunk]);
                 this.parseInbound();
             },
-            // The DAP session ends when the server closes; VSCode handles this via
-            // the DebugAdapterTracker's `onExit` and via the lack of further events.
-            onClose: () => {},
+            onClose: () => this.reportTerminated(),
             onError: (error: Error) => {
                 console.error(
                     `probe-rs debug adapter ${this.transport.description} error: `,
@@ -413,7 +429,21 @@ export class ProbeRsDebugAdapter implements vscode.DebugAdapter {
         }
     }
 
+    /**
+     * Tell VSCode the session is over, because the server is gone. Nothing else will:
+     * an inline implementation gives VSCode no process to watch and no socket to
+     * notice closing, so without this a server that dies leaves the session hanging
+     * on whatever request it last sent.
+     */
+    private reportTerminated(): void {
+        if (this.disposed) {
+            return;
+        }
+        this._onDidSendMessage.fire({type: 'event', event: 'terminated', seq: 0} as any);
+    }
+
     dispose(): any {
+        this.disposed = true;
         this.transport.dispose();
         this._onDidSendMessage.dispose();
     }
